@@ -1,50 +1,75 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, RefreshControl } from 'react-native';
+import { useRouter } from 'expo-router';
 import { colors, spacing, borderRadius, typography, shadows } from '../../src/constants/theme';
 import { GovHeader, Card, RiskBadge, Button } from '../../src/components/common';
 import { useAuthStore } from '../../src/store/useAuthStore';
+import { useInspectionStore } from '../../src/store/useInspectionStore';
+import { api } from '../../src/services/api';
 import { RiskLevel } from '@nirikshan/shared-types';
 
 export default function InspectorAssignments() {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const setInspectionTarget = useInspectionStore((s) => s.setInspectionTarget);
 
-  const assignments = [
-    {
-      id: 'insp-001',
-      project: 'Demo Welfare Institute - Coimbatore',
-      address: '42 Avinashi Road, Peelamedu, Coimbatore',
-      type: 'SURPRISE PHYSICAL INSPECTION',
-      deadline: 'Today, 05:00 PM',
-      riskLevel: RiskLevel.HIGH,
-      riskScore: 82,
-      reason: 'High Attendance Mismatch (33.7%) flagged by computer vision',
-      status: 'ACTIVE_NOW',
-    },
-    {
-      id: 'insp-003',
-      project: 'Demo Senior Care Sanctuary - Chennai',
-      address: '15 GST Road, Guindy, Chennai',
-      type: 'ROUTINE VERIFICATION',
-      deadline: 'Tomorrow, 12:00 PM',
-      riskLevel: RiskLevel.LOW,
-      riskScore: 24,
-      reason: 'Semi-annual routine physical audit',
-      status: 'UPCOMING',
-    },
-  ];
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
+
+  const fetchAssignments = async () => {
+    try {
+      const data = await api.getMyInspections(user?.id);
+      setAssignments(data);
+    } catch (e) {
+      console.warn('Failed to fetch inspector assignments:', e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchAssignments();
+  };
+
+  const handleStartInspection = (task: any) => {
+    const projName = task.project?.name || task.project || 'Demo Welfare Institute - Coimbatore';
+    const projAddress = task.project?.address || task.address || '42 Avinashi Road, Peelamedu, Coimbatore';
+    const projLat = task.project?.latitude || 11.0267;
+    const projLon = task.project?.longitude || 76.9953;
+
+    setInspectionTarget(task.id, task.projectId || 'proj-001', projName, projAddress, projLat, projLon);
+
+    router.push({
+      pathname: '/(inspector)/map',
+      params: {
+        inspectionId: task.id,
+        projectId: task.projectId || 'proj-001',
+      },
+    });
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <GovHeader title="INSPECTOR TASKS" subtitle="Surprise Assignments & Field Deployments" />
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         {/* Inspector Identity Card */}
         <View style={styles.inspectorBanner}>
           <View>
             <Text style={styles.inspectorGreeting}>Assigned PMU Officer</Text>
             <Text style={styles.inspectorName}>{user?.name || 'Priya Verma'}</Text>
             <Text style={styles.inspectorDistrict}>
-              District: Coimbatore • Tamil Nadu PMU Unit
+              District: {user?.district || 'Coimbatore'} • {user?.state || 'Tamil Nadu'} PMU Unit
             </Text>
           </View>
           <View style={styles.badgeWrap}>
@@ -52,36 +77,54 @@ export default function InspectorAssignments() {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Today's Deployments</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Active Field Deployments</Text>
+          <Text style={styles.countBadge}>{assignments.length} Tasks Assigned</Text>
+        </View>
 
-        {assignments.map((task) => (
-          <Card key={task.id} style={styles.taskCard}>
-            <View style={styles.taskTop}>
-              <RiskBadge level={task.riskLevel} score={task.riskScore} showScore={true} />
-              <View style={styles.typePill}>
-                <Text style={styles.typePillText}>{task.type}</Text>
+        {assignments.map((task) => {
+          const projName = task.project?.name || task.project || 'Demo Welfare Institute';
+          const projAddress = task.project?.address || task.address || 'Field Location';
+          const riskLvl = task.project?.riskLevel || task.riskLevel || RiskLevel.HIGH;
+          const riskSc = task.project?.riskScore || task.riskScore || 80;
+          const reason =
+            task.project?.reason ||
+            task.reason ||
+            'High Attendance Mismatch flagged by central monitoring vision telemetry';
+          const deadline = task.deadline || 'Today, 05:00 PM';
+          const isCompleted = task.status === 'COMPLETED';
+
+          return (
+            <Card key={task.id} style={styles.taskCard}>
+              <View style={styles.taskTop}>
+                <RiskBadge level={riskLvl} score={riskSc} showScore={true} />
+                <View style={styles.typePill}>
+                  <Text style={styles.typePillText}>{task.type || 'SURPRISE PHYSICAL'}</Text>
+                </View>
               </View>
-            </View>
 
-            <Text style={styles.projectName}>{task.project}</Text>
-            <Text style={styles.projectAddress}>📍 {task.address}</Text>
+              <Text style={styles.projectName}>{projName}</Text>
+              <Text style={styles.projectAddress}>📍 {projAddress}</Text>
 
-            <View style={styles.reasonBox}>
-              <Text style={styles.reasonLabel}>Reason for Surprise Inspection:</Text>
-              <Text style={styles.reasonText}>{task.reason}</Text>
-            </View>
+              <View style={styles.reasonBox}>
+                <Text style={styles.reasonLabel}>Reason for Surprise Inspection:</Text>
+                <Text style={styles.reasonText}>{reason}</Text>
+              </View>
 
-            <View style={styles.taskFooter}>
-              <Text style={styles.deadlineText}>⏰ Due: {task.deadline}</Text>
-              <Button
-                title="Start Inspection ➔"
-                size="sm"
-                onPress={() => {}}
-                style={styles.startBtn}
-              />
-            </View>
-          </Card>
-        ))}
+              <View style={styles.taskFooter}>
+                <Text style={styles.deadlineText}>⏰ Due: {deadline}</Text>
+                <Button
+                  title={isCompleted ? "Inspection Completed ✓" : "Start Inspection ➔"}
+                  size="sm"
+                  variant={isCompleted ? "secondary" : "primary"}
+                  disabled={isCompleted}
+                  onPress={() => handleStartInspection(task)}
+                  style={styles.startBtn}
+                />
+              </View>
+            </Card>
+          );
+        })}
       </ScrollView>
     </SafeAreaView>
   );
@@ -95,6 +138,7 @@ const styles = StyleSheet.create({
   container: {
     padding: spacing.base,
     backgroundColor: colors.background,
+    paddingBottom: spacing.xxl,
   },
   inspectorBanner: {
     backgroundColor: colors.surface,
@@ -133,11 +177,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.primary,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
   sectionTitle: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
     color: colors.text,
-    marginBottom: spacing.sm,
+  },
+  countBadge: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textLight,
   },
   taskCard: {
     padding: spacing.base,

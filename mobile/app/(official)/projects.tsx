@@ -1,90 +1,68 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
+import { useRouter } from 'expo-router';
 import { colors, spacing, borderRadius, typography, shadows } from '../../src/constants/theme';
 import { GovHeader, RiskBadge } from '../../src/components/common';
-import { RiskLevel } from '@nirikshan/shared-types';
+import { api } from '../../src/services/api';
+import { Project, RiskLevel } from '@nirikshan/shared-types';
 
 export default function OfficialProjects() {
+  const router = useRouter();
+  const [projects, setProjects] = useState<Project[]>([]);
   const [filter, setFilter] = useState<string>('ALL');
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const projects = [
-    {
-      id: 'proj-001',
-      name: 'Demo Welfare Institute - Coimbatore',
-      scheme: 'DoSJE Integrated De-addiction Scheme',
-      type: 'Rehabilitation Centre',
-      district: 'Coimbatore',
-      state: 'Tamil Nadu',
-      riskLevel: RiskLevel.HIGH,
-      riskScore: 82,
-      beneficiaries: 92,
-    },
-    {
-      id: 'proj-002',
-      name: 'Demo Senior Care Sanctuary - Chennai',
-      scheme: 'DoSJE Senior Citizens Care Scheme',
-      type: 'Old Age Home',
-      district: 'Chennai',
-      state: 'Tamil Nadu',
-      riskLevel: RiskLevel.LOW,
-      riskScore: 24,
-      beneficiaries: 54,
-    },
-    {
-      id: 'proj-003',
-      name: 'Demo De-addiction Kendra - Ludhiana',
-      scheme: 'NAPDDR State Action Plan',
-      type: 'De-addiction Centre',
-      district: 'Ludhiana',
-      state: 'Punjab',
-      riskLevel: RiskLevel.HIGH,
-      riskScore: 68,
-      beneficiaries: 78,
-    },
-    {
-      id: 'proj-004',
-      name: 'Demo Skill Academy for Divyangjan - Bhopal',
-      scheme: 'National Divyangjan Scheme',
-      type: 'Vocational Centre',
-      district: 'Bhopal',
-      state: 'Madhya Pradesh',
-      riskLevel: RiskLevel.MEDIUM,
-      riskScore: 45,
-      beneficiaries: 115,
-    },
-    {
-      id: 'proj-005',
-      name: 'Demo Rehabilitation Centre - Lucknow',
-      scheme: 'Substance Abuse Initiative',
-      type: 'Rehabilitation Centre',
-      district: 'Lucknow',
-      state: 'Uttar Pradesh',
-      riskLevel: RiskLevel.CRITICAL,
-      riskScore: 89,
-      beneficiaries: 65,
-    },
-    {
-      id: 'proj-006',
-      name: 'Demo Assisted Living Home - Pune',
-      scheme: 'Integrated Care of Elderly',
-      type: 'Old Age Home',
-      district: 'Pune',
-      state: 'Maharashtra',
-      riskLevel: RiskLevel.LOW,
-      riskScore: 18,
-      beneficiaries: 48,
-    },
-  ];
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const data = await api.getProjects();
+      setProjects(data);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchProjects();
+  };
 
   const filteredProjects = projects.filter((p) => {
     const matchesFilter = filter === 'ALL' || p.riskLevel === filter;
+    const query = search.toLowerCase();
     const matchesSearch =
       search === '' ||
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.district.toLowerCase().includes(search.toLowerCase());
+      p.name.toLowerCase().includes(query) ||
+      p.district.toLowerCase().includes(query) ||
+      p.organization.toLowerCase().includes(query) ||
+      p.state.toLowerCase().includes(query);
     return matchesFilter && matchesSearch;
   });
+
+  const handleOpenProject = (projectId: string) => {
+    router.push({
+      pathname: '/(official)/project-details',
+      params: { id: projectId },
+    });
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -96,56 +74,113 @@ export default function OfficialProjects() {
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by institute name or district..."
+            placeholder="Search by institute, NGO, or district..."
             placeholderTextColor={colors.textLight}
             value={search}
             onChangeText={setSearch}
           />
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch('')} style={styles.clearBtn}>
+              <Text style={styles.clearBtnText}>✕</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Filter Chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
-          {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((lvl) => (
-            <TouchableOpacity
-              key={lvl}
-              style={[styles.filterChip, filter === lvl && styles.filterChipActive]}
-              onPress={() => setFilter(lvl)}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  filter === lvl && styles.filterChipTextActive,
-                ]}
+        <View style={styles.filterBar}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+            {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((lvl) => (
+              <TouchableOpacity
+                key={lvl}
+                style={[styles.filterChip, filter === lvl && styles.filterChipActive]}
+                onPress={() => setFilter(lvl)}
               >
-                {lvl}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    filter === lvl && styles.filterChipTextActive,
+                  ]}
+                >
+                  {lvl}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <Text style={styles.projectCountBadge}>{filteredProjects.length} Projects</Text>
+        </View>
 
         {/* Project List */}
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listContent}>
-          {filteredProjects.map((p) => (
-            <View key={p.id} style={styles.projectCard}>
-              <View style={styles.projectTop}>
-                <RiskBadge level={p.riskLevel} score={p.riskScore} showScore={true} />
-                <Text style={styles.projectTypeBadge}>{p.type}</Text>
-              </View>
-
-              <Text style={styles.projectName}>{p.name}</Text>
-              <Text style={styles.projectScheme}>{p.scheme}</Text>
-
-              <View style={styles.projectFooter}>
-                <Text style={styles.projectLocation}>
-                  📍 {p.district}, {p.state}
+        {loading ? (
+          <View style={styles.centerBox}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Loading facilities & risk telemetry...</Text>
+          </View>
+        ) : (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          >
+            {filteredProjects.length === 0 ? (
+              <View style={styles.emptyBox}>
+                <Text style={styles.emptyIcon}>📂</Text>
+                <Text style={styles.emptyTitle}>No Matching Facilities Found</Text>
+                <Text style={styles.emptySub}>
+                  Try clearing the search query or changing the risk level filter.
                 </Text>
-                <Text style={styles.projectBeneficiaries}>
-                  👥 {p.beneficiaries} Beneficiaries
-                </Text>
               </View>
-            </View>
-          ))}
-        </ScrollView>
+            ) : (
+              filteredProjects.map((p) => (
+                <TouchableOpacity
+                  key={p.id}
+                  style={styles.projectCard}
+                  activeOpacity={0.85}
+                  onPress={() => handleOpenProject(p.id)}
+                >
+                  <View style={styles.projectTop}>
+                    <RiskBadge level={p.riskLevel as RiskLevel} score={p.riskScore} showScore={true} />
+                    <View style={styles.topRightTags}>
+                      <Text style={styles.projectTypeBadge}>{p.type}</Text>
+                      {p.status === 'UNDER_INVESTIGATION' && (
+                        <View style={styles.investigationBadge}>
+                          <Text style={styles.investigationText}>AUDIT ACTIVE</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+
+                  <Text style={styles.projectName}>{p.name}</Text>
+                  <Text style={styles.projectOrg}>🏢 {p.organization}</Text>
+                  <Text style={styles.projectScheme}>{p.scheme}</Text>
+
+                  <View style={styles.projectStatsRow}>
+                    <View style={styles.statPill}>
+                      <Text style={styles.statLabel}>Capacity:</Text>
+                      <Text style={styles.statValue}> {p.capacity} beds</Text>
+                    </View>
+                    <View style={styles.statPill}>
+                      <Text style={styles.statLabel}>Beneficiaries:</Text>
+                      <Text style={styles.statValue}> {p.beneficiaryCount}</Text>
+                    </View>
+                    <View style={styles.statPill}>
+                      <Text style={styles.statLabel}>Staff:</Text>
+                      <Text style={styles.statValue}> {p.staffCount}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.projectFooter}>
+                    <Text style={styles.projectLocation}>
+                      📍 {p.district}, {p.state}
+                    </Text>
+                    <Text style={styles.viewDetailsPrompt}>
+                      Open 7-Tab Profile →
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -169,7 +204,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs + 2,
   },
   searchIcon: {
     fontSize: 14,
@@ -181,13 +216,25 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     color: colors.text,
   },
+  clearBtn: {
+    padding: 4,
+  },
+  clearBtnText: {
+    fontSize: 12,
+    color: colors.textLight,
+  },
+  filterBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
   filterRow: {
-    maxHeight: 36,
-    marginBottom: spacing.base,
+    flexDirection: 'row',
   },
   filterChip: {
     paddingHorizontal: spacing.md,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: borderRadius.full,
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -199,12 +246,50 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   filterChipText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
     color: colors.textMuted,
   },
   filterChipTextActive: {
     color: colors.white,
+  },
+  projectCountBadge: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textLight,
+    paddingLeft: spacing.xs,
+  },
+  centerBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  loadingText: {
+    marginTop: spacing.sm,
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+  },
+  emptyBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xxl,
+  },
+  emptyIcon: {
+    fontSize: 32,
+    marginBottom: spacing.xs,
+  },
+  emptyTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.text,
+  },
+  emptySub: {
+    fontSize: typography.fontSize.xs,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: 4,
+    maxWidth: 240,
   },
   listContent: {
     paddingBottom: spacing.xl,
@@ -224,28 +309,71 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.xs,
   },
+  topRightTags: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   projectTypeBadge: {
-    fontSize: 11,
+    fontSize: 10,
     color: colors.textMuted,
     backgroundColor: colors.background,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
+  },
+  investigationBadge: {
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
+  },
+  investigationText: {
+    fontSize: 8,
+    fontWeight: '800',
+    color: colors.danger,
   },
   projectName: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
     color: colors.text,
   },
-  projectScheme: {
+  projectOrg: {
     fontSize: typography.fontSize.xs,
-    color: colors.secondary,
+    color: colors.textMuted,
+    fontWeight: '600',
     marginTop: 2,
+  },
+  projectScheme: {
+    fontSize: 11,
+    color: colors.secondary,
+    marginTop: 1,
+  },
+  projectStatsRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.background,
+    padding: spacing.xs + 2,
+    borderRadius: borderRadius.sm,
+    marginVertical: spacing.xs + 2,
+    gap: 8,
+  },
+  statPill: {
+    flexDirection: 'row',
+  },
+  statLabel: {
+    fontSize: 10,
+    color: colors.textLight,
+  },
+  statValue: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.text,
   },
   projectFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: spacing.md,
+    alignItems: 'center',
+    marginTop: spacing.xs,
     paddingTop: spacing.xs,
     borderTopWidth: 1,
     borderTopColor: colors.surfaceMuted,
@@ -254,9 +382,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textLight,
   },
-  projectBeneficiaries: {
+  viewDetailsPrompt: {
     fontSize: 11,
-    color: colors.text,
-    fontWeight: '600',
+    color: colors.primary,
+    fontWeight: '700',
   },
 });

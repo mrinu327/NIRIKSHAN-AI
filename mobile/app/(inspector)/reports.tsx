@@ -2,39 +2,22 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import { colors, spacing, borderRadius, typography, shadows } from '../../src/constants/theme';
 import { GovHeader, Card } from '../../src/components/common';
+import { useInspectionStore } from '../../src/store/useInspectionStore';
 
 export default function InspectorReports() {
-  const reports = [
-    {
-      id: 'rep-001',
-      project: 'Demo Senior Care Sanctuary - Chennai',
-      type: 'Routine Semi-Annual Audit',
-      date: '28 Aug 2026',
-      status: 'SUBMITTED & VERIFIED',
-      evidenceCount: 4,
-      hashStatus: 'SHA-256 HASH VERIFIED',
-      outcome: 'Compliant with DoSJE elder care standards.',
-    },
-    {
-      id: 'rep-002',
-      project: 'Demo Skill Academy - Bhopal',
-      type: 'Surprise Physical Inspection',
-      date: '15 Aug 2026',
-      status: 'AUDIT RECORDED',
-      evidenceCount: 6,
-      hashStatus: 'SHA-256 HASH VERIFIED',
-      outcome: 'Divyangjan vocational training equipment verified operational.',
-    },
-  ];
+  const completedReports = useInspectionStore((s) => s.completedReports);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <GovHeader title="INSPECTION REPORTS" subtitle="Submitted Field Evidence & Audit History" />
 
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.headerTitle}>My Completed Field Reports</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerTitle}>My Completed Field Reports</Text>
+          <Text style={styles.reportCountBadge}>{completedReports.length} Reports</Text>
+        </View>
 
-        {reports.map((r) => (
+        {completedReports.map((r) => (
           <Card key={r.id} style={styles.reportCard}>
             <View style={styles.reportTop}>
               <View style={styles.statusPill}>
@@ -69,12 +52,23 @@ const styles = StyleSheet.create({
   container: {
     padding: spacing.base,
     backgroundColor: colors.background,
+    paddingBottom: spacing.xxl,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
   },
   headerTitle: {
     fontSize: typography.fontSize.base,
     fontWeight: typography.fontWeight.bold,
     color: colors.text,
-    marginBottom: spacing.sm,
+  },
+  reportCountBadge: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textLight,
   },
   reportCard: {
     padding: spacing.base,

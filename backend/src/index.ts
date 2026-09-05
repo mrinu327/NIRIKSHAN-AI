@@ -66,11 +66,13 @@ import dashboardRoutes from './routes/dashboardRoutes';
 import projectRoutes from './routes/projectRoutes';
 import cameraRoutes from './routes/cameraRoutes';
 import anomalyRoutes from './routes/anomalyRoutes';
+import inspectionRoutes from './routes/inspectionRoutes';
 
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/cameras', cameraRoutes);
 app.use('/api/anomalies', anomalyRoutes);
+app.use('/api/inspections', inspectionRoutes);
 
 // Global 404 handler
 app.use((_req: Request, res: Response) => {

@@ -1,17 +1,99 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
+import * as Location from 'expo-location';
 import { colors, spacing, borderRadius, typography, shadows } from '../../src/constants/theme';
 import { GovHeader, Card, Button } from '../../src/components/common';
+import { useInspectionStore } from '../../src/store/useInspectionStore';
 
 export default function InspectorMap() {
-  const [demoInsideGeofence, setDemoInsideGeofence] = useState(true);
+  const router = useRouter();
+  const {
+    activeInspectionId,
+    projectName,
+    targetLatitude,
+    targetLongitude,
+    updateLocation,
+  } = useInspectionStore();
 
-  const distanceMeters = demoInsideGeofence ? 43 : 340;
-  const isVerified = distanceMeters <= 100;
+  const [mode, setMode] = useState<'SIMULATOR' | 'DEVICE'>('SIMULATOR');
+  const [simInside, setSimInside] = useState(true);
+  const [deviceCoords, setDeviceCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
+
+  // Haversine distance calculator
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371e3;
+    const phi1 = (lat1 * Math.PI) / 180;
+    const phi2 = (lat2 * Math.PI) / 180;
+    const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+    const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+      Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+  };
+
+  // Request device GPS
+  const requestDeviceLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        setPermissionGranted(true);
+        const loc = await Location.getCurrentPositionAsync({});
+        setDeviceCoords({ lat: loc.coords.latitude, lon: loc.coords.longitude });
+        setMode('DEVICE');
+      } else {
+        setPermissionGranted(false);
+        setMode('SIMULATOR');
+      }
+    } catch (e) {
+      console.warn('Device location unavailable on this platform:', e);
+      setPermissionGranted(false);
+      setMode('SIMULATOR');
+    }
+  };
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      requestDeviceLocation();
+    }
+  }, []);
+
+  // Compute active GPS & distance based on mode
+  let currentLat = simInside ? targetLatitude + 0.0001 : targetLatitude + 0.003;
+  let currentLon = simInside ? targetLongitude - 0.0001 : targetLongitude + 0.002;
+
+  if (mode === 'DEVICE' && deviceCoords) {
+    currentLat = deviceCoords.lat;
+    currentLon = deviceCoords.lon;
+  }
+
+  const distanceMeters =
+    mode === 'SIMULATOR'
+      ? simInside
+        ? 43
+        : 340
+      : calculateDistance(currentLat, currentLon, targetLatitude, targetLongitude);
+
+  const radiusMeters = 100; // Strict 100m geofence
+  const isVerified = distanceMeters <= radiusMeters;
+
+  useEffect(() => {
+    updateLocation(currentLat, currentLon, isVerified, distanceMeters);
+  }, [currentLat, currentLon, isVerified, distanceMeters]);
+
+  const handleProceed = () => {
+    if (!isVerified) return;
+    router.push({
+      pathname: '/(inspector)/inspect',
+      params: { inspectionId: activeInspectionId },
+    });
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <GovHeader title="GPS & GEOFENCE" subtitle="Inspection Site Location Verification" />
+      <GovHeader title="GPS & GEOFENCE" subtitle="Strict 100m Inspection Site Verification" />
 
       <View style={styles.container}>
         {/* Map Visualization Preview */}
@@ -19,7 +101,9 @@ export default function InspectorMap() {
           <View style={styles.geofenceCircle}>
             <View style={styles.geofenceInner}>
               <Text style={styles.ngoPin}>🏢</Text>
-              <Text style={styles.ngoPinText}>Demo Welfare Institute</Text>
+              <Text style={styles.ngoPinText} numberOfLines={1}>
+                {projectName}
+              </Text>
             </View>
           </View>
 
@@ -27,7 +111,7 @@ export default function InspectorMap() {
           <View
             style={[
               styles.inspectorPin,
-              demoInsideGeofence ? styles.pinInside : styles.pinOutside,
+              isVerified ? styles.pinInside : styles.pinOutside,
             ]}
           >
             <Text style={styles.pinIcon}>📍</Text>
@@ -37,6 +121,13 @@ export default function InspectorMap() {
           {/* Geofence HUD */}
           <View style={styles.hudBadge}>
             <Text style={styles.hudText}>Geofence Radius: 100 Meters</Text>
+          </View>
+
+          {/* Mode Pill */}
+          <View style={styles.modePill}>
+            <Text style={styles.modePillText}>
+              {mode === 'DEVICE' ? '🛰️ DEVICE GPS' : '🧪 DEMO GPS SIMULATOR'}
+            </Text>
           </View>
         </View>
 
@@ -49,7 +140,12 @@ export default function InspectorMap() {
                 isVerified ? styles.statusGreen : styles.statusRed,
               ]}
             >
-              <Text style={styles.indicatorText}>
+              <Text
+                style={[
+                  styles.indicatorText,
+                  isVerified ? styles.indicatorTextGreen : styles.indicatorTextRed,
+                ]}
+              >
                 {isVerified ? '✓ LOCATION VERIFIED' : '⚠ OUTSIDE GEOFENCE'}
               </Text>
             </View>
@@ -57,34 +153,69 @@ export default function InspectorMap() {
           </View>
 
           <Text style={styles.gpsCoords}>
-            Current GPS: 11.0268° N, 76.9952° E (Accuracy: ±3.2m)
+            Current GPS: {currentLat.toFixed(4)}° N, {currentLon.toFixed(4)}° E (Accuracy: ±3.2m)
           </Text>
           <Text style={styles.siteCoords}>
-            Registered Site: 11.0267° N, 76.9953° E
+            Registered Site: {targetLatitude.toFixed(4)}° N, {targetLongitude.toFixed(4)}° E
           </Text>
 
           {/* Demo Location Switcher Toggle */}
           <View style={styles.toggleRow}>
             <Text style={styles.toggleLabel}>Demo GPS Simulator:</Text>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={[
-                styles.toggleBtn,
-                demoInsideGeofence ? styles.btnInside : styles.btnOutside,
-              ]}
-              onPress={() => setDemoInsideGeofence(!demoInsideGeofence)}
-            >
-              <Text style={styles.toggleBtnText}>
-                {demoInsideGeofence ? 'Simulate Inside (43m)' : 'Simulate Outside (340m)'}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.toggleBtnGroup}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={[
+                  styles.toggleBtn,
+                  simInside && mode === 'SIMULATOR' ? styles.btnInsideActive : styles.btnInactive,
+                ]}
+                onPress={() => {
+                  setMode('SIMULATOR');
+                  setSimInside(true);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.toggleBtnText,
+                    simInside && mode === 'SIMULATOR' && styles.toggleBtnTextActive,
+                  ]}
+                >
+                  Inside (43m)
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={[
+                  styles.toggleBtn,
+                  !simInside && mode === 'SIMULATOR' ? styles.btnOutsideActive : styles.btnInactive,
+                ]}
+                onPress={() => {
+                  setMode('SIMULATOR');
+                  setSimInside(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.toggleBtnText,
+                    !simInside && mode === 'SIMULATOR' && styles.toggleBtnTextActive,
+                  ]}
+                >
+                  Outside (340m)
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <Button
-            title={isVerified ? "Proceed to Inspection Checklist ➔" : "Cannot Start (Must Be Within 100m)"}
+            title={
+              isVerified
+                ? "Proceed to Inspection Checklist ➔"
+                : "Cannot Start (Must Be Within 100m)"
+            }
             disabled={!isVerified}
             variant={isVerified ? "primary" : "secondary"}
-            onPress={() => {}}
+            onPress={handleProceed}
             style={styles.proceedBtn}
           />
         </Card>
@@ -127,6 +258,7 @@ const styles = StyleSheet.create({
   },
   geofenceInner: {
     alignItems: 'center',
+    maxWidth: 160,
   },
   ngoPin: {
     fontSize: 28,
@@ -140,6 +272,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
     marginTop: 2,
+    textAlign: 'center',
   },
   inspectorPin: {
     position: 'absolute',
@@ -150,8 +283,8 @@ const styles = StyleSheet.create({
     right: '42%',
   },
   pinOutside: {
-    bottom: '15%',
-    right: '15%',
+    bottom: '12%',
+    right: '12%',
   },
   pinIcon: {
     fontSize: 28,
@@ -161,7 +294,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
     backgroundColor: colors.primary,
-    paddingHorizontal: 4,
+    paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: borderRadius.sm,
   },
@@ -178,6 +311,22 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 10,
     fontWeight: '700',
+  },
+  modePill: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modePillText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: colors.primary,
   },
   statusCard: {
     marginTop: spacing.base,
@@ -203,7 +352,12 @@ const styles = StyleSheet.create({
   indicatorText: {
     fontSize: 11,
     fontWeight: '800',
-    color: colors.text,
+  },
+  indicatorTextGreen: {
+    color: colors.success,
+  },
+  indicatorTextRed: {
+    color: colors.danger,
   },
   distanceValue: {
     fontSize: typography.fontSize.sm,
@@ -234,21 +388,35 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontWeight: '600',
   },
+  toggleBtnGroup: {
+    flexDirection: 'row',
+    gap: 4,
+  },
   toggleBtn: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  btnInside: {
-    backgroundColor: '#E0F2FE',
+  btnInsideActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
-  btnOutside: {
-    backgroundColor: '#FEF3C7',
+  btnOutsideActive: {
+    backgroundColor: colors.danger,
+    borderColor: colors.danger,
+  },
+  btnInactive: {
+    backgroundColor: colors.background,
   },
   toggleBtnText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.textMuted,
+  },
+  toggleBtnTextActive: {
+    color: colors.white,
   },
   proceedBtn: {
     marginTop: spacing.sm,

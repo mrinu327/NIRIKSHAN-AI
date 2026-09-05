@@ -65,6 +65,13 @@ export default function OfficialLayout() {
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>👤</Text>,
         }}
       />
+      <Tabs.Screen
+        name="project-details"
+        options={{
+          href: null,
+          headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }
