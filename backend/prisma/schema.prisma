@@ -1,0 +1,168 @@
+// SIH26095 NIRIKSHAN AI — Prisma Schema
+// Configured with SQLite for local zero-dependency development
+// Compatible with PostgreSQL / Supabase for production
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String       @id @default(uuid())
+  name        String
+  role        String       @default("OFFICIAL") // OFFICIAL, INSPECTOR, NGO, BENEFICIARY
+  phone       String       @unique
+  email       String       @unique
+  state       String
+  district    String
+  active      Boolean      @default(true)
+  inspections Inspection[] @relation("InspectorInspections")
+  auditLogs   AuditLog[]   @relation("UserAuditLogs")
+  createdAt   DateTime     @default(now())
+}
+
+model Project {
+  id                String              @id @default(uuid())
+  name              String
+  scheme            String              // e.g. "DoSJE De-addiction & Rehabilitation Scheme"
+  type              String              // "Rehabilitation Centre", "Old Age Home", "Hostel"
+  organization      String              // Registered NGO Name
+  address           String
+  latitude          Float
+  longitude         Float
+  state             String
+  district          String
+  capacity          Int
+  beneficiaryCount  Int
+  staffCount        Int
+  riskScore         Int                 @default(0) // 0 - 100
+  riskLevel         String              @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  status            String              @default("ACTIVE")
+  cameras           Camera[]
+  attendances       Attendance[]
+  inspections       Inspection[]
+  anomalies         Anomaly[]
+  videoCalls        VideoVerification[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model Attendance {
+  id                 String   @id @default(uuid())
+  projectId          String
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  date               DateTime
+  reportedCount      Int
+  observedCount      Int?     // From CCTV/CV approximate count
+  source             String   @default("PORTAL_SUBMISSION") // PORTAL, BIOMETRIC, MANUAL
+  mismatchPercentage Float?
+  createdAt          DateTime @default(now())
+}
+
+model Camera {
+  id                   String   @id @default(uuid())
+  projectId            String
+  project              Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name                 String   // e.g. "Entrance Gate", "Dining Hall", "Classroom 1"
+  location             String
+  streamUrl            String
+  status               String   @default("ONLINE") // ONLINE, OFFLINE, NO_SIGNAL, DELAYED
+  lastHeartbeat        DateTime @default(now())
+  streamQuality        String   @default("1080p / 25fps")
+  peopleCount          Int      @default(0)
+  lastDetectedActivity String?
+}
+
+model Inspection {
+  id               String     @id @default(uuid())
+  projectId        String
+  project          Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  inspectorId      String
+  inspector        User       @relation("InspectorInspections", fields: [inspectorId], references: [id])
+  type             String     @default("SURPRISE_PHYSICAL") // SURPRISE_PHYSICAL, RANDOM_VC, ROUTINE
+  assignedAt       DateTime   @default(now())
+  startedAt        DateTime?
+  completedAt      DateTime?
+  status           String     @default("ASSIGNED") // ASSIGNED, IN_PROGRESS, COMPLETED, OVERDUE, ESCALATED
+  latitude         Float?     // Inspector GPS when verifying
+  longitude        Float?
+  locationVerified Boolean    @default(false)
+  checklistData    String?    // JSON string of checklist answers
+  reportNotes      String?
+  syncStatus       String     @default("SYNCED") // SYNCED, PENDING_SYNC
+  evidence         Evidence[]
+}
+
+model Evidence {
+  id              String     @id @default(uuid())
+  inspectionId    String
+  inspection      Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  projectId       String
+  type            String     @default("PHOTO") // PHOTO, VIDEO, DOCUMENT, VOICE_NOTE
+  fileUrl         String
+  latitude        Float
+  longitude       Float
+  capturedAt      DateTime   @default(now())
+  hash            String     // SHA-256 integrity hash
+  perceptualHash  String?    // pHash for duplicate image detection
+  integrityStatus String     @default("VERIFIED") // VERIFIED, TAMPERED, UNKNOWN
+  metadata        String?    // JSON string of camera/EXIF metadata
+}
+
+model Anomaly {
+  id             String   @id @default(uuid())
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type           String   // AnomalyType e.g. ATTENDANCE_CCTV_MISMATCH
+  severity       String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  riskScore      Int      // Score attributed to this anomaly
+  scoreBreakdown String   // JSON array of reasons and individual score points
+  explanation    String   // Transparent explanation for human officials
+  evidenceIds    String?  // JSON array of related evidence / camera IDs
+  status         String   @default("OPEN") // OPEN, REVIEWED, FALSE_POSITIVE, ESCALATED
+  reviewedBy     String?
+  reviewNotes    String?
+  createdAt      DateTime @default(now())
+}
+
+model VideoVerification {
+  id               String    @id @default(uuid())
+  projectId        String
+  project          Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  participantType  String    @default("BENEFICIARY") // INCHARGE, STAFF, BENEFICIARY
+  participantId    String
+  participantName  String
+  participantPhone String
+  requestedAt      DateTime  @default(now())
+  answeredAt       DateTime?
+  status           String    @default("REQUESTED") // REQUESTED, ANSWERED, MISSED
+  result           String?   // VERIFIED, SUSPICIOUS, UNREACHABLE
+  feedbackNotes    String?
+  sentiment        String?   // POSITIVE, NEUTRAL, NEGATIVE
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  metadata  String?  // JSON string
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String
+  actor      User     @relation("UserAuditLogs", fields: [actorId], references: [id])
+  action     String   // "VIEWED_CCTV", "ASSIGNED_INSPECTION", "VERIFIED_GPS", etc.
+  entityType String   // "PROJECT", "INSPECTION", "ALERT", "EVIDENCE"
+  entityId   String
+  metadata   String?  // JSON string of event payload
+  timestamp  DateTime @default(now())
+}

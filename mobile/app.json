@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "NIRIKSHAN AI",
+    "slug": "nirikshan-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "nirikshan",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#123B5D"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "gov.dosje.nirikshan"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#123B5D"
+      },
+      "package": "gov.dosje.nirikshan"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow NIRIKSHAN AI to verify your inspection site geofence location."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow NIRIKSHAN AI to capture photo and video evidence for field inspections."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
