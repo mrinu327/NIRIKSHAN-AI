@@ -332,3 +332,191 @@ export const submitInspection = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to submit inspection report' });
   }
 };
+
+/**
+ * GET /api/inspections
+ * Retrieves all inspections with project, inspector, and evidence details
+ */
+export const getAllInspections = async (req: Request, res: Response) => {
+  try {
+    const { status, projectId, inspectorId, type } = req.query;
+    const where: any = {};
+
+    if (status && typeof status === 'string' && status !== 'ALL') {
+      where.status = status;
+    }
+    if (projectId && typeof projectId === 'string') {
+      where.projectId = projectId;
+    }
+    if (inspectorId && typeof inspectorId === 'string') {
+      where.inspectorId = inspectorId;
+    }
+    if (type && typeof type === 'string' && type !== 'ALL') {
+      where.type = type;
+    }
+
+    const inspections = await prisma.inspection.findMany({
+      where,
+      orderBy: { assignedAt: 'desc' },
+      include: {
+        project: {
+          select: {
+            id: true,
+            name: true,
+            district: true,
+            state: true,
+            riskLevel: true,
+            riskScore: true,
+            address: true,
+          },
+        },
+        inspector: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            email: true,
+            district: true,
+            state: true,
+          },
+        },
+        evidence: true,
+      },
+    });
+
+    res.json(inspections);
+  } catch (error) {
+    console.error('Error fetching all inspections:', error);
+    res.status(500).json({ error: 'Failed to fetch inspections' });
+  }
+};
+
+/**
+ * POST /api/inspections/assign
+ * Assigns a surprise inspection to an eligible active inspector (optionally random or specific)
+ */
+export const assignInspection = async (req: Request, res: Response) => {
+  try {
+    const { projectId, type, inspectorId, reason, priority, alertId } = req.body;
+
+    if (!projectId) {
+      return res.status(400).json({ error: 'projectId is required' });
+    }
+
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project) {
+      return res.status(404).json({ error: `Project ${projectId} not found` });
+    }
+
+    let assignedInspectorId = inspectorId;
+
+    if (assignedInspectorId) {
+      const inspector = await prisma.user.findFirst({
+        where: { id: assignedInspectorId, role: 'INSPECTOR', active: true },
+      });
+      if (!inspector) {
+        return res.status(400).json({ error: `Inspector ${assignedInspectorId} not found or inactive` });
+      }
+    } else {
+      // Find all eligible active inspectors
+      const activeInspectors = await prisma.user.findMany({
+        where: { role: 'INSPECTOR', active: true },
+      });
+
+      if (activeInspectors.length === 0) {
+        return res.status(400).json({ error: 'No active inspectors available for assignment' });
+      }
+
+      // Prioritize regional/district proximity if available, else pick from all active inspectors
+      const regionalInspectors = activeInspectors.filter(
+        (i) => i.state === project.state || i.district === project.district
+      );
+      const candidates = regionalInspectors.length > 0 ? regionalInspectors : activeInspectors;
+
+      // Select random eligible inspector
+      const selectedInspector = candidates[Math.floor(Math.random() * candidates.length)];
+      assignedInspectorId = selectedInspector.id;
+    }
+
+    const inspectionType = type || 'SURPRISE_PHYSICAL';
+
+    // Create the inspection record
+    const inspection = await prisma.inspection.create({
+      data: {
+        projectId,
+        inspectorId: assignedInspectorId,
+        type: inspectionType,
+        status: 'ASSIGNED',
+        assignedAt: new Date(),
+        reportNotes: reason ? `Reason: ${reason}` : 'Surprise physical inspection assigned by central monitoring',
+        syncStatus: 'SYNCED',
+      },
+      include: {
+        project: true,
+        inspector: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            email: true,
+            district: true,
+            state: true,
+          },
+        },
+      },
+    });
+
+    // Mark project as UNDER_INVESTIGATION
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { status: 'UNDER_INVESTIGATION' },
+    });
+
+    // If an alert was linked, mark it as ESCALATED
+    if (alertId) {
+      await prisma.anomaly
+        .update({
+          where: { id: alertId },
+          data: {
+            status: 'ESCALATED',
+            reviewNotes: `Surprise inspection ${inspection.id} assigned to ${inspection.inspector.name}`,
+          },
+        })
+        .catch(() => {});
+    }
+
+    // Create central audit log entry
+    const officialUser = await prisma.user.findFirst({ where: { role: 'OFFICIAL' } });
+    const actorId = officialUser ? officialUser.id : assignedInspectorId;
+
+    await prisma.auditLog.create({
+      data: {
+        actorId,
+        action: 'ASSIGNED_SURPRISE_INSPECTION',
+        entityType: 'INSPECTION',
+        entityId: inspection.id,
+        metadata: JSON.stringify({
+          projectId,
+          inspectorId: assignedInspectorId,
+          type: inspectionType,
+          reason: reason || 'AI Risk and Compliance Protocol',
+          priority: priority || 'HIGH',
+          timestamp: new Date().toISOString(),
+        }),
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Surprise inspection assigned to ${inspection.inspector.name}`,
+      inspection,
+    });
+  } catch (error) {
+    console.error('Error assigning inspection:', error);
+    res.status(500).json({ error: 'Failed to assign inspection' });
+  }
+};
+

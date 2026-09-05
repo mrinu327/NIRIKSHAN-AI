@@ -55,6 +55,7 @@ app.get('/api', (_req: Request, res: Response) => {
       cameras: '/api/cameras',
       inspections: '/api/inspections',
       anomalies: '/api/anomalies',
+      attendance: '/api/attendance',
       videoVerification: '/api/video-verification',
       auditLogs: '/api/audit-logs',
     },
@@ -67,12 +68,19 @@ import projectRoutes from './routes/projectRoutes';
 import cameraRoutes from './routes/cameraRoutes';
 import anomalyRoutes from './routes/anomalyRoutes';
 import inspectionRoutes from './routes/inspectionRoutes';
+import attendanceRoutes from './routes/attendanceRoutes';
+import videoVerificationRoutes from './routes/videoVerificationRoutes';
+import auditRoutes from './routes/auditRoutes';
 
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/cameras', cameraRoutes);
 app.use('/api/anomalies', anomalyRoutes);
 app.use('/api/inspections', inspectionRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/video-verification', videoVerificationRoutes);
+app.use('/api/audit-logs', auditRoutes);
+
 
 // Global 404 handler
 app.use((_req: Request, res: Response) => {

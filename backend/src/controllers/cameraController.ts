@@ -47,3 +47,15 @@ export const getCameraHealth = async (req: Request, res: Response) => {
     res.status(404).json({ error: 'Camera health check failed' });
   }
 };
+
+export const getCameraPeopleCount = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const estimate = await cctvProvider.getPeopleCountEstimate(id);
+    res.json(estimate);
+  } catch (error) {
+    console.error('Error fetching camera people count:', error);
+    res.status(404).json({ error: 'Camera people count estimate failed' });
+  }
+};
+

@@ -1,14 +1,105 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
 import { colors, spacing, borderRadius, typography, shadows } from '../../src/constants/theme';
 import { GovHeader, Card, Button } from '../../src/components/common';
 import { useAuthStore } from '../../src/store/useAuthStore';
+import { api } from '../../src/services/api';
+import { VideoVerification } from '@nirikshan/shared-types';
 
 export default function BeneficiaryVerification() {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const [callActive, setCallActive] = useState(true);
   const [micMuted, setMicMuted] = useState(false);
   const [camOff, setCamOff] = useState(false);
+  const [activeCall, setActiveCall] = useState<VideoVerification | null>(null);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [endingCall, setEndingCall] = useState(false);
+  const [auditStatus, setAuditStatus] = useState('Recorded in central DoSJE audit trail');
+
+  // Load existing requested call or create a verification session
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const calls = await api.getVideoVerifications({
+          projectId: 'proj-001',
+          participantType: 'BENEFICIARY',
+        });
+        const pending = calls.find((c) => c.status === 'REQUESTED');
+        if (isMounted) {
+          if (pending) {
+            setActiveCall(pending);
+          } else {
+            const newCall = await api.requestVideoVerification({
+              projectId: 'proj-001',
+              participantType: 'BENEFICIARY',
+              participantName: user?.name || 'Ramesh Kumar (Beneficiary)',
+              participantPhone: user?.phone || '+919876543213',
+            });
+            if (isMounted) setActiveCall(newCall.videoCall);
+          }
+        }
+      } catch (e) {
+        // Handled by api fallback
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Live timer simulation while in call
+  useEffect(() => {
+    if (!callActive) return;
+    const timer = setInterval(() => {
+      setTimerSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [callActive]);
+
+  const formatTime = (totalSecs: number) => {
+    const mins = Math.floor(totalSecs / 60)
+      .toString()
+      .padStart(2, '0');
+    const secs = (totalSecs % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  };
+
+  const handleEndCall = async () => {
+    setEndingCall(true);
+    const callId = activeCall?.id || 'vc-001';
+    try {
+      await api.completeVideoVerification(callId, {
+        status: 'ANSWERED',
+        result: 'VERIFIED',
+        feedbackNotes: 'Citizen verbal confirmation recorded via live video verification stream.',
+      });
+      setAuditStatus(`Verified & logged in central DoSJE audit trail (Session #${callId.slice(-6)})`);
+    } catch (e) {
+      setAuditStatus('Recorded in central DoSJE audit trail (Demo Mode)');
+    } finally {
+      setEndingCall(false);
+      setCallActive(false);
+    }
+  };
+
+  const handleRestart = async () => {
+    setTimerSeconds(0);
+    setCallActive(true);
+    try {
+      const res = await api.requestVideoVerification({
+        projectId: 'proj-001',
+        participantType: 'BENEFICIARY',
+        participantName: user?.name || 'Ramesh Kumar (Beneficiary)',
+        participantPhone: user?.phone || '+919876543213',
+      });
+      setActiveCall(res.videoCall);
+    } catch (e) {
+      // Handled by fallback
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -25,7 +116,7 @@ export default function BeneficiaryVerification() {
                 </View>
                 <View style={styles.liveTimerPill}>
                   <View style={styles.redDot} />
-                  <Text style={styles.timerText}>02:14</Text>
+                  <Text style={styles.timerText}>{formatTime(timerSeconds)}</Text>
                 </View>
               </View>
 
@@ -39,7 +130,7 @@ export default function BeneficiaryVerification() {
               {/* Beneficiary self-view thumbnail */}
               <View style={styles.selfViewThumb}>
                 <Text style={styles.selfAvatar}>🧑</Text>
-                <Text style={styles.selfName}>You (Beneficiary)</Text>
+                <Text style={styles.selfName}>You ({user?.name?.split(' ')[0] || 'Citizen'})</Text>
               </View>
             </View>
 
@@ -63,10 +154,17 @@ export default function BeneficiaryVerification() {
 
               <TouchableOpacity
                 style={styles.endCallBtn}
-                onPress={() => setCallActive(false)}
+                onPress={handleEndCall}
+                disabled={endingCall}
               >
-                <Text style={styles.controlIcon}>📞</Text>
-                <Text style={styles.endCallText}>End Call</Text>
+                {endingCall ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <>
+                    <Text style={styles.controlIcon}>📞</Text>
+                    <Text style={styles.endCallText}>End Call</Text>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -77,9 +175,20 @@ export default function BeneficiaryVerification() {
             <Text style={styles.endedDesc}>
               Thank you, {user?.name}. Your verbal confirmation has been recorded in the central DoSJE inspection audit trail.
             </Text>
+            <View style={styles.auditPill}>
+              <Text style={styles.auditPillText}>🔒 {auditStatus}</Text>
+            </View>
+
+            <Button
+              title="⭐ Provide Confidential Detailed Feedback"
+              onPress={() => router.push('/(beneficiary)/feedback')}
+              style={styles.feedbackBtn}
+            />
+
             <Button
               title="Restart Demo Verification Call"
-              onPress={() => setCallActive(true)}
+              variant="outline"
+              onPress={handleRestart}
               style={styles.restartBtn}
             />
           </Card>
@@ -251,6 +360,24 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
   restartBtn: {
+    marginTop: spacing.md,
+  },
+  feedbackBtn: {
     marginTop: spacing.lg,
+    width: '100%',
+  },
+  auditPill: {
+    marginTop: spacing.md,
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  auditPillText: {
+    fontSize: 10,
+    color: colors.textMuted,
+    fontWeight: '600',
   },
 });

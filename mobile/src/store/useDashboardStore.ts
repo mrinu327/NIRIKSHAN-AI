@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import { RiskLevel, Project } from '@nirikshan/shared-types';
 import { api } from '../services/api';
 
@@ -44,9 +44,9 @@ interface DashboardState {
   isLoading: boolean;
   lastRefreshed: Date | null;
   fetchDashboardData: () => Promise<void>;
-  acknowledgeAlert: (alertId: string) => void;
-  markFalsePositive: (alertId: string) => void;
-  assignInspection: (alertId: string) => void;
+  acknowledgeAlert: (alertId: string) => Promise<void> | void;
+  markFalsePositive: (alertId: string) => Promise<void> | void;
+  assignInspection: (alertId: string) => Promise<void> | void;
 }
 
 const DEFAULT_ALERTS: LiveAlert[] = [
@@ -97,7 +97,8 @@ const DEFAULT_ALERTS: LiveAlert[] = [
   },
 ];
 
-export const useDashboardStore = create<DashboardState>()((set) => ({
+export const useDashboardStore = create<DashboardState>()((set, get) => ({
+
   kpi: {
     totalProjects: 12,
     activeProjects: 10,
@@ -177,29 +178,67 @@ export const useDashboardStore = create<DashboardState>()((set) => ({
     }
   },
 
-  acknowledgeAlert: (alertId: string) => {
+  acknowledgeAlert: async (alertId: string) => {
     set((state) => ({
       alerts: state.alerts.map((a) =>
         a.id === alertId ? { ...a, status: 'ACKNOWLEDGED' as const } : a
       ),
     }));
+
+    try {
+      await api.reviewAnomaly(
+        alertId,
+        'REVIEWED',
+        'Dr. Rajesh Sharma',
+        'Acknowledged from official monitoring dashboard'
+      );
+    } catch (e) {
+      console.warn('Backend reviewAnomaly failed, kept local state:', e);
+    }
   },
 
-  markFalsePositive: (alertId: string) => {
+  markFalsePositive: async (alertId: string) => {
     set((state) => ({
       alerts: state.alerts.map((a) =>
         a.id === alertId ? { ...a, status: 'FALSE_POSITIVE' as const } : a
       ),
       kpi: { ...state.kpi, openAlerts: Math.max(0, state.kpi.openAlerts - 1) },
     }));
+
+    try {
+      await api.reviewAnomaly(
+        alertId,
+        'FALSE_POSITIVE',
+        'Dr. Rajesh Sharma',
+        'Dismissed as false positive by official review'
+      );
+    } catch (e) {
+      console.warn('Backend reviewAnomaly failed, kept local state:', e);
+    }
   },
 
-  assignInspection: (alertId: string) => {
+  assignInspection: async (alertId: string) => {
+    const alert = get().alerts.find((a) => a.id === alertId);
+
     set((state) => ({
       alerts: state.alerts.map((a) =>
         a.id === alertId ? { ...a, status: 'ACKNOWLEDGED' as const } : a
       ),
       kpi: { ...state.kpi, pendingInspections: state.kpi.pendingInspections + 1 },
     }));
+
+    if (alert) {
+      try {
+        await api.assignInspection({
+          projectId: alert.projectId || 'proj-001',
+          reason: alert.explanation || alert.title,
+          alertId: alert.id,
+          priority: alert.severity,
+        });
+      } catch (e) {
+        console.warn('Backend assignInspection call failed, preserved local state:', e);
+      }
+    }
   },
 }));
+

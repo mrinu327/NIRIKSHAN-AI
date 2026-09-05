@@ -15,7 +15,12 @@ import {
   LocationVerificationResult,
   Inspection,
   MediaEvidenceType,
+  Attendance,
+  VideoVerification,
+  AuditLog,
+  Sentiment,
 } from '@nirikshan/shared-types';
+
 
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
@@ -597,6 +602,92 @@ export const api = {
   },
 
   /**
+ * Fetch CCTV cameras for a project
+ */
+  async getCameras(projectId?: string): Promise<Camera[]> {
+    try {
+      const response = await client.get<Camera[]>('/api/cameras', {
+        params: projectId ? { projectId } : undefined,
+      });
+      return response.data;
+    } catch (error) {
+      console.warn(
+        'Backend /api/cameras unreachable, using project camera fallback'
+      );
+
+      if (projectId) {
+        try {
+          const project = await this.getProjectById(projectId);
+          return project.cameras;
+        } catch {
+          return [];
+        }
+      }
+
+      return [];
+    }
+  },
+
+  /**
+   * Fetch health telemetry for a CCTV camera
+   */
+  async getCameraHealth(cameraId: string): Promise<{
+    status: CameraStatus;
+    lastHeartbeat: string | Date;
+    latencyMs: number;
+  }> {
+    try {
+      const response = await client.get<{
+        status: CameraStatus;
+        lastHeartbeat: string | Date;
+        latencyMs: number;
+      }>(`/api/cameras/${cameraId}/health`);
+
+      return response.data;
+    } catch (error) {
+      console.warn(
+        `Backend camera health unavailable for ${cameraId}, using demo telemetry`
+      );
+
+      return {
+        status: CameraStatus.ONLINE,
+        lastHeartbeat: new Date().toISOString(),
+        latencyMs: 45,
+      };
+    }
+  },
+
+  /**
+   * Fetch mock computer-vision people-count estimate
+   */
+  async getCameraPeopleCount(cameraId: string): Promise<{
+    count: number;
+    confidence: number;
+    detectedAt: string | Date;
+  }> {
+    try {
+      const response = await client.get<{
+        count: number;
+        confidence: number;
+        detectedAt: string | Date;
+      }>(`/api/cameras/${cameraId}/people-count`);
+
+      return response.data;
+    } catch (error) {
+      console.warn(
+        `People-count endpoint unavailable for ${cameraId}, using project telemetry`
+      );
+
+      return {
+        count: 0,
+        confidence: 0,
+        detectedAt: new Date().toISOString(),
+      };
+    }
+  },
+
+
+  /**
    * Fetch Inspector Assignments
    */
   async getMyInspections(inspectorId?: string): Promise<any[]> {
@@ -741,4 +832,511 @@ export const api = {
       };
     }
   },
+
+  /**
+   * Assign Surprise Inspection to eligible active inspector
+   */
+  async assignInspection(payload: {
+    projectId: string;
+    type?: string;
+    inspectorId?: string;
+    reason: string;
+    priority?: string;
+    alertId?: string;
+  }): Promise<{ success: boolean; message: string; inspection: any }> {
+    try {
+      const response = await client.post('/api/inspections/assign', payload);
+      return response.data;
+    } catch (error) {
+      console.warn('Backend /api/inspections/assign unreachable, using local fallback');
+      const project =
+        FALLBACK_PROJECTS.find((p) => p.id === payload.projectId) || FALLBACK_PROJECTS[0];
+      const newInspection = {
+        id: `insp-${Date.now()}`,
+        projectId: payload.projectId,
+        inspectorId: payload.inspectorId || 'usr-inspector-001',
+        type: payload.type || 'SURPRISE_PHYSICAL',
+        status: 'ASSIGNED',
+        assignedAt: new Date().toISOString(),
+        startedAt: null,
+        completedAt: null,
+        reportNotes: payload.reason ? `Reason: ${payload.reason}` : 'Surprise physical inspection assigned',
+        syncStatus: 'SYNCED',
+        locationVerified: false,
+        project: {
+          id: project.id,
+          name: project.name,
+          district: project.district,
+          state: project.state,
+          riskLevel: project.riskLevel,
+          riskScore: project.riskScore,
+          address: project.address,
+        },
+        inspector: {
+          id: payload.inspectorId || 'usr-inspector-001',
+          name: 'Priya Verma',
+          phone: '+919876543211',
+          email: 'inspector@pmu.gov.in',
+          district: 'Coimbatore',
+          state: 'Tamil Nadu',
+        },
+        evidence: [],
+      };
+      return {
+        success: true,
+        message: `Surprise inspection assigned to Priya Verma (Demo Mode)`,
+        inspection: newInspection,
+      };
+    }
+  },
+
+  /**
+   * Fetch All Inspections (Official Oversight)
+   */
+  async getAllInspections(params?: {
+    status?: string;
+    projectId?: string;
+    inspectorId?: string;
+    type?: string;
+  }): Promise<any[]> {
+    try {
+      const response = await client.get<any[]>('/api/inspections', { params });
+      return response.data;
+    } catch (error) {
+      console.warn('Backend /api/inspections unreachable, returning fallback inspections');
+      return [
+        {
+          id: 'insp-001',
+          projectId: 'proj-001',
+          inspectorId: 'usr-inspector-001',
+          type: 'SURPRISE_PHYSICAL',
+          status: 'IN_PROGRESS',
+          assignedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+          startedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          completedAt: null,
+          locationVerified: true,
+          reportNotes: 'On-site physical headcount confirms divergence from online register. Observed ~63 present.',
+          project: {
+            id: 'proj-001',
+            name: 'Demo Welfare Institute - Coimbatore',
+            district: 'Coimbatore',
+            state: 'Tamil Nadu',
+            riskLevel: RiskLevel.HIGH,
+            riskScore: 82,
+            address: '42 Avinashi Road, Peelamedu, Coimbatore',
+          },
+          inspector: {
+            id: 'usr-inspector-001',
+            name: 'Priya Verma',
+            phone: '+919876543211',
+            email: 'inspector@pmu.gov.in',
+            district: 'Coimbatore',
+            state: 'Tamil Nadu',
+          },
+          evidence: [
+            {
+              id: 'evid-001',
+              type: 'PHOTO',
+              fileUrl: 'https://demo-storage.sih26095.local/evidence/insp001_dining_hall.jpg',
+              hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+            },
+          ],
+        },
+        {
+          id: 'insp-002',
+          projectId: 'proj-002',
+          inspectorId: 'usr-inspector-001',
+          type: 'ROUTINE',
+          status: 'COMPLETED',
+          assignedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          startedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 3600000).toISOString(),
+          completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 7200000).toISOString(),
+          locationVerified: true,
+          reportNotes: 'Routine audit completed. Senior sanctuary records compliant with DoSJE norms.',
+          project: {
+            id: 'proj-002',
+            name: 'Demo Senior Care Sanctuary - Chennai',
+            district: 'Chennai',
+            state: 'Tamil Nadu',
+            riskLevel: RiskLevel.LOW,
+            riskScore: 24,
+            address: '15 GST Road, Guindy, Chennai',
+          },
+          inspector: {
+            id: 'usr-inspector-001',
+            name: 'Priya Verma',
+            phone: '+919876543211',
+            email: 'inspector@pmu.gov.in',
+            district: 'Coimbatore',
+            state: 'Tamil Nadu',
+          },
+          evidence: [],
+        },
+        {
+          id: 'insp-003',
+          projectId: 'proj-003',
+          inspectorId: 'usr-inspector-002',
+          type: 'SURPRISE_PHYSICAL',
+          status: 'ASSIGNED',
+          assignedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+          startedAt: null,
+          completedAt: null,
+          locationVerified: false,
+          reportNotes: 'Reason: Camera downtime during operational hours and attendance mismatch',
+          project: {
+            id: 'proj-003',
+            name: 'Demo De-addiction Kendra - Ludhiana',
+            district: 'Ludhiana',
+            state: 'Punjab',
+            riskLevel: RiskLevel.HIGH,
+            riskScore: 68,
+            address: '88 Mall Road, Civil Lines, Ludhiana',
+          },
+          inspector: {
+            id: 'usr-inspector-002',
+            name: 'Vikramjit Singh',
+            phone: '+919876543214',
+            email: 'vikram.singh@pmu.gov.in',
+            district: 'Ludhiana',
+            state: 'Punjab',
+          },
+          evidence: [],
+        },
+      ];
+    }
+  },
+
+  /**
+   * Submit Daily Attendance (NGO Portal)
+   */
+  async submitAttendance(payload: {
+    projectId: string;
+    reportedCount: number;
+    staffCount?: number;
+    mealCount?: number;
+    date?: string;
+    source?: string;
+    submittedBy?: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    attendance: Attendance;
+    anomaliesDetected?: any[];
+  }> {
+    try {
+      const response = await client.post('/api/attendance', payload);
+      return response.data;
+    } catch (error) {
+      console.warn('Backend /api/attendance unreachable, using local fallback');
+      const observed = Math.round(payload.reportedCount * 0.67);
+      const diff = payload.reportedCount - observed;
+      const mismatchPct = payload.reportedCount > 0 ? Math.round((diff / payload.reportedCount) * 100) : 0;
+      return {
+        success: true,
+        message: 'Daily attendance recorded in demo fallback mode.',
+        attendance: {
+          id: `att-${Date.now()}`,
+          projectId: payload.projectId,
+          date: payload.date || new Date().toISOString(),
+          reportedCount: payload.reportedCount,
+          observedCount: observed,
+          source: payload.source || 'PORTAL_SUBMISSION',
+          mismatchPercentage: mismatchPct,
+          createdAt: new Date().toISOString(),
+        },
+        anomaliesDetected: [],
+      };
+    }
+  },
+
+  /**
+   * Fetch Project Attendance History
+   */
+  async getProjectAttendance(projectId: string, limit: number = 14): Promise<Attendance[]> {
+    try {
+      const response = await client.get<Attendance[]>(`/api/attendance/${projectId}`, {
+        params: { limit },
+      });
+      return response.data;
+    } catch (error) {
+      console.warn(`Backend /api/attendance/${projectId} unreachable, using fallback`);
+      const base = FALLBACK_PROJECTS.find((p) => p.id === projectId) || FALLBACK_PROJECTS[0];
+      return [
+        {
+          id: 'att-01',
+          projectId: base.id,
+          date: new Date().toISOString(),
+          reportedCount: base.beneficiaryCount,
+          observedCount: Math.round(base.beneficiaryCount * 0.67),
+          source: 'PORTAL_SUBMISSION',
+          mismatchPercentage: 33.7,
+        },
+        {
+          id: 'att-02',
+          projectId: base.id,
+          date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          reportedCount: base.beneficiaryCount,
+          observedCount: Math.round(base.beneficiaryCount * 0.65),
+          source: 'PORTAL_SUBMISSION',
+          mismatchPercentage: 35.0,
+        },
+        {
+          id: 'att-03',
+          projectId: base.id,
+          date: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+          reportedCount: base.beneficiaryCount,
+          observedCount: Math.round(base.beneficiaryCount * 0.68),
+          source: 'PORTAL_SUBMISSION',
+          mismatchPercentage: 32.0,
+        },
+      ];
+    }
+  },
+
+  /**
+   * Request Surprise Video Verification Call
+   */
+  async requestVideoVerification(payload: {
+    projectId: string;
+    participantType?: 'INCHARGE' | 'STAFF' | 'BENEFICIARY';
+    participantName?: string;
+    participantPhone?: string;
+    participantId?: string;
+  }): Promise<{ success: boolean; message: string; videoCall: VideoVerification }> {
+    try {
+      const response = await client.post('/api/video-verification/request', payload);
+      return response.data;
+    } catch (error) {
+      console.warn('Backend /api/video-verification/request unreachable, using local fallback');
+      const project =
+        FALLBACK_PROJECTS.find((p) => p.id === payload.projectId) || FALLBACK_PROJECTS[0];
+      const pName =
+        payload.participantName ||
+        (payload.participantType === 'INCHARGE'
+          ? 'Amit Sundaram (In-charge)'
+          : payload.participantType === 'STAFF'
+          ? 'Duty Nurse / Staff Caregiver'
+          : 'Ramesh Kumar (Resident)');
+      return {
+        success: true,
+        message: `Surprise video verification initiated for ${pName} (Demo Mode)`,
+        videoCall: {
+          id: `vc-${Date.now()}`,
+          projectId: payload.projectId,
+          participantType: payload.participantType || 'BENEFICIARY',
+          participantId: payload.participantId || 'usr-ben-01',
+          participantName: pName,
+          participantPhone: payload.participantPhone || '+919876543213',
+          requestedAt: new Date().toISOString(),
+          status: 'REQUESTED',
+          project,
+        },
+      };
+    }
+  },
+
+  /**
+   * Complete Video Verification Call with Outcome & Sentiment
+   */
+  async completeVideoVerification(
+    id: string,
+    payload: {
+      status?: 'ANSWERED' | 'MISSED';
+      result?: 'VERIFIED' | 'SUSPICIOUS' | 'UNREACHABLE';
+      feedbackNotes?: string;
+      sentiment?: Sentiment;
+    }
+  ): Promise<{ success: boolean; message: string; videoCall: VideoVerification }> {
+    try {
+      const response = await client.post(`/api/video-verification/${id}/complete`, payload);
+      return response.data;
+    } catch (error) {
+      console.warn(`Backend /api/video-verification/${id}/complete unreachable, updating demo call`);
+      return {
+        success: true,
+        message: 'Video verification record updated in demo mode.',
+        videoCall: {
+          id,
+          projectId: 'proj-001',
+          participantType: 'BENEFICIARY',
+          participantId: 'usr-ben-01',
+          participantName: 'Ramesh Kumar',
+          participantPhone: '+919876543213',
+          requestedAt: new Date(Date.now() - 300000).toISOString(),
+          answeredAt: payload.status === 'MISSED' ? null : new Date().toISOString(),
+          status: payload.status || 'ANSWERED',
+          result: payload.result || 'VERIFIED',
+          feedbackNotes: payload.feedbackNotes || 'Citizen verified satisfactory meal and counseling routine.',
+          sentiment: payload.sentiment || Sentiment.POSITIVE,
+        },
+      };
+    }
+  },
+
+  /**
+   * Fetch Video Verification Inquiries List
+   */
+  async getVideoVerifications(params?: {
+    projectId?: string;
+    status?: string;
+    result?: string;
+    participantType?: string;
+  }): Promise<VideoVerification[]> {
+    try {
+      const response = await client.get<VideoVerification[]>('/api/video-verification/list', {
+        params,
+      });
+      return response.data;
+    } catch (error) {
+      console.warn('Backend /api/video-verification/list unreachable, using fallback list');
+      return [
+        {
+          id: 'vc-001',
+          projectId: 'proj-001',
+          participantType: 'BENEFICIARY',
+          participantId: 'usr-ben-01',
+          participantName: 'Ramesh Kumar (Resident)',
+          participantPhone: '+919876543213',
+          requestedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+          answeredAt: new Date(Date.now() - 8 * 60 * 60 * 1000 + 45000).toISOString(),
+          status: 'ANSWERED',
+          result: 'VERIFIED',
+          feedbackNotes: 'Resident confirmed daily counseling and quality meals provided regularly.',
+          sentiment: Sentiment.POSITIVE,
+          project: FALLBACK_PROJECTS[0],
+        },
+        {
+          id: 'vc-002',
+          projectId: 'proj-003',
+          participantType: 'INCHARGE',
+          participantId: 'usr-ngo-003',
+          participantName: 'Navjeevan Centre In-charge',
+          participantPhone: '+919876543230',
+          requestedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          answeredAt: null,
+          status: 'MISSED',
+          result: 'UNREACHABLE',
+          feedbackNotes: 'Call not answered after 3 attempts during mandatory operational hours.',
+          sentiment: null,
+          project: FALLBACK_PROJECTS[2],
+        },
+      ];
+    }
+  },
+
+  /**
+   * Fetch Immutable Audit Logs (Central Traceability)
+   */
+  async getAuditLogs(params?: {
+    entityType?: string;
+    action?: string;
+    limit?: number;
+  }): Promise<AuditLog[]> {
+    try {
+      const response = await client.get<AuditLog[]>('/api/audit-logs', { params });
+      return response.data;
+    } catch (error) {
+      console.warn('Backend /api/audit-logs unreachable, using fallback audit log');
+      return [
+        {
+          id: 'log-001',
+          actorId: 'usr-official-001',
+          action: 'ASSIGNED_SURPRISE_INSPECTION',
+          entityType: 'INSPECTION',
+          entityId: 'insp-001',
+          metadata: JSON.stringify({
+            projectId: 'proj-001',
+            inspectorId: 'usr-inspector-001',
+            type: 'SURPRISE_PHYSICAL',
+            reason: 'Attendance discrepancy > 30% flagged by vision telemetry',
+            priority: 'HIGH',
+          }),
+          timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+          actor: {
+            id: 'usr-official-001',
+            name: 'Dr. Rajesh Sharma',
+            role: 'OFFICIAL' as any,
+            phone: '+919876543210',
+            email: 'official@dosje.gov.in',
+            state: 'Delhi',
+            district: 'New Delhi',
+            active: true,
+          },
+        },
+        {
+          id: 'log-002',
+          actorId: 'usr-inspector-001',
+          action: 'VERIFIED_GEOFENCE_LOCATION',
+          entityType: 'INSPECTION',
+          entityId: 'insp-001',
+          metadata: JSON.stringify({
+            distanceMeters: 43,
+            radiusMeters: 100,
+            status: 'LOCATION_VERIFIED',
+          }),
+          timestamp: new Date(Date.now() - 2.5 * 60 * 60 * 1000).toISOString(),
+          actor: {
+            id: 'usr-inspector-001',
+            name: 'Priya Verma',
+            role: 'INSPECTOR' as any,
+            phone: '+919876543211',
+            email: 'inspector@pmu.gov.in',
+            state: 'Tamil Nadu',
+            district: 'Coimbatore',
+            active: true,
+          },
+        },
+        {
+          id: 'log-003',
+          actorId: 'usr-official-001',
+          action: 'COMPLETED_VIDEO_VERIFICATION_VERIFIED',
+          entityType: 'PROJECT',
+          entityId: 'proj-001',
+          metadata: JSON.stringify({
+            participantType: 'BENEFICIARY',
+            sentiment: 'POSITIVE',
+          }),
+          timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+          actor: {
+            id: 'usr-official-001',
+            name: 'Dr. Rajesh Sharma',
+            role: 'OFFICIAL' as any,
+            phone: '+919876543210',
+            email: 'official@dosje.gov.in',
+            state: 'Delhi',
+            district: 'New Delhi',
+            active: true,
+          },
+        },
+      ];
+    }
+  },
+
+  /**
+   * Review Anomaly (Official Action: REVIEWED / FALSE_POSITIVE / ESCALATED)
+   */
+  async reviewAnomaly(
+    id: string,
+    status: string = 'REVIEWED',
+    reviewedBy: string = 'Authorized Official',
+    reviewNotes: string = 'Human official review recorded'
+  ): Promise<any> {
+    try {
+      const response = await client.post(`/api/anomalies/${id}/review`, {
+        status,
+        reviewedBy,
+        reviewNotes,
+      });
+      return response.data;
+    } catch (error) {
+      console.warn(`Backend /api/anomalies/${id}/review unreachable, updating demo anomaly`);
+      return {
+        id,
+        status,
+        reviewedBy,
+        reviewNotes,
+      };
+    }
+  },
 };
+

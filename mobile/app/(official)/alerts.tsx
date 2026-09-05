@@ -1,54 +1,44 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+} from 'react-native';
 import { colors, spacing, borderRadius, typography, shadows } from '../../src/constants/theme';
 import { GovHeader, RiskBadge, Button } from '../../src/components/common';
 import { RiskLevel } from '@nirikshan/shared-types';
+import { useDashboardStore } from '../../src/store/useDashboardStore';
+
+function formatTimeAgo(dateStr: string) {
+  try {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 60) return `${Math.max(1, mins)} mins ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} hours ago`;
+    return new Date(dateStr).toLocaleDateString();
+  } catch {
+    return 'Recently';
+  }
+}
 
 export default function OfficialAlerts() {
   const [filter, setFilter] = useState('ALL');
+  const {
+    alerts,
+    isLoading,
+    fetchDashboardData,
+    assignInspection,
+    markFalsePositive,
+  } = useDashboardStore();
 
-  const alerts = [
-    {
-      id: 'anom-001',
-      title: 'High Attendance Discrepancy (33.7%)',
-      project: 'Demo Welfare Institute - Coimbatore',
-      severity: RiskLevel.HIGH,
-      score: 82,
-      time: '2 hours ago',
-      explanation:
-        'Reported: 92 beneficiaries vs Observed: ~61 unique individuals by dining hall computer vision during peak lunch hours.',
-    },
-    {
-      id: 'anom-002',
-      title: 'CCTV Offline During Working Hours',
-      project: 'Demo De-addiction Kendra - Ludhiana',
-      severity: RiskLevel.HIGH,
-      score: 68,
-      time: '4 hours ago',
-      explanation:
-        'Camera "Ward 2 Rehabilitation Hall" stopped transmitting heartbeats 4 hours ago without maintenance notice.',
-    },
-    {
-      id: 'anom-003',
-      title: 'Attendance Sanction Exceeded (+25.7%)',
-      project: 'Demo Rehabilitation Centre - Lucknow',
-      severity: RiskLevel.CRITICAL,
-      score: 89,
-      time: '6 hours ago',
-      explanation:
-        'Registered facility capacity is 70 beds, but NGO reported 88 active beneficiaries. Video analytics observe only ~45 attendees.',
-    },
-    {
-      id: 'anom-004',
-      title: 'Possible Duplicate Evidence Re-use',
-      project: 'Demo Drug De-addiction - Ahmedabad',
-      severity: RiskLevel.HIGH,
-      score: 84,
-      time: '12 hours ago',
-      explanation:
-        'Submitted photo evidence matches identical SHA-256 hash submitted 45 days ago in another quarterly inspection report.',
-    },
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   const filtered = filter === 'ALL' ? alerts : alerts.filter((a) => a.severity === filter);
 
@@ -72,41 +62,74 @@ export default function OfficialAlerts() {
           ))}
         </View>
 
-        <ScrollView contentContainerStyle={styles.list}>
-          {filtered.map((a) => (
-            <View key={a.id} style={styles.alertCard}>
-              <View style={styles.cardHeader}>
-                <RiskBadge level={a.severity} score={a.score} showScore={true} />
-                <Text style={styles.timeText}>{a.time}</Text>
-              </View>
-
-              <Text style={styles.alertTitle}>{a.title}</Text>
-              <Text style={styles.projectName}>{a.project}</Text>
-              <Text style={styles.explanationText}>{a.explanation}</Text>
-
-              {/* Human-in-the-loop action buttons */}
-              <View style={styles.actionRow}>
-                <Button
-                  title="Assign Surprise Inspection"
-                  size="sm"
-                  onPress={() => {}}
-                  style={styles.actionBtn}
-                />
-                <Button
-                  title="False Positive"
-                  variant="outline"
-                  size="sm"
-                  onPress={() => {}}
-                  style={styles.dismissBtn}
-                />
-              </View>
+        <ScrollView
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={fetchDashboardData} />
+          }
+        >
+          {filtered.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No alerts found matching filter: {filter}</Text>
             </View>
-          ))}
+          ) : (
+            filtered.map((a) => (
+              <View key={a.id} style={styles.alertCard}>
+                <View style={styles.cardHeader}>
+                  <RiskBadge level={a.severity} score={a.score} showScore={true} />
+                  <Text style={styles.timeText}>{formatTimeAgo(a.timestamp)}</Text>
+                </View>
+
+                <Text style={styles.alertTitle}>{a.title}</Text>
+                <Text style={styles.projectName}>
+                  🏛️ {a.project} • {a.district}, {a.state}
+                </Text>
+                <Text style={styles.explanationText}>{a.explanation}</Text>
+
+                {/* Human-in-the-loop action buttons */}
+                {a.status === 'OPEN' ? (
+                  <View style={styles.actionRow}>
+                    <Button
+                      title="Assign Surprise Inspection"
+                      size="sm"
+                      onPress={() => assignInspection(a.id)}
+                      style={styles.actionBtn}
+                    />
+                    <Button
+                      title="False Positive"
+                      variant="outline"
+                      size="sm"
+                      onPress={() => markFalsePositive(a.id)}
+                      style={styles.dismissBtn}
+                    />
+                  </View>
+                ) : (
+                  <View style={styles.statusBadgeRow}>
+                    <View
+                      style={[
+                        styles.resolvedPill,
+                        a.status === 'FALSE_POSITIVE'
+                          ? styles.dismissedPill
+                          : styles.assignedPill,
+                      ]}
+                    >
+                      <Text style={styles.resolvedText}>
+                        {a.status === 'FALSE_POSITIVE'
+                          ? '✕ DISMISSED AS FALSE POSITIVE'
+                          : '✓ PMU INSPECTION ASSIGNED'}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            ))
+          )}
         </ScrollView>
       </View>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -196,4 +219,40 @@ const styles = StyleSheet.create({
   dismissBtn: {
     flex: 1,
   },
+  emptyContainer: {
+    padding: spacing.xl,
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  emptyText: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textMuted,
+  },
+  statusBadgeRow: {
+    marginTop: spacing.md,
+    flexDirection: 'row',
+  },
+  resolvedPill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+  },
+  assignedPill: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
+  dismissedPill: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
+  },
+  resolvedText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textMuted,
+  },
 });
+
