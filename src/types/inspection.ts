@@ -11,9 +11,44 @@ export type InspectionStatus =
   | 'Assigned'
   | 'Accepted / Acknowledged'
   | 'In Progress'
+  | 'Submitted / Awaiting Review'
   | 'Completed'
   | 'Pending Verification'
   | 'Scheduled';
+
+export type ChecklistStatus = 'Not Checked' | 'Verified' | 'Needs Attention' | 'Not Applicable';
+
+export type ChecklistCategory =
+  | 'Project Operations'
+  | 'Beneficiary Verification'
+  | 'Infrastructure / Facility'
+  | 'Records / Documentation';
+
+export interface ChecklistItem {
+  id: string;
+  category: ChecklistCategory;
+  title: string;
+  description: string;
+  status: ChecklistStatus;
+  notes?: string;
+}
+
+export interface InspectionFindings {
+  overallObservation: string;
+  keyFindings: string;
+  issuesRequiringFollowUp: string;
+  additionalRemarks: string;
+}
+
+export interface MockEvidenceItem {
+  id: string;
+  type: 'photo' | 'video' | 'document';
+  category: 'Facility Entrance' | 'Attendance Register' | 'Service Delivery Area' | 'General Infrastructure';
+  title: string;
+  timestamp: string;
+  locationStatus: 'Pending GPS integration';
+  demoLabel: string;
+}
 
 export interface InspectionAssignment {
   id: string;
@@ -38,6 +73,12 @@ export interface InspectionAssignment {
   totalChecklistCount?: number;
   acknowledgedAt?: string;
   acknowledgedBy?: string;
+  startedAt?: string;
+  submittedAt?: string;
+  submittedBy?: string;
+  checklistResponses?: Record<string, ChecklistItem>;
+  findings?: InspectionFindings;
+  evidenceItems?: MockEvidenceItem[];
 }
 
 export interface DemoInspector {

@@ -48,6 +48,23 @@ export type InspectorTabParamList = {
   Profile: undefined;
 };
 
+// PMU Inspector Stack Parameter List (Phase 3 inspection workflow)
+export type InspectorStackParamList = {
+  InspectorTabs: { screen?: keyof InspectorTabParamList } | undefined;
+  InspectionOverview: { inspectionId: string };
+  InspectionChecklist: { inspectionId: string };
+  InspectionFindings: { inspectionId: string };
+  InspectionReview: { inspectionId: string };
+  InspectionConfirmation: { inspectionId: string };
+};
+
+// Type-safe navigation props for Inspector workflow
+export type InspectorStackNavigationProp = NativeStackNavigationProp<InspectorStackParamList>;
+export type InspectorTabNavigationProp<T extends keyof InspectorTabParamList> = CompositeNavigationProp<
+  BottomTabNavigationProp<InspectorTabParamList, T>,
+  NativeStackNavigationProp<InspectorStackParamList>
+>;
+
 // NGO Institute Tab Parameter List
 export type NgoTabParamList = {
   Home: undefined;

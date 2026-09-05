@@ -33,7 +33,7 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
   const navigation = useNavigation<OfficialTabNavigationProp<'Inspections'>>();
   const [inspections, setInspections] = useState<InspectionAssignment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<'ALL' | 'SURPRISE' | 'ROUTINE'>('ALL');
+  const [filter, setFilter] = useState<'ALL' | 'SUBMITTED' | 'SURPRISE' | 'ROUTINE'>('ALL');
 
   // Modal State for Automated Random Assignment
   const [selectedInspection, setSelectedInspection] = useState<InspectionAssignment | null>(null);
@@ -41,6 +41,10 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
   const [allInspectors, setAllInspectors] = useState<DemoInspector[]>([]);
   const [isAssigning, setIsAssigning] = useState(false);
   const [assignmentResult, setAssignmentResult] = useState<AutomatedAssignmentResult | null>(null);
+
+  // Modal State for Submitted Inspection Dossier Review (Phase 3 Sync)
+  const [dossierInspection, setDossierInspection] = useState<InspectionAssignment | null>(null);
+  const [dossierModalVisible, setDossierModalVisible] = useState(false);
 
   const loadInspections = async () => {
     try {
@@ -91,7 +95,13 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
     await loadInspections();
   };
 
+  const handleOpenDossier = (inspection: InspectionAssignment) => {
+    setDossierInspection(inspection);
+    setDossierModalVisible(true);
+  };
+
   const filteredInspections = inspections.filter((i) => {
+    if (filter === 'SUBMITTED') return i.status === 'Submitted / Awaiting Review';
     if (filter === 'SURPRISE') return i.type === 'Surprise Inspection';
     if (filter === 'ROUTINE') return i.type === 'Routine Inspection' || i.type === 'Special Audit';
     return true;
@@ -116,6 +126,7 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
           <View style={styles.filterRow}>
             {[
               { id: 'ALL', label: `All Orders (${inspections.length})` },
+              { id: 'SUBMITTED', label: 'Submitted / Review' },
               { id: 'SURPRISE', label: 'Surprise Audits' },
               { id: 'ROUTINE', label: 'Routine / Scheduled' },
             ].map((chip) => {
@@ -146,6 +157,7 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
               key={inspection.id}
               inspection={inspection}
               onRunAssignment={() => handleOpenAssignmentModal(inspection)}
+              onPress={() => handleOpenDossier(inspection)}
             />
           ))}
         </ScrollView>
@@ -331,6 +343,258 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
                   />
                 </View>
               )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Submitted Inspection Dossier Review Modal */}
+      <Modal
+        visible={dossierModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setDossierModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { maxWidth: 680 }]}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <View style={styles.modalHeaderLeft}>
+                <View style={[styles.modalIconCircle, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
+                  <Ionicons name="document-text" size={20} color={colors.brand.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalTitle}>Inspection Dossier & Audit Record</Text>
+                  <Text style={styles.modalSubtitle} numberOfLines={1}>
+                    {dossierInspection ? `Order #${dossierInspection.id} • ${dossierInspection.type}` : ''}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => setDossierModalVisible(false)}
+                style={styles.modalCloseBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons name="close" size={20} color={colors.text.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+              {dossierInspection && (
+                <>
+                  {/* Target Card */}
+                  <View style={styles.targetSection}>
+                    <View style={styles.targetTopRow}>
+                      <Text style={styles.targetIdText}>#{dossierInspection.id}</Text>
+                      <StatusBadge
+                        label={dossierInspection.status}
+                        variant={
+                          dossierInspection.status === 'Submitted / Awaiting Review'
+                            ? 'normal'
+                            : dossierInspection.status === 'In Progress'
+                            ? 'info'
+                            : 'warning'
+                        }
+                        size="sm"
+                      />
+                    </View>
+                    <Text style={styles.targetNameText}>{dossierInspection.projectName}</Text>
+                    <Text style={styles.targetAddressText}>{dossierInspection.projectAddress}</Text>
+
+                    <View style={styles.dossierMetaGrid}>
+                      <View style={styles.dossierMetaItem}>
+                        <Text style={styles.dossierMetaLabel}>Assigned Inspector</Text>
+                        <Text style={styles.dossierMetaVal}>
+                          {dossierInspection.assignedOfficerName}{' '}
+                          {dossierInspection.assignedOfficerDemoId ? `(${dossierInspection.assignedOfficerDemoId})` : ''}
+                        </Text>
+                      </View>
+                      <View style={styles.dossierMetaItem}>
+                        <Text style={styles.dossierMetaLabel}>Scheduled Date</Text>
+                        <Text style={styles.dossierMetaVal}>{dossierInspection.assignedDate || dossierInspection.dueDate}</Text>
+                      </View>
+                    </View>
+
+                    {dossierInspection.submittedAt && (
+                      <View style={styles.submissionNoticeBox}>
+                        <Ionicons name="checkmark-circle" size={16} color={colors.status.normal} />
+                        <Text style={styles.submissionNoticeText}>
+                          Submitted: {dossierInspection.submittedAt} by {dossierInspection.submittedBy || dossierInspection.assignedOfficerName}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* If not yet submitted */}
+                  {dossierInspection.status !== 'Submitted / Awaiting Review' ? (
+                    <View style={styles.pendingReportBox}>
+                      <Ionicons name="time-outline" size={28} color={colors.brand.navyLight} />
+                      <Text style={styles.pendingReportTitle}>Inspection Awaiting Field Submission</Text>
+                      <Text style={styles.pendingReportText}>
+                        This inspection is currently assigned or in progress with {dossierInspection.assignedOfficerName}.
+                        The verified checklist, neutral findings, and photographic/digital evidence will populate here automatically once submitted from the field mobile app.
+                      </Text>
+                    </View>
+                  ) : (
+                    <>
+                      {/* Checklist Summary Cards */}
+                      {(() => {
+                        const items = dossierInspection.checklistResponses
+                          ? Object.values(dossierInspection.checklistResponses)
+                          : [];
+                        const verifiedCount = items.filter((i) => i.status === 'Verified').length;
+                        const attentionCount = items.filter((i) => i.status === 'Needs Attention').length;
+                        const naCount = items.filter((i) => i.status === 'Not Applicable').length;
+
+                        return (
+                          <View style={styles.dossierSection}>
+                            <Text style={styles.dossierSectionTitle}>Checklist Verification Summary</Text>
+                            <View style={styles.checklistSummaryRow}>
+                              <View style={[styles.summaryStatCard, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
+                                <Text style={[styles.summaryStatVal, { color: colors.status.normal }]}>{verifiedCount}</Text>
+                                <Text style={styles.summaryStatLabel}>Verified</Text>
+                              </View>
+                              <View style={[styles.summaryStatCard, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}>
+                                <Text style={[styles.summaryStatVal, { color: colors.status.warning }]}>{attentionCount}</Text>
+                                <Text style={styles.summaryStatLabel}>Needs Attention</Text>
+                              </View>
+                              <View style={[styles.summaryStatCard, { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }]}>
+                                <Text style={[styles.summaryStatVal, { color: colors.text.muted }]}>{naCount}</Text>
+                                <Text style={styles.summaryStatLabel}>N/A</Text>
+                              </View>
+                            </View>
+
+                            {/* Checklist Items Details */}
+                            <View style={styles.dossierChecklistList}>
+                              {items.map((item) => (
+                                <View key={item.id} style={styles.dossierChecklistItem}>
+                                  <View style={styles.dossierChecklistLeft}>
+                                    <Text style={styles.dossierChecklistCategory}>{item.category}</Text>
+                                    <Text style={styles.dossierChecklistTitle}>{item.title}</Text>
+                                    {item.notes ? (
+                                      <Text style={styles.dossierChecklistNotes}>Remark: {item.notes}</Text>
+                                    ) : null}
+                                  </View>
+                                  <View
+                                    style={[
+                                      styles.dossierStatusBadge,
+                                      item.status === 'Verified' && { backgroundColor: '#DCFCE7' },
+                                      item.status === 'Needs Attention' && { backgroundColor: '#FEF3C7' },
+                                      item.status === 'Not Applicable' && { backgroundColor: '#F1F5F9' },
+                                    ]}
+                                  >
+                                    <Text
+                                      style={[
+                                        styles.dossierStatusText,
+                                        item.status === 'Verified' && { color: '#166534' },
+                                        item.status === 'Needs Attention' && { color: '#92400E' },
+                                        item.status === 'Not Applicable' && { color: '#475569' },
+                                      ]}
+                                    >
+                                      {item.status}
+                                    </Text>
+                                  </View>
+                                </View>
+                              ))}
+                            </View>
+                          </View>
+                        );
+                      })()}
+
+                      {/* Neutral Findings Section */}
+                      {dossierInspection.findings && (
+                        <View style={styles.dossierSection}>
+                          <Text style={styles.dossierSectionTitle}>Inspector Field Observations</Text>
+                          <View style={styles.findingsBlock}>
+                            <Text style={styles.findingFieldLabel}>Overall Observation</Text>
+                            <Text style={styles.findingFieldValue}>
+                              {dossierInspection.findings.overallObservation || 'None recorded'}
+                            </Text>
+                          </View>
+
+                          <View style={styles.findingsBlock}>
+                            <Text style={styles.findingFieldLabel}>Key Findings</Text>
+                            <Text style={styles.findingFieldValue}>
+                              {dossierInspection.findings.keyFindings || 'None recorded'}
+                            </Text>
+                          </View>
+
+                          <View style={styles.findingsBlock}>
+                            <Text style={styles.findingFieldLabel}>Recommended Follow-Up</Text>
+                            <Text style={styles.findingFieldValue}>
+                              {dossierInspection.findings.issuesRequiringFollowUp || 'None recorded'}
+                            </Text>
+                          </View>
+
+                          {dossierInspection.findings.additionalRemarks ? (
+                            <View style={styles.findingsBlock}>
+                              <Text style={styles.findingFieldLabel}>Additional Remarks</Text>
+                              <Text style={styles.findingFieldValue}>
+                                {dossierInspection.findings.additionalRemarks}
+                              </Text>
+                            </View>
+                          ) : null}
+                        </View>
+                      )}
+
+                      {/* Evidence Section */}
+                      <View style={styles.dossierSection}>
+                        <View style={styles.evidenceHeaderRow}>
+                          <Text style={styles.dossierSectionTitle}>Attached Digital Evidence</Text>
+                          <Text style={styles.evidenceCountBadge}>
+                            {dossierInspection.evidenceItems?.length || 0} Files
+                          </Text>
+                        </View>
+
+                        {dossierInspection.evidenceItems && dossierInspection.evidenceItems.length > 0 ? (
+                          dossierInspection.evidenceItems.map((ev) => (
+                            <View key={ev.id} style={styles.dossierEvidenceCard}>
+                              <View style={styles.evidenceIconBox}>
+                                <Ionicons
+                                  name={ev.type === 'video' ? 'videocam' : ev.type === 'document' ? 'document-attach' : 'camera'}
+                                  size={18}
+                                  color={colors.brand.primary}
+                                />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text style={styles.evidenceTitleText}>{ev.title}</Text>
+                                <Text style={styles.evidenceMetaText}>
+                                  {ev.category} • {ev.timestamp}
+                                </Text>
+                                {ev.demoLabel ? (
+                                  <Text style={styles.evidenceNoteText}>Note: {ev.demoLabel}</Text>
+                                ) : null}
+                              </View>
+                              <View style={styles.gpsBadge}>
+                                <Ionicons name="location-outline" size={11} color="#B45309" />
+                                <Text style={styles.gpsBadgeText}>{ev.locationStatus}</Text>
+                              </View>
+                            </View>
+                          ))
+                        ) : (
+                          <Text style={styles.noEvidenceText}>No media files attached to this inspection.</Text>
+                        )}
+                      </View>
+
+                      {/* Governance & Audit Box */}
+                      <View style={styles.governanceNoticeBox}>
+                        <Ionicons name="shield-checkmark" size={16} color={colors.brand.navyLight} />
+                        <Text style={styles.governanceNoticeText}>
+                          Official MoSJE PMU Inspection Record. Prototype Mode: All data entries are captured for audit simulation. Pending backend GPS verification and biometric digital sign-off.
+                        </Text>
+                      </View>
+                    </>
+                  )}
+                </>
+              )}
+            </ScrollView>
+
+            {/* Modal Footer */}
+            <View style={styles.modalFooter}>
+              <PrimaryButton
+                title="Close Dossier"
+                onPress={() => setDossierModalVisible(false)}
+              />
             </View>
           </View>
         </View>
@@ -672,5 +936,255 @@ const styles = StyleSheet.create({
   },
   modalActionButtons: {
     width: '100%',
+  },
+
+  /* Dossier Review Modal Styles */
+  dossierMetaGrid: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+    backgroundColor: colors.neutral.surfaceSubtle,
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+  },
+  dossierMetaItem: {
+    flex: 1,
+  },
+  dossierMetaLabel: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    color: colors.text.muted,
+    fontWeight: typography.weights.medium,
+  },
+  dossierMetaVal: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    color: colors.text.primary,
+    marginTop: 2,
+  },
+  submissionNoticeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    padding: spacing.xs + 2,
+    borderRadius: borderRadius.xs,
+    marginTop: spacing.xs,
+  },
+  submissionNoticeText: {
+    fontSize: 11,
+    fontWeight: typography.weights.semibold,
+    color: '#15803D',
+  },
+  pendingReportBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    borderStyle: 'dashed',
+    marginTop: spacing.md,
+    gap: spacing.xs,
+  },
+  pendingReportTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.navy,
+    marginTop: spacing.xs,
+  },
+  pendingReportText: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  dossierSection: {
+    marginTop: spacing.md,
+  },
+  dossierSectionTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.navy,
+    marginBottom: spacing.xs,
+  },
+  checklistSummaryRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  summaryStatCard: {
+    flex: 1,
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  summaryStatVal: {
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.bold,
+  },
+  summaryStatLabel: {
+    fontSize: 10,
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    marginTop: 2,
+  },
+  dossierChecklistList: {
+    gap: 6,
+  },
+  dossierChecklistItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.sm,
+    backgroundColor: colors.neutral.surface,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    borderRadius: borderRadius.sm,
+    gap: spacing.sm,
+  },
+  dossierChecklistLeft: {
+    flex: 1,
+  },
+  dossierChecklistCategory: {
+    fontSize: 9,
+    color: colors.text.muted,
+    textTransform: 'uppercase',
+    fontWeight: typography.weights.medium,
+  },
+  dossierChecklistTitle: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    color: colors.text.primary,
+  },
+  dossierChecklistNotes: {
+    fontSize: 11,
+    color: colors.status.warning,
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+  dossierStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+  },
+  dossierStatusText: {
+    fontSize: 10,
+    fontWeight: typography.weights.bold,
+  },
+  findingsBlock: {
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  findingFieldLabel: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    color: colors.text.muted,
+    fontWeight: typography.weights.medium,
+    marginBottom: 2,
+  },
+  findingFieldValue: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.primary,
+    lineHeight: 18,
+  },
+  evidenceHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  evidenceCountBadge: {
+    fontSize: 11,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.primary,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  dossierEvidenceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.sm,
+    backgroundColor: colors.neutral.surface,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    borderRadius: borderRadius.sm,
+    marginBottom: spacing.xs,
+  },
+  evidenceIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  evidenceTitleText: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    color: colors.text.primary,
+  },
+  evidenceMetaText: {
+    fontSize: 10,
+    color: colors.text.muted,
+    marginTop: 1,
+  },
+  evidenceNoteText: {
+    fontSize: 10,
+    color: colors.text.secondary,
+    fontStyle: 'italic',
+    marginTop: 1,
+  },
+  gpsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  gpsBadgeText: {
+    fontSize: 9,
+    fontWeight: typography.weights.bold,
+    color: '#92400E',
+  },
+  noEvidenceText: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.muted,
+    fontStyle: 'italic',
+    paddingVertical: spacing.sm,
+  },
+  governanceNoticeBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.xs,
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  governanceNoticeText: {
+    fontSize: 10,
+    color: colors.text.secondary,
+    lineHeight: 14,
+    flex: 1,
   },
 });

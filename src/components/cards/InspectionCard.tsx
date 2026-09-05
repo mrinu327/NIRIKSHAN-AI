@@ -19,6 +19,7 @@ interface InspectionCardProps {
   onPress?: () => void;
   onRunAssignment?: () => void;
   onAcknowledge?: () => void;
+  onOpenInspection?: () => void;
   isInspectorView?: boolean;
   style?: ViewStyle;
 }
@@ -28,12 +29,14 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
   onPress,
   onRunAssignment,
   onAcknowledge,
+  onOpenInspection,
   isInspectorView,
   style,
 }) => {
   const isSurprise = inspection.type === 'Surprise Inspection';
   const isAwaitingAssignment = inspection.status === 'Awaiting Assignment';
   const isAcknowledged = inspection.status === 'Accepted / Acknowledged';
+  const isSubmitted = inspection.status === 'Submitted / Awaiting Review';
 
   const getStatusVariant = () => {
     switch (inspection.status) {
@@ -45,6 +48,8 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
         return 'normal' as const;
       case 'In Progress':
         return 'warning' as const;
+      case 'Submitted / Awaiting Review':
+        return 'info' as const;
       case 'Completed':
         return 'normal' as const;
       default:
@@ -62,6 +67,7 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
         styles.card,
         isSurprise && styles.cardSurprise,
         isAwaitingAssignment && styles.cardAwaiting,
+        isSubmitted && styles.cardSubmitted,
         style,
       ]}
     >
@@ -131,8 +137,15 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
             )}
           </View>
 
-          {/* Acknowledgment Stamp */}
-          {isAcknowledged ? (
+          {/* Submission Status Stamp */}
+          {isSubmitted ? (
+            <View style={styles.submittedBanner}>
+              <Ionicons name="shield-checkmark" size={14} color={colors.brand.primary} />
+              <Text style={styles.submittedBannerText}>
+                Submitted for MoSJE review on {inspection.submittedAt || 'Today'} by {inspection.submittedBy || inspection.assignedOfficerName}
+              </Text>
+            </View>
+          ) : isAcknowledged ? (
             <View style={styles.acknowledgedBanner}>
               <Ionicons name="checkmark-done-circle" size={14} color={colors.status.normal} />
               <Text style={styles.acknowledgedText}>
@@ -150,6 +163,25 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
               <Text style={styles.acknowledgeBtnText}>Acknowledge Assignment</Text>
             </TouchableOpacity>
           ) : null}
+
+          {/* Open Inspection Action for Inspector View */}
+          {isInspectorView && onOpenInspection && (
+            <TouchableOpacity
+              style={styles.openInspectionBtn}
+              onPress={onOpenInspection}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={isSubmitted ? 'eye-outline' : 'play-circle'}
+                size={15}
+                color={colors.text.inverse}
+                style={{ marginRight: 6 }}
+              />
+              <Text style={styles.openInspectionBtnText}>
+                {isSubmitted ? 'View Submitted Inspection' : 'Open Inspection'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -432,6 +464,45 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   acknowledgeBtnText: {
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.bold,
+  },
+  cardSubmitted: {
+    borderLeftWidth: 4,
+    borderLeftColor: colors.brand.primary,
+    borderColor: '#BFDBFE',
+  },
+  submittedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderWidth: 1,
+    borderRadius: borderRadius.xs,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    marginTop: 8,
+  },
+  submittedBannerText: {
+    fontSize: 11,
+    fontWeight: typography.weights.medium,
+    color: colors.brand.primary,
+    flex: 1,
+  },
+  openInspectionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.brand.navy,
+    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.sm,
+    marginTop: 8,
+    ...shadows.xs,
+  },
+  openInspectionBtnText: {
     color: colors.text.inverse,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.bold,

@@ -9,12 +9,17 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { InspectorTabNavigationProp } from '../../types/navigation';
 import { AppHeader } from '../../components/common/AppHeader';
 import { StatCard } from '../../components/common/StatCard';
 import { SectionHeader } from '../../components/common/SectionHeader';
+import { StatusBadge } from '../../components/common/StatusBadge';
+import { PriorityBadge } from '../../components/common/PriorityBadge';
 import { InspectionCard } from '../../components/cards/InspectionCard';
+import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { LoadingState } from '../../components/common/LoadingState';
 import { mockInspectionService } from '../../services/mock/mockInspectionService';
 import { mockAssignmentService } from '../../services/mock/mockAssignmentService';
@@ -24,6 +29,7 @@ import { typography } from '../../theme/typography';
 import { spacing, borderRadius, shadows } from '../../theme/spacing';
 
 export const InspectorHomeScreen: React.FC = () => {
+  const navigation = useNavigation<InspectorTabNavigationProp<'Home'>>();
   const { width } = useWindowDimensions();
   const isNarrow = width < 360;
   const isDesktop = width >= 900;
@@ -63,7 +69,11 @@ export const InspectorHomeScreen: React.FC = () => {
 
   useEffect(() => {
     loadInspectorData();
-  }, [loadInspectorData, currentUser]);
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadInspectorData();
+    });
+    return unsubscribe;
+  }, [navigation, loadInspectorData, currentUser]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -112,6 +122,15 @@ export const InspectorHomeScreen: React.FC = () => {
       i.assignedOfficerDemoId === activeBadgeId ||
       i.assignedOfficerName.toLowerCase() === (currentUser?.name || '').toLowerCase()
   ).length;
+
+  // The primary current assigned inspection to highlight as Hero Card
+  const currentAssignedInspection =
+    displayedInspections.find(
+      (i) =>
+        i.status === 'In Progress' ||
+        i.status === 'Accepted / Acknowledged' ||
+        i.status === 'Assigned'
+    ) || displayedInspections[0];
 
   const statItemWidth = isDesktop ? '23.8%' : isNarrow ? '100%' : '48%';
 
@@ -169,6 +188,82 @@ export const InspectorHomeScreen: React.FC = () => {
             <View style={styles.ackToast}>
               <Ionicons name="checkmark-circle" size={18} color={colors.status.normal} />
               <Text style={styles.ackToastText}>{ackNotice}</Text>
+            </View>
+          )}
+
+          {/* Current Assigned Inspection Hero Card (Phase 3 Requirement) */}
+          {currentAssignedInspection && (
+            <View style={styles.heroCard}>
+              <View style={styles.heroHeader}>
+                <View style={styles.heroBadgeRow}>
+                  <View style={styles.liveIndicator}>
+                    <View style={styles.livePulse} />
+                    <Text style={styles.heroHeaderTag}>CURRENT ASSIGNED INSPECTION</Text>
+                  </View>
+                  <StatusBadge
+                    label={currentAssignedInspection.status}
+                    variant={
+                      currentAssignedInspection.status === 'Submitted / Awaiting Review'
+                        ? 'info'
+                        : currentAssignedInspection.status === 'Accepted / Acknowledged'
+                        ? 'normal'
+                        : 'warning'
+                    }
+                    size="sm"
+                  />
+                </View>
+                <Text style={styles.heroInspectionId}>Order #{currentAssignedInspection.id}</Text>
+              </View>
+
+              <Text style={styles.heroProjectName}>{currentAssignedInspection.projectName}</Text>
+
+              <View style={styles.heroMetaGrid}>
+                <View style={styles.heroMetaItem}>
+                  <Text style={styles.heroMetaLabel}>Priority</Text>
+                  <PriorityBadge priority={currentAssignedInspection.priority} />
+                </View>
+
+                <View style={styles.heroMetaItem}>
+                  <Text style={styles.heroMetaLabel}>Type</Text>
+                  <Text style={styles.heroMetaValue}>{currentAssignedInspection.type}</Text>
+                </View>
+
+                <View style={styles.heroMetaItem}>
+                  <Text style={styles.heroMetaLabel}>Assigned Time</Text>
+                  <Text style={styles.heroMetaValue}>
+                    {currentAssignedInspection.assignmentTimestamp || currentAssignedInspection.assignedDate}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.heroAddressRow}>
+                <Ionicons name="location-outline" size={14} color={colors.text.muted} style={{ marginTop: 1 }} />
+                <Text style={styles.heroAddressText} numberOfLines={2}>
+                  {currentAssignedInspection.projectAddress}
+                </Text>
+              </View>
+
+              <View style={styles.heroActionRow}>
+                <PrimaryButton
+                  title={
+                    currentAssignedInspection.status === 'Submitted / Awaiting Review'
+                      ? 'View Submitted Inspection'
+                      : currentAssignedInspection.status === 'In Progress'
+                      ? 'Resume Inspection'
+                      : 'Open Inspection'
+                  }
+                  iconName={
+                    currentAssignedInspection.status === 'Submitted / Awaiting Review'
+                      ? 'eye-outline'
+                      : 'play-circle'
+                  }
+                  onPress={() =>
+                    navigation.navigate('InspectionOverview', {
+                      inspectionId: currentAssignedInspection.id,
+                    })
+                  }
+                />
+              </View>
             </View>
           )}
 
@@ -270,6 +365,12 @@ export const InspectorHomeScreen: React.FC = () => {
                 key={assignment.id}
                 inspection={assignment}
                 isInspectorView={true}
+                onOpenInspection={() =>
+                  navigation.navigate('InspectionOverview', { inspectionId: assignment.id })
+                }
+                onPress={() =>
+                  navigation.navigate('InspectionOverview', { inspectionId: assignment.id })
+                }
                 onAcknowledge={() => handleAcknowledge(assignment.id)}
               />
             ))
@@ -447,5 +548,105 @@ const styles = StyleSheet.create({
     marginTop: 4,
     maxWidth: 320,
     lineHeight: 16,
+  },
+
+  /* Hero Card Styles */
+  heroCard: {
+    backgroundColor: colors.neutral.surface,
+    borderColor: colors.brand.primary,
+    borderWidth: 2,
+    borderLeftWidth: 6,
+    borderLeftColor: colors.brand.primary,
+    borderRadius: borderRadius.lg,
+    padding: spacing.base,
+    marginBottom: spacing.base,
+    ...shadows.md,
+  },
+  heroHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  heroBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs + 2,
+  },
+  liveIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderWidth: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+    gap: 4,
+  },
+  livePulse: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.brand.primary,
+  },
+  heroHeaderTag: {
+    fontSize: 9,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.primary,
+    letterSpacing: 0.5,
+  },
+  heroInspectionId: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
+    color: colors.text.muted,
+  },
+  heroProjectName: {
+    fontSize: typography.sizes.md + 2,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.navy,
+    marginVertical: 4,
+  },
+  heroMetaGrid: {
+    flexDirection: 'row',
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    marginVertical: spacing.xs,
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  heroMetaItem: {
+    minWidth: '28%',
+    flex: 1,
+  },
+  heroMetaLabel: {
+    fontSize: 9,
+    textTransform: 'uppercase',
+    color: colors.text.muted,
+    marginBottom: 2,
+  },
+  heroMetaValue: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+    color: colors.text.primary,
+  },
+  heroAddressRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 4,
+    marginBottom: spacing.md,
+    gap: 4,
+  },
+  heroAddressText: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.muted,
+    flex: 1,
+    lineHeight: 16,
+  },
+  heroActionRow: {
+    marginTop: 2,
   },
 });
