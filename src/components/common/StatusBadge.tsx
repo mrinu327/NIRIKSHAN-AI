@@ -26,36 +26,51 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 }) => {
   const getBadgeStyles = () => {
     switch (variant) {
-      case 'warning':
-        return {
-          bg: colors.status.warningLight,
-          border: colors.status.warningBorder,
-          text: colors.status.warning,
-        };
       case 'highPriority':
+        // Urgent / Action-needed = strong visual weight
         return {
           bg: colors.status.highPriorityLight,
           border: colors.status.highPriorityBorder,
           text: colors.status.highPriority,
+          dot: colors.status.highPriority,
+          isOutline: false,
+        };
+      case 'warning':
+        // Action-needed = warm tint with crisp border
+        return {
+          bg: colors.status.warningLight,
+          border: colors.status.warningBorder,
+          text: colors.status.warning,
+          dot: colors.status.warning,
+          isOutline: false,
         };
       case 'info':
+        // Informational = soft tint
         return {
           bg: colors.status.infoLight,
           border: colors.status.infoBorder,
           text: colors.status.info,
+          dot: colors.status.info,
+          isOutline: false,
         };
       case 'offline':
+        // Neutral / system-generated = outline
         return {
-          bg: colors.status.offlineLight,
+          bg: colors.neutral.surface,
           border: colors.status.offlineBorder,
           text: colors.status.offline,
+          dot: colors.status.offline,
+          isOutline: true,
         };
       case 'normal':
       default:
+        // Informational / verified = soft green tint
         return {
           bg: colors.status.normalLight,
           border: colors.status.normalBorder,
           text: colors.status.normal,
+          dot: colors.status.normal,
+          isOutline: false,
         };
     }
   };
@@ -76,13 +91,13 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
         style,
       ]}
     >
-      <View style={[styles.dot, { backgroundColor: currentTheme.text }]} />
+      <View style={[styles.dot, { backgroundColor: currentTheme.dot }]} />
       <Text
         style={[
           styles.text,
           {
             color: currentTheme.text,
-            fontSize: isSmall ? 10 : typography.sizes.xs,
+            fontSize: isSmall ? 11 : typography.sizes.xs,
           },
         ]}
       >
@@ -96,7 +111,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     borderWidth: 1,
     alignSelf: 'flex-start',
   },
@@ -108,7 +123,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontWeight: typography.weights.semibold,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.1,
   },
 });

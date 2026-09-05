@@ -37,31 +37,36 @@ export const StatCard: React.FC<StatCardProps> = ({
           iconColor: colors.brand.primary,
           iconBg: colors.brand.primaryLight,
           accentBorder: colors.brand.primary,
+          hasAccent: true,
         };
       case 'warning':
         return {
           iconColor: colors.status.warning,
           iconBg: colors.status.warningLight,
           accentBorder: colors.status.warning,
+          hasAccent: true,
         };
       case 'highPriority':
         return {
           iconColor: colors.status.highPriority,
           iconBg: colors.status.highPriorityLight,
           accentBorder: colors.status.highPriority,
+          hasAccent: true,
         };
       case 'normal':
         return {
           iconColor: colors.status.normal,
           iconBg: colors.status.normalLight,
           accentBorder: colors.status.normal,
+          hasAccent: true,
         };
       case 'neutral':
       default:
         return {
-          iconColor: colors.text.secondary,
+          iconColor: colors.text.muted,
           iconBg: colors.neutral.surfaceSubtle,
-          accentBorder: 'transparent',
+          accentBorder: colors.neutral.border,
+          hasAccent: false,
         };
     }
   };
@@ -72,16 +77,19 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <CardWrapper
       onPress={onPress}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
       style={[
         styles.card,
-        { borderTopColor: currentVariant.accentBorder, borderTopWidth: variant !== 'neutral' ? 3 : 1 },
+        currentVariant.hasAccent && {
+          borderTopColor: currentVariant.accentBorder,
+          borderTopWidth: 3,
+        },
         style,
       ]}
     >
       <View style={styles.topRow}>
         <View style={[styles.iconBox, { backgroundColor: currentVariant.iconBg }]}>
-          <Ionicons name={iconName} size={17} color={currentVariant.iconColor} />
+          <Ionicons name={iconName} size={16} color={currentVariant.iconColor} />
         </View>
         <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>
           {value}
@@ -116,8 +124,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   iconBox: {
-    width: 30,
-    height: 30,
+    width: 28,
+    height: 28,
     borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
@@ -127,7 +135,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xl,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
-    letterSpacing: -0.5,
+    letterSpacing: -0.4,
     flexShrink: 1,
     textAlign: 'right',
   },
@@ -135,7 +143,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.medium,
     color: colors.text.secondary,
-    lineHeight: 17,
+    lineHeight: 16,
   },
   subtitle: {
     fontSize: typography.sizes.xs - 1,

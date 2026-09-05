@@ -8,8 +8,8 @@ import { TextStyle } from 'react-native';
 export const typography = {
   sizes: {
     xs: 11,
-    sm: 13,
-    base: 15,
+    sm: 12,
+    base: 14,
     md: 16,
     lg: 18,
     xl: 20,
@@ -23,14 +23,14 @@ export const typography = {
     bold: '700' as const,
   },
   lineHeights: {
-    xs: 16,
-    sm: 18,
-    base: 22,
-    md: 24,
-    lg: 26,
-    xl: 28,
-    xxl: 32,
-    display: 36,
+    xs: 15,
+    sm: 17,
+    base: 20,
+    md: 22,
+    lg: 24,
+    xl: 26,
+    xxl: 30,
+    display: 34,
   },
 };
 
@@ -76,13 +76,11 @@ export const fontPresets: Record<string, TextStyle> = {
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     lineHeight: typography.lineHeights.xs,
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
+    letterSpacing: 0.2,
   },
   overline: {
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
 };

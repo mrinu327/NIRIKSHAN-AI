@@ -10,7 +10,7 @@
  * - Initiate inspection
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import {
   StatusBar,
   useWindowDimensions,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -54,6 +55,10 @@ export const AlertReviewScreen: React.FC = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
+  // Entrance animation
+  const screenFade = useRef(new Animated.Value(0)).current;
+  const screenSlide = useRef(new Animated.Value(14)).current;
+
   const loadAlertData = async () => {
     try {
       const alertData = await mockAlertService.getAlertById(alertId);
@@ -72,6 +77,23 @@ export const AlertReviewScreen: React.FC = () => {
   useEffect(() => {
     loadAlertData();
   }, [alertId]);
+
+  useEffect(() => {
+    if (!loading && alert) {
+      Animated.parallel([
+        Animated.timing(screenFade, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(screenSlide, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [loading, alert]);
 
   if (loading || !alert) {
     return (
@@ -124,17 +146,32 @@ export const AlertReviewScreen: React.FC = () => {
         subtitle={`Alert #${alert.id} • MoSJE Central Desk`}
       />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Navigation Breadcrumb */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={18} color={colors.brand.primary} />
-          <Text style={styles.backButtonText}>Back to Previous Screen</Text>
-        </TouchableOpacity>
+      <Animated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: screenFade,
+            transform: [{ translateY: screenSlide }],
+          },
+        ]}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Navigation Breadcrumb */}
+          <View style={styles.breadcrumbBar}>
+            <TouchableOpacity
+              style={styles.breadcrumbBtn}
+              onPress={() => navigation.goBack()}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={14} color={colors.brand.primary} />
+              <Text style={styles.breadcrumbLink}>Alerts Queue</Text>
+            </TouchableOpacity>
+            <Text style={styles.breadcrumbSeparator}>/</Text>
+            <Text style={styles.breadcrumbCode}>#{alert.id}</Text>
+            <Text style={styles.breadcrumbSeparator}>/</Text>
+            <Text style={styles.breadcrumbCurrent}>Review</Text>
+          </View>
 
         {/* Action Feedback Banner */}
         {actionFeedback && (
@@ -272,14 +309,18 @@ export const AlertReviewScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-    </View>
-  );
+    </Animated.View>
+  </View>
+);
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.neutral.background,
+  },
+  animatedContainer: {
+    flex: 1,
   },
   centerContainer: {
     flex: 1,
@@ -303,23 +344,41 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     paddingBottom: spacing.xxl,
   },
-  backButton: {
+  breadcrumbBar: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
     alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: borderRadius.sm,
     backgroundColor: colors.neutral.surface,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: colors.neutral.border,
+    gap: 6,
   },
-  backButtonText: {
-    fontSize: typography.sizes.xs + 1,
+  breadcrumbBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  breadcrumbLink: {
+    fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
-    marginLeft: 6,
+  },
+  breadcrumbSeparator: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.muted,
+  },
+  breadcrumbCode: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.navy,
+  },
+  breadcrumbCurrent: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.secondary,
   },
   feedbackBanner: {
     flexDirection: 'row',

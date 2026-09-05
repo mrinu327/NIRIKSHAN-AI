@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   ScrollView,
@@ -8,6 +8,7 @@ import {
   Text,
   Modal,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -46,6 +47,10 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
   const [dossierInspection, setDossierInspection] = useState<InspectionAssignment | null>(null);
   const [dossierModalVisible, setDossierModalVisible] = useState(false);
 
+  // Entrance animation
+  const screenFade = useRef(new Animated.Value(0)).current;
+  const screenSlide = useRef(new Animated.Value(14)).current;
+
   const loadInspections = async () => {
     try {
       const data = await mockInspectionService.getAssignedInspections();
@@ -64,6 +69,23 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
     });
     return unsubscribe;
   }, [navigation]);
+
+  useEffect(() => {
+    if (!loading) {
+      Animated.parallel([
+        Animated.timing(screenFade, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(screenSlide, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [loading]);
 
   const handleOpenAssignmentModal = async (inspection: InspectionAssignment) => {
     setSelectedInspection(inspection);
@@ -100,6 +122,11 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
     setDossierModalVisible(true);
   };
 
+  // Compute dynamic filter counts
+  const submittedCount = inspections.filter((i) => i.status === 'Submitted / Awaiting Review').length;
+  const surpriseCount = inspections.filter((i) => i.type === 'Surprise Inspection').length;
+  const routineCount = inspections.filter((i) => i.type === 'Routine Inspection' || i.type === 'Special Audit').length;
+
   const filteredInspections = inspections.filter((i) => {
     if (filter === 'SUBMITTED') return i.status === 'Submitted / Awaiting Review';
     if (filter === 'SURPRISE') return i.type === 'Surprise Inspection';
@@ -115,52 +142,62 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
       <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
       <AppHeader
         title="Field Inspection Oversight"
-        subtitle="Surprise and routine PMU audits across districts"
+        subtitle="Surprise & Routine PMU Audits • Allocation & Dossier Review"
       />
 
       {loading ? (
         <LoadingState message="Loading inspection assignments..." />
       ) : (
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Filter Chips */}
-          <View style={styles.filterRow}>
-            {[
-              { id: 'ALL', label: `All Orders (${inspections.length})` },
-              { id: 'SUBMITTED', label: 'Submitted / Review' },
-              { id: 'SURPRISE', label: 'Surprise Audits' },
-              { id: 'ROUTINE', label: 'Routine / Scheduled' },
-            ].map((chip) => {
-              const isActive = filter === chip.id;
-              return (
-                <TouchableOpacity
-                  key={chip.id}
-                  style={[styles.filterChip, isActive && styles.filterChipActive]}
-                  onPress={() => setFilter(chip.id as any)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
-                    {chip.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+        <Animated.View
+          style={[
+            styles.animatedContainer,
+            {
+              opacity: screenFade,
+              transform: [{ translateY: screenSlide }],
+            },
+          ]}
+        >
+          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            {/* Filter Chips */}
+            <View style={styles.filterRow}>
+              {[
+                { id: 'ALL', label: `All Orders (${inspections.length})` },
+                { id: 'SUBMITTED', label: `Submitted / Review (${submittedCount})` },
+                { id: 'SURPRISE', label: `Surprise Audits (${surpriseCount})` },
+                { id: 'ROUTINE', label: `Routine / Scheduled (${routineCount})` },
+              ].map((chip) => {
+                const isActive = filter === chip.id;
+                return (
+                  <TouchableOpacity
+                    key={chip.id}
+                    style={[styles.filterChip, isActive && styles.filterChipActive]}
+                    onPress={() => setFilter(chip.id as any)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                      {chip.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
-          <SectionHeader
-            title="Active Inspection Orders"
-            subtitle="Assignments triggered by alerts and routine governance timelines"
-            badgeCount={filteredInspections.length}
-          />
-
-          {filteredInspections.map((inspection) => (
-            <InspectionCard
-              key={inspection.id}
-              inspection={inspection}
-              onRunAssignment={() => handleOpenAssignmentModal(inspection)}
-              onPress={() => handleOpenDossier(inspection)}
+            <SectionHeader
+              title="Active Inspection Orders"
+              subtitle="Assignments triggered by alerts and routine governance timelines"
+              badgeCount={filteredInspections.length}
             />
-          ))}
-        </ScrollView>
+
+            {filteredInspections.map((inspection) => (
+              <InspectionCard
+                key={inspection.id}
+                inspection={inspection}
+                onRunAssignment={() => handleOpenAssignmentModal(inspection)}
+                onPress={() => handleOpenDossier(inspection)}
+              />
+            ))}
+          </ScrollView>
+        </Animated.View>
       )}
 
       {/* Automated Random Assignment Modal */}
@@ -256,7 +293,9 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
                           >
                             {inspector.name}
                           </Text>
-                          <Text style={styles.inspectorDemoBadge}>({inspector.demoId})</Text>
+                          <Text style={styles.inspectorCodeBadge}>
+                            ({inspector.demoId.replace('-DEMO', '')})
+                          </Text>
                         </View>
                         <Text style={styles.inspectorSubLoc}>
                           {inspector.assignedLocation} • {inspector.jurisdiction}
@@ -292,7 +331,7 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
                     <Text style={styles.selectedOfficerName}>
                       {assignmentResult.selectedInspector.name}{' '}
                       <Text style={styles.selectedOfficerId}>
-                        ({assignmentResult.selectedInspector.demoId})
+                        ({assignmentResult.selectedInspector.demoId.replace('-DEMO', '')})
                       </Text>
                     </Text>
                     <Text style={styles.selectedOfficerZone}>
@@ -406,7 +445,7 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
                         <Text style={styles.dossierMetaLabel}>Assigned Inspector</Text>
                         <Text style={styles.dossierMetaVal}>
                           {dossierInspection.assignedOfficerName}{' '}
-                          {dossierInspection.assignedOfficerDemoId ? `(${dossierInspection.assignedOfficerDemoId})` : ''}
+                          {dossierInspection.assignedOfficerDemoId ? `(${dossierInspection.assignedOfficerDemoId.replace('-DEMO', '')})` : ''}
                         </Text>
                       </View>
                       <View style={styles.dossierMetaItem}>
@@ -607,6 +646,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.neutral.background,
+  },
+  animatedContainer: {
+    flex: 1,
   },
   content: {
     width: '100%',
@@ -811,7 +853,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
   },
-  inspectorDemoBadge: {
+  inspectorCodeBadge: {
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,

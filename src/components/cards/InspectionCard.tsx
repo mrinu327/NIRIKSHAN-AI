@@ -61,7 +61,7 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
 
   return (
     <CardWrapper
-      activeOpacity={0.7}
+      activeOpacity={0.8}
       onPress={onPress}
       style={[
         styles.card,
@@ -74,7 +74,7 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
       <View style={styles.topRow}>
         <View style={styles.typeBadge}>
           {isSurprise && (
-            <Ionicons name="flash" size={12} color={colors.status.highPriority} style={{ marginRight: 3 }} />
+            <Ionicons name="flash-outline" size={13} color={colors.status.highPriority} style={{ marginRight: 3 }} />
           )}
           <Text style={[styles.typeText, isSurprise && styles.typeTextSurprise]}>
             {inspection.type}
@@ -98,7 +98,7 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
       {isAwaitingAssignment ? (
         <View style={styles.unassignedBox}>
           <View style={styles.unassignedHeader}>
-            <Ionicons name="alert-circle" size={15} color={colors.status.warning} />
+            <Ionicons name="alert-circle-outline" size={15} color={colors.status.warning} />
             <Text style={styles.unassignedHeaderText}>Roster Status: Unassigned</Text>
           </View>
           <Text style={styles.unassignedNotice}>
@@ -111,7 +111,7 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
               onPress={onRunAssignment}
               activeOpacity={0.8}
             >
-              <Ionicons name="shuffle" size={14} color={colors.text.inverse} style={{ marginRight: 6 }} />
+              <Ionicons name="shuffle-outline" size={15} color={colors.text.inverse} style={{ marginRight: 6 }} />
               <Text style={styles.runAssignmentBtnText}>Run Automated Assignment</Text>
             </TouchableOpacity>
           )}
@@ -124,14 +124,14 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
               <Text style={styles.officerName}>
                 {inspection.assignedOfficerName}{' '}
                 {inspection.assignedOfficerDemoId ? (
-                  <Text style={styles.officerBadgeText}>({inspection.assignedOfficerDemoId})</Text>
+                  <Text style={styles.officerBadgeText}>[ID: {inspection.assignedOfficerDemoId}]</Text>
                 ) : null}
               </Text>
             </View>
 
             {inspection.assignmentMethod && (
               <View style={styles.methodTag}>
-                <Ionicons name="sparkles" size={11} color={colors.brand.primary} style={{ marginRight: 3 }} />
+                <Ionicons name="sparkles-outline" size={11} color={colors.brand.primary} style={{ marginRight: 3 }} />
                 <Text style={styles.methodTagText}>{inspection.assignmentMethod}</Text>
               </View>
             )}
@@ -140,14 +140,14 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
           {/* Submission Status Stamp */}
           {isSubmitted ? (
             <View style={styles.submittedBanner}>
-              <Ionicons name="shield-checkmark" size={14} color={colors.brand.primary} />
+              <Ionicons name="shield-checkmark-outline" size={14} color={colors.brand.primary} />
               <Text style={styles.submittedBannerText}>
                 Submitted for MoSJE review on {inspection.submittedAt || 'Today'} by {inspection.submittedBy || inspection.assignedOfficerName}
               </Text>
             </View>
           ) : isAcknowledged ? (
             <View style={styles.acknowledgedBanner}>
-              <Ionicons name="checkmark-done-circle" size={14} color={colors.status.normal} />
+              <Ionicons name="checkmark-circle-outline" size={14} color={colors.status.normal} />
               <Text style={styles.acknowledgedText}>
                 Acknowledged by {inspection.acknowledgedBy || inspection.assignedOfficerName}
                 {inspection.acknowledgedAt ? ` • ${inspection.acknowledgedAt}` : ''}
@@ -172,7 +172,7 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
               activeOpacity={0.8}
             >
               <Ionicons
-                name={isSubmitted ? 'eye-outline' : 'play-circle'}
+                name={isSubmitted ? 'eye-outline' : 'play-circle-outline'}
                 size={15}
                 color={colors.text.inverse}
                 style={{ marginRight: 6 }}
@@ -199,7 +199,7 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
 
       {inspection.triggerReason ? (
         <View style={styles.triggerContainer}>
-          <Ionicons name="information-circle-outline" size={13} color={colors.brand.navyLight} style={{ marginTop: 1 }} />
+          <Ionicons name="information-circle-outline" size={13} color={colors.brand.primary} style={{ marginTop: 1 }} />
           <Text style={styles.triggerText} numberOfLines={3}>
             {inspection.triggerReason}
           </Text>
@@ -221,7 +221,7 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.neutral.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     padding: spacing.base,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   cardSurprise: {
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: colors.status.highPriority,
   },
   topRow: {
@@ -244,13 +244,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.neutral.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 2,
     borderRadius: borderRadius.sm,
   },
   typeText: {
     fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.bold,
+    fontWeight: typography.weights.semibold,
     color: colors.text.secondary,
   },
   typeTextSurprise: {
@@ -261,7 +263,8 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginTop: 4,
-    lineHeight: 22,
+    lineHeight: 20,
+    letterSpacing: -0.2,
   },
   addressRow: {
     flexDirection: 'row',
@@ -281,6 +284,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: colors.neutral.surfaceSubtle,
     borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
     padding: spacing.sm,
     marginTop: spacing.sm,
     flexWrap: 'wrap',
@@ -291,10 +296,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   detailLabel: {
-    fontSize: 10,
+    fontSize: 11,
     color: colors.text.muted,
     marginBottom: 2,
-    textTransform: 'uppercase',
+    fontWeight: typography.weights.medium,
   },
   detailValue: {
     fontSize: typography.sizes.sm,
@@ -305,13 +310,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginTop: spacing.sm,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.brand.primaryLight,
+    borderWidth: 1,
+    borderColor: colors.status.infoBorder,
     padding: spacing.xs + 2,
     borderRadius: borderRadius.xs,
   },
   triggerText: {
     fontSize: 11,
-    color: colors.brand.navyLight,
+    color: colors.text.secondary,
     marginLeft: 4,
     flex: 1,
     lineHeight: 16,
@@ -337,12 +344,12 @@ const styles = StyleSheet.create({
     color: colors.brand.primary,
   },
   cardAwaiting: {
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: colors.status.warning,
     borderColor: colors.status.warningBorder,
   },
   unassignedBox: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: colors.status.warningLight,
     borderColor: colors.status.warningBorder,
     borderWidth: 1,
     borderRadius: borderRadius.sm,
@@ -362,7 +369,7 @@ const styles = StyleSheet.create({
   },
   unassignedNotice: {
     fontSize: 11,
-    color: '#92400E',
+    color: colors.status.warning,
     lineHeight: 16,
     marginBottom: spacing.xs,
   },
@@ -371,17 +378,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.brand.primary,
-    paddingVertical: 8,
+    minHeight: 44,
+    paddingVertical: 10,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.sm,
-    marginTop: 4,
+    marginTop: 6,
     ...shadows.xs,
   },
   runAssignmentBtnText: {
     color: colors.text.inverse,
-    fontSize: typography.sizes.xs + 1,
-    fontWeight: typography.weights.bold,
-    letterSpacing: 0.3,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    letterSpacing: 0.2,
   },
   officerBox: {
     backgroundColor: colors.neutral.surfaceSubtle,
@@ -403,9 +411,8 @@ const styles = StyleSheet.create({
     minWidth: 160,
   },
   officerLabel: {
-    fontSize: 10,
+    fontSize: 11,
     color: colors.text.muted,
-    textTransform: 'uppercase',
     marginBottom: 2,
     fontWeight: typography.weights.medium,
   },
@@ -421,12 +428,12 @@ const styles = StyleSheet.create({
   methodTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.status.infoBorder,
     borderWidth: 1,
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: borderRadius.full,
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
     alignSelf: 'flex-start',
   },
   methodTagText: {
@@ -438,8 +445,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
     borderWidth: 1,
     borderRadius: borderRadius.xs,
     paddingVertical: 5,
@@ -457,7 +464,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.status.normal,
-    paddingVertical: 8,
+    minHeight: 44,
+    paddingVertical: 10,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.sm,
     marginTop: 8,
@@ -465,20 +473,21 @@ const styles = StyleSheet.create({
   },
   acknowledgeBtnText: {
     color: colors.text.inverse,
-    fontSize: typography.sizes.xs + 1,
-    fontWeight: typography.weights.bold,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    letterSpacing: 0.2,
   },
   cardSubmitted: {
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: colors.brand.primary,
-    borderColor: '#BFDBFE',
+    borderColor: colors.status.infoBorder,
   },
   submittedBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.status.infoBorder,
     borderWidth: 1,
     borderRadius: borderRadius.xs,
     paddingVertical: 6,
@@ -496,7 +505,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.brand.navy,
-    paddingVertical: 8,
+    minHeight: 44,
+    paddingVertical: 10,
     paddingHorizontal: spacing.md,
     borderRadius: borderRadius.sm,
     marginTop: 8,
@@ -504,7 +514,8 @@ const styles = StyleSheet.create({
   },
   openInspectionBtnText: {
     color: colors.text.inverse,
-    fontSize: typography.sizes.xs + 1,
-    fontWeight: typography.weights.bold,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    letterSpacing: 0.2,
   },
 });

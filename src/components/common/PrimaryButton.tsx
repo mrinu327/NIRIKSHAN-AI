@@ -3,7 +3,7 @@
  * Trustworthy, accessible primary action button.
  */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -12,6 +12,7 @@ import {
   ViewStyle,
   TextStyle,
   View,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
@@ -39,61 +40,92 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   style,
   textStyle,
 }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    if (disabled || loading) return;
+    Animated.timing(scaleAnim, {
+      toValue: 0.97,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 120,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const getBackgroundColor = () => {
-    if (disabled) return colors.text.disabled;
+    if (disabled) return colors.neutral.borderStrong;
     switch (variant) {
       case 'danger':
-        return colors.status.highPriority;
+        return colors.status.highPriority; // Master Red #C4402C
       case 'success':
-        return colors.status.normal;
+        return colors.status.normal;       // Master Green #1E8E5A
       case 'primary':
       default:
-        return colors.brand.primary;
+        return colors.brand.primary;       // Signal Blue #2A5CE0
     }
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={onPress}
-      disabled={disabled || loading}
-      style={[
-        styles.button,
-        { backgroundColor: getBackgroundColor() },
-        disabled && styles.buttonDisabled,
-        style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator color={colors.text.inverse} size="small" />
-      ) : (
-        <View style={styles.content}>
-          {iconName && (
-            <Ionicons
-              name={iconName}
-              size={18}
-              color={colors.text.inverse}
-              style={styles.icon}
-            />
-          )}
-          <Text style={[styles.text, textStyle]}>{title}</Text>
-        </View>
-      )}
-    </TouchableOpacity>
+    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
+      <TouchableOpacity
+        activeOpacity={0.88}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled || loading}
+        style={[
+          styles.button,
+          { backgroundColor: getBackgroundColor() },
+          disabled && styles.buttonDisabled,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator color={colors.text.inverse} size="small" />
+        ) : (
+          <View style={styles.content}>
+            {iconName && (
+              <Ionicons
+                name={iconName}
+                size={17}
+                color={disabled ? colors.text.disabled : colors.text.inverse}
+                style={styles.icon}
+              />
+            )}
+            <Text
+              style={[
+                styles.text,
+                disabled && styles.textDisabled,
+                textStyle,
+              ]}
+            >
+              {title}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    height: 48,
+    minHeight: 46,
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.sm,
     ...shadows.xs,
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
   content: {
     flexDirection: 'row',
@@ -101,12 +133,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    marginRight: spacing.sm,
+    marginRight: spacing.xs + 2,
   },
   text: {
     color: colors.text.inverse,
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.semibold,
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
+  },
+  textDisabled: {
+    color: colors.text.disabled,
   },
 });

@@ -3,7 +3,7 @@
  * Outlined / subtle secondary action button.
  */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -12,6 +12,7 @@ import {
   TextStyle,
   View,
   StyleProp,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
@@ -38,49 +39,72 @@ export const SecondaryButton: React.FC<SecondaryButtonProps> = ({
   textStyle,
 }) => {
   const isOutline = variant === 'outline';
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    if (disabled) return;
+    Animated.timing(scaleAnim, {
+      toValue: 0.97,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 120,
+      useNativeDriver: true,
+    }).start();
+  };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={onPress}
-      disabled={disabled}
-      style={[
-        styles.button,
-        isOutline ? styles.outline : styles.ghost,
-        disabled && styles.disabled,
-        style,
-      ]}
-    >
-      <View style={styles.content}>
-        {iconName && (
-          <Ionicons
-            name={iconName}
-            size={18}
-            color={disabled ? colors.text.disabled : colors.brand.primary}
-            style={styles.icon}
-          />
-        )}
-        <Text
-          style={[
-            styles.text,
-            disabled && styles.textDisabled,
-            textStyle,
-          ]}
-        >
-          {title}
-        </Text>
-      </View>
-    </TouchableOpacity>
+    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled}
+        style={[
+          styles.button,
+          isOutline ? styles.outline : styles.ghost,
+          disabled && styles.disabled,
+        ]}
+      >
+        <View style={styles.content}>
+          {iconName && (
+            <Ionicons
+              name={iconName}
+              size={17}
+              color={disabled ? colors.text.disabled : isOutline ? colors.text.primary : colors.brand.primary}
+              style={styles.icon}
+            />
+          )}
+          <Text
+            style={[
+              styles.text,
+              isOutline ? styles.outlineText : styles.ghostText,
+              disabled && styles.textDisabled,
+              textStyle,
+            ]}
+          >
+            {title}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    height: 44,
+    minHeight: 44,
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.base,
+    paddingVertical: spacing.sm,
   },
   outline: {
     backgroundColor: colors.neutral.surface,
@@ -91,7 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.6,
     borderColor: colors.neutral.border,
   },
   content: {
@@ -100,12 +124,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   icon: {
-    marginRight: spacing.sm,
+    marginRight: spacing.xs + 2,
   },
   text: {
-    color: colors.brand.navyLight,
     fontSize: typography.sizes.base,
-    fontWeight: typography.weights.semibold,
+    fontWeight: typography.weights.medium,
+    letterSpacing: 0.1,
+  },
+  outlineText: {
+    color: colors.text.primary,
+  },
+  ghostText: {
+    color: colors.brand.primary,
   },
   textDisabled: {
     color: colors.text.disabled,

@@ -19,14 +19,34 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority, style })
   const getColors = () => {
     switch (priority) {
       case 'HIGH':
-        return { bg: colors.status.highPriorityLight, text: colors.priority.high, border: colors.status.highPriorityBorder };
+        return {
+          bg: colors.status.highPriorityLight,
+          text: colors.status.highPriority,
+          border: colors.status.highPriorityBorder,
+          label: 'High Priority',
+        };
       case 'MEDIUM':
-        return { bg: colors.status.warningLight, text: colors.priority.medium, border: colors.status.warningBorder };
+        return {
+          bg: colors.status.warningLight,
+          text: colors.status.warning,
+          border: colors.status.warningBorder,
+          label: 'Medium Priority',
+        };
       case 'LOW':
-        return { bg: colors.status.infoLight, text: colors.priority.low, border: colors.status.infoBorder };
+        return {
+          bg: colors.status.infoLight,
+          text: colors.status.info,
+          border: colors.status.infoBorder,
+          label: 'Low Priority',
+        };
       case 'NORMAL':
       default:
-        return { bg: colors.status.normalLight, text: colors.priority.normal, border: colors.status.normalBorder };
+        return {
+          bg: colors.status.normalLight,
+          text: colors.status.normal,
+          border: colors.status.normalBorder,
+          label: 'Normal',
+        };
     }
   };
 
@@ -34,23 +54,22 @@ export const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority, style })
 
   return (
     <View style={[styles.badge, { backgroundColor: theme.bg, borderColor: theme.border }, style]}>
-      <Text style={[styles.text, { color: theme.text }]}>{priority} PRIORITY</Text>
+      <Text style={[styles.text, { color: theme.text }]}>{theme.label}</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   badge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     alignSelf: 'flex-start',
   },
   text: {
-    fontSize: 10,
-    fontWeight: typography.weights.bold,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    fontSize: 11,
+    fontWeight: typography.weights.semibold,
+    letterSpacing: 0.1,
   },
 });

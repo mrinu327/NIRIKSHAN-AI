@@ -43,25 +43,30 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   const getCctvIconDetails = () => {
     switch (project.cctvStatus) {
       case 'Online':
-        return { icon: 'videocam' as const, color: colors.status.normal, label: 'CCTV Online' };
+        return { icon: 'videocam-outline' as const, color: colors.status.normal, label: 'CCTV Online' };
       case 'Offline':
-        return { icon: 'videocam-off' as const, color: colors.status.highPriority, label: 'CCTV Offline' };
+        return { icon: 'videocam-off-outline' as const, color: colors.status.highPriority, label: 'CCTV Offline' };
       case 'Discrepancy Detected':
-        return { icon: 'alert-circle' as const, color: colors.status.highPriority, label: 'CCTV Variance' };
+        return { icon: 'alert-circle-outline' as const, color: colors.status.highPriority, label: 'CCTV Variance' };
       case 'Intermittent':
       default:
-        return { icon: 'videocam' as const, color: colors.status.warning, label: 'Intermittent' };
+        return { icon: 'videocam-outline' as const, color: colors.status.warning, label: 'Intermittent' };
     }
   };
 
+  const isHighPriority = project.priority === 'HIGH';
   const cctv = getCctvIconDetails();
   const CardContainer = onPress ? TouchableOpacity : View;
 
   return (
     <CardContainer
-      activeOpacity={0.7}
+      activeOpacity={0.8}
       onPress={onPress}
-      style={[styles.card, style]}
+      style={[
+        styles.card,
+        isHighPriority && styles.cardHighPriority,
+        style,
+      ]}
     >
       <View style={styles.topRow}>
         <PriorityBadge priority={project.priority} />
@@ -109,12 +114,16 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.neutral.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     padding: spacing.base,
     marginBottom: spacing.md,
     ...shadows.xs,
+  },
+  cardHighPriority: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.status.highPriority,
   },
   topRow: {
     flexDirection: 'row',
@@ -129,7 +138,8 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginTop: spacing.xs,
-    lineHeight: 22,
+    lineHeight: 20,
+    letterSpacing: -0.2,
   },
   locationRow: {
     flexDirection: 'row',

@@ -6,7 +6,7 @@
  * Creates an inspection request in the mock system and routes to Inspection Oversight.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import {
   StatusBar,
   useWindowDimensions,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -48,6 +49,10 @@ export const InitiateInspectionScreen: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
 
+  // Entrance animation
+  const screenFade = useRef(new Animated.Value(0)).current;
+  const screenSlide = useRef(new Animated.Value(14)).current;
+
   // Form selections
   const [selectedType, setSelectedType] = useState<InspectionType>('Surprise Inspection');
   const [selectedPriority, setSelectedPriority] = useState<PriorityLevel>('HIGH');
@@ -58,6 +63,23 @@ export const InitiateInspectionScreen: React.FC = () => {
       setLoading(false);
     });
   }, [projectId]);
+
+  useEffect(() => {
+    if (!loading && project) {
+      Animated.parallel([
+        Animated.timing(screenFade, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(screenSlide, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [loading, project]);
 
   if (loading || !project) {
     return (
@@ -126,17 +148,32 @@ export const InitiateInspectionScreen: React.FC = () => {
         subtitle="PMU Field Verification Dispatch Protocol"
       />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Navigation Breadcrumb */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={handleCancel}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={18} color={colors.brand.primary} />
-          <Text style={styles.backButtonText}>Cancel & Go Back</Text>
-        </TouchableOpacity>
+      <Animated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: screenFade,
+            transform: [{ translateY: screenSlide }],
+          },
+        ]}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Navigation Breadcrumb */}
+          <View style={styles.breadcrumbBar}>
+            <TouchableOpacity
+              style={styles.breadcrumbBtn}
+              onPress={handleCancel}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={14} color={colors.brand.primary} />
+              <Text style={styles.breadcrumbLink}>Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.breadcrumbSeparator}>/</Text>
+            <Text style={styles.breadcrumbCode}>{project.code}</Text>
+            <Text style={styles.breadcrumbSeparator}>/</Text>
+            <Text style={styles.breadcrumbCurrent}>Dispatch Protocol</Text>
+          </View>
 
         {/* Target Facility Summary Card */}
         <View style={styles.targetCard}>
@@ -247,14 +284,18 @@ export const InitiateInspectionScreen: React.FC = () => {
           />
         </View>
       </ScrollView>
-    </View>
-  );
+    </Animated.View>
+  </View>
+);
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.neutral.background,
+  },
+  animatedContainer: {
+    flex: 1,
   },
   centerContainer: {
     flex: 1,
@@ -278,23 +319,41 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     paddingBottom: spacing.xxl,
   },
-  backButton: {
+  breadcrumbBar: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
     alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: borderRadius.sm,
     backgroundColor: colors.neutral.surface,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: colors.neutral.border,
+    gap: 6,
   },
-  backButtonText: {
-    fontSize: typography.sizes.xs + 1,
+  breadcrumbBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  breadcrumbLink: {
+    fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
-    marginLeft: 6,
+  },
+  breadcrumbSeparator: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.muted,
+  },
+  breadcrumbCode: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.navy,
+  },
+  breadcrumbCurrent: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.secondary,
   },
   targetCard: {
     backgroundColor: colors.neutral.surface,

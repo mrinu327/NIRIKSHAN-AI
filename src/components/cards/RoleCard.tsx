@@ -3,8 +3,15 @@
  * Interactive role selection card for the login / onboarding screen.
  */
 
-import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, ViewStyle } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  TouchableOpacity,
+  View,
+  Text,
+  StyleSheet,
+  ViewStyle,
+  Animated,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { RoleConfig } from '../../types/role';
 import { colors } from '../../theme/colors';
@@ -15,6 +22,7 @@ interface RoleCardProps {
   role: RoleConfig;
   isSelected: boolean;
   onSelect: () => void;
+  badgeLabel?: string;
   style?: ViewStyle;
 }
 
@@ -22,138 +30,212 @@ export const RoleCard: React.FC<RoleCardProps> = ({
   role,
   isSelected,
   onSelect,
+  badgeLabel,
   style,
 }) => {
+  const animValue = useRef(new Animated.Value(isSelected ? 1 : 0)).current;
+  const hoverAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(animValue, {
+      toValue: isSelected ? 1 : 0,
+      duration: 150,
+      useNativeDriver: false,
+    }).start();
+  }, [isSelected]);
+
+  const animatedBorderColor = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.neutral.border, colors.brand.primary],
+  });
+
+  const animatedBgColor = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.neutral.surface, '#EEF3FD'],
+  });
+
+  const radioScale = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.6, 1],
+  });
+
+  const handleMouseEnter = () => {
+    Animated.timing(hoverAnim, {
+      toValue: -3,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleMouseLeave = () => {
+    Animated.timing(hoverAnim, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const displayBadge = badgeLabel || role.badgeLabel;
+
   return (
     <TouchableOpacity
-      activeOpacity={0.8}
+      activeOpacity={0.88}
       onPress={onSelect}
-      style={[
-        styles.card,
-        isSelected && styles.cardSelected,
-        style,
-      ]}
+      // @ts-ignore - supported by react-native-web
+      onMouseEnter={handleMouseEnter}
+      // @ts-ignore - supported by react-native-web
+      onMouseLeave={handleMouseLeave}
+      style={style}
     >
-      <View style={styles.headerRow}>
-        <View
-          style={[
-            styles.iconContainer,
-            isSelected && styles.iconContainerSelected,
-          ]}
-        >
-          <Ionicons
-            name={role.iconName as keyof typeof Ionicons.glyphMap}
-            size={22}
-            color={isSelected ? colors.brand.primary : colors.text.secondary}
-          />
+      <Animated.View
+        style={[
+          styles.card,
+          {
+            borderColor: animatedBorderColor,
+            backgroundColor: animatedBgColor,
+            borderWidth: isSelected ? 2 : 1,
+            borderLeftWidth: isSelected ? 4 : 1,
+            transform: [{ translateY: hoverAnim }],
+          },
+          isSelected && styles.cardSelected,
+        ]}
+      >
+        <View style={styles.rowContainer}>
+          {/* Leading Icon */}
+          <View
+            style={[
+              styles.iconContainer,
+              isSelected && styles.iconContainerSelected,
+            ]}
+          >
+            <Ionicons
+              name={role.iconName as keyof typeof Ionicons.glyphMap}
+              size={20}
+              color={isSelected ? colors.brand.primary : colors.brand.navy}
+            />
+          </View>
+
+          {/* Center Info */}
+          <View style={styles.infoCol}>
+            <Text style={[styles.title, isSelected && styles.titleSelected]}>
+              {role.title}
+            </Text>
+            <Text style={[styles.contextLabel, isSelected && styles.contextLabelSelected]}>
+              {role.subtitle}
+            </Text>
+            {role.description ? (
+              <Text style={styles.description} numberOfLines={1}>
+                {role.description}
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Trailing Selection Affordance */}
+          <View
+            style={[
+              styles.radioCircle,
+              isSelected && styles.radioCircleSelected,
+            ]}
+          >
+            {isSelected && (
+              <Animated.View
+                style={[
+                  styles.radioInner,
+                  { transform: [{ scale: radioScale }] },
+                ]}
+              >
+                <Ionicons name="checkmark" size={13} color={colors.text.inverse} />
+              </Animated.View>
+            )}
+          </View>
         </View>
-
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{role.badgeLabel}</Text>
-        </View>
-
-        <View
-          style={[
-            styles.radioCircle,
-            isSelected && styles.radioCircleSelected,
-          ]}
-        >
-          {isSelected && <View style={styles.radioInner} />}
-        </View>
-      </View>
-
-      <Text style={[styles.title, isSelected && styles.titleSelected]}>
-        {role.title}
-      </Text>
-
-      <Text style={styles.subtitle}>{role.subtitle}</Text>
-
-      <Text style={styles.description}>{role.description}</Text>
+      </Animated.View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.neutral.surface,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1.5,
-    borderColor: colors.neutral.border,
-    padding: spacing.base,
-    marginBottom: spacing.md,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm + 1,
+    paddingHorizontal: spacing.base,
+    marginBottom: spacing.sm,
+    minHeight: 82,
+    justifyContent: 'center',
     ...shadows.xs,
   },
   cardSelected: {
-    borderColor: colors.brand.primary,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 2,
     ...shadows.sm,
   },
-  headerRow: {
+  rowContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.sm,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     borderRadius: borderRadius.md,
     backgroundColor: colors.neutral.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: spacing.sm + 2,
   },
   iconContainerSelected: {
     backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.status.infoBorder,
   },
-  badge: {
-    backgroundColor: colors.neutral.surfaceSubtle,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: borderRadius.sm,
+  infoCol: {
+    flex: 1,
+    justifyContent: 'center',
+    marginRight: spacing.sm,
   },
-  badgeText: {
-    fontSize: 9,
+  title: {
+    fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+    letterSpacing: -0.2,
+    lineHeight: 20,
+  },
+  titleSelected: {
+    color: colors.brand.navyDark,
+  },
+  contextLabel: {
+    fontSize: typography.sizes.xs,
+    color: colors.brand.primary,
+    fontWeight: typography.weights.semibold,
+    marginTop: 2,
+    letterSpacing: 0.2,
+  },
+  contextLabelSelected: {
+    color: colors.brand.primaryHover,
+  },
+  description: {
+    fontSize: typography.sizes.xs,
     color: colors.text.muted,
-    letterSpacing: 0.5,
+    lineHeight: 16,
+    marginTop: 3,
   },
   radioCircle: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: colors.neutral.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioCircleSelected: {
     borderColor: colors.brand.primary,
-  },
-  radioInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
     backgroundColor: colors.brand.primary,
   },
-  title: {
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.bold,
-    color: colors.text.primary,
-    marginBottom: 2,
-  },
-  titleSelected: {
-    color: colors.brand.navyLight,
-  },
-  subtitle: {
-    fontSize: typography.sizes.xs,
-    color: colors.brand.accent,
-    fontWeight: typography.weights.semibold,
-    marginBottom: spacing.xs,
-  },
-  description: {
-    fontSize: typography.sizes.sm,
-    color: colors.text.secondary,
-    lineHeight: 19,
+  radioInner: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

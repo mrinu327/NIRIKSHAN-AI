@@ -36,11 +36,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
       case 'official':
         return 'MoSJE Official';
       case 'inspector':
-        return 'PMU Inspector';
+        return 'PMU Inspection Officer';
       case 'ngo':
-        return 'Institute Rep';
+        return 'NGO / Institute';
       default:
-        return 'Demo Mode';
+        return 'MoSJE Portal';
     }
   };
 
@@ -56,19 +56,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <View style={styles.topRow}>
           <View style={styles.branding}>
             <View style={styles.iconCircle}>
-              <Ionicons name="shield-checkmark" size={15} color={colors.text.inverse} />
+              <Ionicons name="shield-checkmark-outline" size={14} color={colors.text.inverse} />
             </View>
-            <Text style={styles.ministryText}>MoSJE • SIH26095</Text>
+            <Text style={styles.ministryText}>MoSJE • Government of India</Text>
           </View>
 
           {showRoleSwitch && (
             <TouchableOpacity
-              activeOpacity={0.7}
+              activeOpacity={0.75}
               onPress={switchRole}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               style={styles.switchButton}
             >
-              <Ionicons name="swap-horizontal" size={14} color={colors.brand.primaryLight} />
+              <Ionicons name="swap-horizontal-outline" size={14} color={colors.text.inverse} />
               <Text style={styles.switchText}>Switch Role</Text>
             </TouchableOpacity>
           )}
@@ -105,9 +105,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     width: '100%',
-    ...shadows.sm,
+    ...shadows.xs,
   },
   inner: {
     width: '100%',
@@ -125,9 +125,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: borderRadius.xs,
     backgroundColor: colors.brand.primary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -135,24 +135,25 @@ const styles = StyleSheet.create({
   },
   ministryText: {
     fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.bold,
-    color: '#93C5FD',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    fontWeight: typography.weights.semibold,
+    color: '#D0D5DD',
+    letterSpacing: 0.5,
   },
   switchButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 6,
-    borderRadius: borderRadius.full,
-    minHeight: 32,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+    minHeight: 28,
   },
   switchText: {
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
+    fontWeight: typography.weights.medium,
     marginLeft: 4,
   },
   mainRow: {
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.lg + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
   subtitle: {
     fontSize: typography.sizes.xs,
@@ -178,19 +179,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   roleBadge: {
-    backgroundColor: 'rgba(37, 99, 235, 0.3)',
-    borderColor: '#3B82F6',
+    backgroundColor: 'rgba(42, 92, 224, 0.25)',
+    borderColor: 'rgba(42, 92, 224, 0.6)',
     borderWidth: 1,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: borderRadius.sm,
     alignSelf: 'flex-start',
   },
   roleBadgeText: {
-    color: '#93C5FD',
-    fontSize: 9,
-    fontWeight: typography.weights.bold,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    color: '#BDD1F7',
+    fontSize: 10,
+    fontWeight: typography.weights.semibold,
+    letterSpacing: 0.3,
   },
 });

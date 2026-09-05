@@ -1,10 +1,20 @@
 /**
  * MonitoringPlaceholderScreen
  * MoSJE Official - National Institutes & Projects Directory
+ * High-integrity facility registry and real-time telemetry oversight.
  */
 
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, StatusBar, TouchableOpacity, Text, TextInput } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  StatusBar,
+  TouchableOpacity,
+  Text,
+  TextInput,
+  Animated,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { OfficialTabNavigationProp } from '../../types/navigation';
@@ -25,6 +35,10 @@ export const MonitoringPlaceholderScreen: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'HIGH_PRIORITY' | 'INSPECTION_DUE' | 'COMPLIANT'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Entrance animation
+  const screenFade = useRef(new Animated.Value(0)).current;
+  const screenSlide = useRef(new Animated.Value(14)).current;
+
   const loadProjects = async () => {
     try {
       const data = await mockProjectService.getProjects();
@@ -43,6 +57,34 @@ export const MonitoringPlaceholderScreen: React.FC = () => {
     });
     return unsubscribe;
   }, [navigation]);
+
+  useEffect(() => {
+    if (!loading) {
+      Animated.parallel([
+        Animated.timing(screenFade, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(screenSlide, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [loading]);
+
+  // Compute dynamic filter counts
+  const highPriorityCount = projects.filter(
+    (p) => p.priority === 'HIGH' || p.status === 'High Priority'
+  ).length;
+  const inspectionDueCount = projects.filter(
+    (p) => p.status === 'Inspection Due'
+  ).length;
+  const compliantCount = projects.filter(
+    (p) => p.status === 'Normal' || p.status === 'Compliant'
+  ).length;
 
   const filteredProjects = projects.filter((p) => {
     const matchesFilter =
@@ -64,69 +106,96 @@ export const MonitoringPlaceholderScreen: React.FC = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
       <AppHeader
-        title="Project Monitoring"
-        subtitle="National registry of registered MoSJE institutions"
+        title="National Facility Directory"
+        subtitle="MoSJE Institutional Registry • Telemetry & Audit Profiles"
       />
 
       {loading ? (
-        <LoadingState message="Fetching project monitoring feed..." />
+        <LoadingState message="Fetching institutional telemetry directory..." />
       ) : (
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <Ionicons name="search" size={18} color={colors.text.muted} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search institute name, city, or code..."
-              placeholderTextColor={colors.text.muted}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={16} color={colors.text.muted} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Filter Chips */}
-          <View style={styles.filterRow}>
-            {[
-              { id: 'ALL', label: 'All (5)' },
-              { id: 'HIGH_PRIORITY', label: 'High Priority (2)' },
-              { id: 'INSPECTION_DUE', label: 'Inspection Due (1)' },
-              { id: 'COMPLIANT', label: 'Compliant (2)' },
-            ].map((chip) => {
-              const isActive = selectedFilter === chip.id;
-              return (
+        <Animated.View
+          style={[
+            styles.animatedContainer,
+            {
+              opacity: screenFade,
+              transform: [{ translateY: screenSlide }],
+            },
+          ]}
+        >
+          <ScrollView
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Search Bar */}
+            <View style={styles.searchContainer}>
+              <Ionicons name="search-outline" size={18} color={colors.text.muted} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search facility name, district, or scheme code..."
+                placeholderTextColor={colors.text.muted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
                 <TouchableOpacity
-                  key={chip.id}
-                  style={[styles.filterChip, isActive && styles.filterChipActive]}
-                  onPress={() => setSelectedFilter(chip.id as any)}
-                  activeOpacity={0.7}
+                  onPress={() => setSearchQuery('')}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
-                    {chip.label}
-                  </Text>
+                  <Ionicons name="close-circle" size={18} color={colors.text.muted} />
                 </TouchableOpacity>
-              );
-            })}
-          </View>
+              )}
+            </View>
 
-          <SectionHeader
-            title="Monitored Facilities"
-            subtitle="Select an institute to review attendance, CCTV telemetry & alerts"
-            badgeCount={filteredProjects.length}
-          />
+            {/* Filter Chips with dynamic counts */}
+            <View style={styles.filterRow}>
+              {[
+                { id: 'ALL', label: `All Facilities (${projects.length})` },
+                { id: 'HIGH_PRIORITY', label: `High Priority (${highPriorityCount})` },
+                { id: 'INSPECTION_DUE', label: `Inspection Due (${inspectionDueCount})` },
+                { id: 'COMPLIANT', label: `Compliant (${compliantCount})` },
+              ].map((chip) => {
+                const isActive = selectedFilter === chip.id;
+                return (
+                  <TouchableOpacity
+                    key={chip.id}
+                    style={[styles.filterChip, isActive && styles.filterChipActive]}
+                    onPress={() => setSelectedFilter(chip.id as any)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                      {chip.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
-          {filteredProjects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onPress={() => navigation.navigate('ProjectDetails', { projectId: project.id })}
+            {/* Directory Section Header */}
+            <SectionHeader
+              title="Monitored Institutions"
+              subtitle="Select any institution to inspect attendance telemetry, CCTV feeds & audit logs"
+              badgeCount={filteredProjects.length}
             />
-          ))}
-        </ScrollView>
+
+            {filteredProjects.length > 0 ? (
+              filteredProjects.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onPress={() => navigation.navigate('ProjectDetails', { projectId: project.id })}
+                />
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="search-outline" size={36} color={colors.text.muted} />
+                <Text style={styles.emptyTitle}>No matching institutions found</Text>
+                <Text style={styles.emptySubtitle}>
+                  Try clearing the search query or adjusting your filter selection.
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </Animated.View>
       )}
     </View>
   );
@@ -136,6 +205,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.neutral.background,
+  },
+  animatedContainer: {
+    flex: 1,
   },
   content: {
     width: '100%',
@@ -150,7 +222,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.surface,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     marginBottom: spacing.sm,
@@ -165,16 +237,18 @@ const styles = StyleSheet.create({
   filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: 8,
     marginBottom: spacing.md,
   },
   filterChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     borderRadius: borderRadius.full,
     backgroundColor: colors.neutral.surface,
     borderWidth: 1,
     borderColor: colors.neutral.border,
+    minHeight: 34,
+    justifyContent: 'center',
   },
   filterChipActive: {
     backgroundColor: colors.brand.navy,
@@ -189,4 +263,27 @@ const styles = StyleSheet.create({
     color: colors.text.inverse,
     fontWeight: typography.weights.bold,
   },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.neutral.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    padding: spacing.xl,
+    marginTop: spacing.md,
+  },
+  emptyTitle: {
+    fontSize: typography.sizes.sm + 1,
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+    marginTop: spacing.sm,
+  },
+  emptySubtitle: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.muted,
+    marginTop: 4,
+    textAlign: 'center',
+  },
 });
+

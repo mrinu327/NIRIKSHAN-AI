@@ -25,7 +25,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onPress, style }) =
 
   return (
     <CardWrapper
-      activeOpacity={0.7}
+      activeOpacity={0.8}
       onPress={onPress}
       style={[
         styles.card,
@@ -36,8 +36,8 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onPress, style }) =
       <View style={styles.topRow}>
         <View style={styles.categoryContainer}>
           <Ionicons
-            name={isHigh ? 'warning' : 'information-circle'}
-            size={16}
+            name={isHigh ? 'warning-outline' : 'information-circle-outline'}
+            size={15}
             color={isHigh ? colors.status.highPriority : colors.status.warning}
           />
           <Text
@@ -81,9 +81,9 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, onPress, style }) =
 
       <View style={styles.footerRow}>
         <View style={styles.reviewBadge}>
-          <Ionicons name="person-outline" size={12} color={colors.brand.navyLight} />
+          <Ionicons name="shield-checkmark-outline" size={13} color={colors.brand.primary} />
           <Text style={styles.reviewBadgeText} numberOfLines={1}>
-            Human Official Review Required
+            Official Review Required
           </Text>
         </View>
       </View>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   cardHighPriority: {
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     borderLeftColor: colors.status.highPriority,
   },
   topRow: {
@@ -120,10 +120,9 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.bold,
+    fontWeight: typography.weights.semibold,
     marginLeft: 4,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.1,
   },
   timestamp: {
     fontSize: typography.sizes.xs,
@@ -133,8 +132,9 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
-    marginBottom: 4,
-    lineHeight: 20,
+    marginBottom: 3,
+    lineHeight: 19,
+    letterSpacing: -0.1,
   },
   description: {
     fontSize: typography.sizes.sm,
@@ -145,6 +145,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.neutral.surfaceSubtle,
     borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
     paddingVertical: spacing.xs + 2,
     paddingHorizontal: spacing.sm,
     marginTop: spacing.sm,
@@ -159,6 +161,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.text.muted,
     marginBottom: 2,
+    fontWeight: typography.weights.medium,
   },
   metricValue: {
     fontSize: typography.sizes.sm,
@@ -167,7 +170,7 @@ const styles = StyleSheet.create({
   },
   dividerVertical: {
     width: 1,
-    height: 20,
+    height: 18,
     backgroundColor: colors.neutral.border,
   },
   footerRow: {
@@ -179,16 +182,18 @@ const styles = StyleSheet.create({
   reviewBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.brand.primaryLight,
+    borderWidth: 1,
+    borderColor: colors.status.infoBorder,
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: borderRadius.sm,
     flexShrink: 1,
   },
   reviewBadgeText: {
     fontSize: 11,
     fontWeight: typography.weights.medium,
-    color: colors.brand.navyLight,
+    color: colors.brand.primary,
     marginLeft: 4,
   },
 });

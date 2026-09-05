@@ -15,12 +15,12 @@ interface LoadingStateProps {
 }
 
 export const LoadingState: React.FC<LoadingStateProps> = ({
-  message = 'Loading verified telemetry...',
+  message = 'Retrieving official records...',
   style,
 }) => {
   return (
     <View style={[styles.container, style]}>
-      <ActivityIndicator size="large" color={colors.brand.primary} />
+      <ActivityIndicator size="small" color={colors.brand.primary} />
       <Text style={styles.text}>{message}</Text>
     </View>
   );
@@ -28,14 +28,14 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: spacing.xxl,
+    padding: spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
   text: {
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
     fontSize: typography.sizes.sm,
-    color: colors.text.secondary,
+    color: colors.text.muted,
     fontWeight: typography.weights.medium,
   },
 });

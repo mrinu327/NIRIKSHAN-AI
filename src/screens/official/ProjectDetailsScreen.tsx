@@ -7,7 +7,7 @@
  * Fully responsive for mobile and desktop web viewports.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import {
   StatusBar,
   useWindowDimensions,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -63,6 +64,10 @@ export const ProjectDetailsScreen: React.FC = () => {
   const [analytics, setAnalytics] = useState<AttendanceAnalytics | null>(null);
   const [assessment, setAssessment] = useState<AnomalyAssessment | null>(null);
 
+  // Entrance animation
+  const screenFade = useRef(new Animated.Value(0)).current;
+  const screenSlide = useRef(new Animated.Value(14)).current;
+
   const loadData = async () => {
     try {
       const [projData, alertsData, inspData, analyticsData, assessData] = await Promise.all([
@@ -91,6 +96,23 @@ export const ProjectDetailsScreen: React.FC = () => {
     });
     return unsubscribe;
   }, [navigation, projectId]);
+
+  useEffect(() => {
+    if (!loading && project) {
+      Animated.parallel([
+        Animated.timing(screenFade, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(screenSlide, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [loading, project]);
 
   if (loading || !project) {
     return (
@@ -143,24 +165,39 @@ export const ProjectDetailsScreen: React.FC = () => {
         subtitle={`${project.name} • Oversight`}
       />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Navigation Breadcrumb / Back Action */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={18} color={colors.brand.primary} />
-          <Text style={styles.backButtonText}>Back to Monitoring Directory</Text>
-        </TouchableOpacity>
-
-        {/* SECTION A: Project Identity Card */}
-        <View style={styles.identityCard}>
-          <View style={styles.demoWatermark}>
-            <Ionicons name="flask-outline" size={12} color={colors.brand.primary} />
-            <Text style={styles.demoWatermarkText}>SYNTHETIC DEMO FACILITY • MoSJE REGISTERED</Text>
+      <Animated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: screenFade,
+            transform: [{ translateY: screenSlide }],
+          },
+        ]}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Navigation Breadcrumb */}
+          <View style={styles.breadcrumbBar}>
+            <TouchableOpacity
+              style={styles.breadcrumbBtn}
+              onPress={() => navigation.goBack()}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={14} color={colors.brand.primary} />
+              <Text style={styles.breadcrumbLink}>Directory</Text>
+            </TouchableOpacity>
+            <Text style={styles.breadcrumbSeparator}>/</Text>
+            <Text style={styles.breadcrumbCode}>{project.code}</Text>
+            <Text style={styles.breadcrumbSeparator}>/</Text>
+            <Text style={styles.breadcrumbCurrent}>Overview</Text>
           </View>
+
+          {/* SECTION A: Project Identity Card */}
+          <View style={styles.identityCard}>
+            <View style={styles.registryWatermark}>
+              <Ionicons name="shield-checkmark" size={12} color={colors.brand.primary} />
+              <Text style={styles.registryWatermarkText}>CENTRAL REPOSITORY FACILITY RECORD • MoSJE REGISTERED</Text>
+            </View>
 
           <View style={styles.badgeRow}>
             <PriorityBadge priority={project.priority} />
@@ -366,14 +403,18 @@ export const ProjectDetailsScreen: React.FC = () => {
           />
         </View>
       </ScrollView>
-    </View>
-  );
+    </Animated.View>
+  </View>
+);
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.neutral.background,
+  },
+  animatedContainer: {
+    flex: 1,
   },
   centerContainer: {
     flex: 1,
@@ -397,23 +438,41 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     paddingBottom: spacing.xxl,
   },
-  backButton: {
+  breadcrumbBar: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
     alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: borderRadius.sm,
     backgroundColor: colors.neutral.surface,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: colors.neutral.border,
+    gap: 6,
   },
-  backButtonText: {
-    fontSize: typography.sizes.xs + 1,
+  breadcrumbBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  breadcrumbLink: {
+    fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
-    marginLeft: 6,
+  },
+  breadcrumbSeparator: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.muted,
+  },
+  breadcrumbCode: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.navy,
+  },
+  breadcrumbCurrent: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.secondary,
   },
   identityCard: {
     backgroundColor: colors.neutral.surface,
@@ -424,22 +483,22 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     ...shadows.xs,
   },
-  demoWatermark: {
+  registryWatermark: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: borderRadius.xs,
     alignSelf: 'flex-start',
     marginBottom: spacing.sm,
   },
-  demoWatermarkText: {
+  registryWatermarkText: {
     fontSize: 9,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
     letterSpacing: 0.6,
-    marginLeft: 4,
+    marginLeft: 5,
   },
   badgeRow: {
     flexDirection: 'row',

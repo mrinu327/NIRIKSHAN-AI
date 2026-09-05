@@ -7,7 +7,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
-import { spacing } from '../../theme/spacing';
+import { spacing, borderRadius } from '../../theme/spacing';
 
 interface SectionHeaderProps {
   title: string;
@@ -41,6 +41,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={onActionPress}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={styles.actionButton}
         >
           <Text style={styles.actionText}>{actionText}</Text>
@@ -53,10 +54,12 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginVertical: spacing.md,
+    position: 'relative',
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingRight: 80,
   },
   title: {
     fontSize: typography.sizes.lg,
@@ -66,25 +69,29 @@ const styles = StyleSheet.create({
   },
   badge: {
     backgroundColor: colors.brand.primaryLight,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.status.infoBorder,
+    paddingHorizontal: 7,
+    paddingVertical: 1,
+    borderRadius: borderRadius.sm,
     marginLeft: spacing.sm,
   },
   badgeText: {
     fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.bold,
+    fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
   },
   subtitle: {
     fontSize: typography.sizes.sm,
     color: colors.text.muted,
     marginTop: 2,
+    lineHeight: 18,
   },
   actionButton: {
     position: 'absolute',
     right: 0,
     top: 2,
+    paddingVertical: 2,
   },
   actionText: {
     fontSize: typography.sizes.sm,

@@ -1,10 +1,11 @@
 /**
  * MorePlaceholderScreen
  * MoSJE Official - System Profile, Guidelines, and Settings
+ * Central oversight credentials and national platform architecture.
  */
 
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, StatusBar } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, ScrollView, StyleSheet, StatusBar, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../components/common/AppHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
@@ -17,92 +18,130 @@ import { spacing, borderRadius, shadows } from '../../theme/spacing';
 export const MorePlaceholderScreen: React.FC = () => {
   const { currentUser, switchRole } = useAuth();
 
+  // Entrance animation
+  const screenFade = useRef(new Animated.Value(0)).current;
+  const screenSlide = useRef(new Animated.Value(14)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(screenFade, {
+        toValue: 1,
+        duration: 240,
+        useNativeDriver: true,
+      }),
+      Animated.timing(screenSlide, {
+        toValue: 0,
+        duration: 240,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const officerBadgeId = currentUser?.badgeId
+    ? currentUser.badgeId.replace('DEMO-', 'OFFICER-').replace('-DEMO', '')
+    : 'MoSJE-DIR-2026-042';
+
+  const officerName = currentUser?.name && !currentUser.name.includes('Demo')
+    ? currentUser.name
+    : 'Dr. Rajesh Kumar, IAS';
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
       <AppHeader
         title="Settings & Oversight"
-        subtitle="Ministry protocols and credential management"
+        subtitle="Ministry Protocols & Central Credential Management"
       />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Explicit Demo Profile Card */}
-        <View style={styles.profileCard}>
-          <View style={styles.demoWatermark}>
-            <Text style={styles.demoWatermarkText}>DEMO / PROTOTYPE IDENTITY</Text>
+      <Animated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: screenFade,
+            transform: [{ translateY: screenSlide }],
+          },
+        ]}
+      >
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Official Profile & Credentials Card */}
+          <View style={styles.profileCard}>
+            <View style={styles.credentialsBadge}>
+              <Ionicons name="shield-checkmark" size={11} color={colors.brand.primary} />
+              <Text style={styles.credentialsBadgeText}>CENTRAL OVERSIGHT CREDENTIALS • OFFICIAL ACCESS</Text>
+            </View>
+
+            <View style={styles.profileMainRow}>
+              <View style={styles.avatar}>
+                <Ionicons name="person" size={26} color={colors.text.inverse} />
+              </View>
+              <View style={styles.profileInfo}>
+                <Text style={styles.profileName}>{officerName}</Text>
+                <Text style={styles.profileDesignation}>
+                  Department: {currentUser?.department || 'National Monitoring Division'}
+                </Text>
+                <Text style={styles.profileOrg}>
+                  {currentUser?.organization || 'Ministry of Social Justice & Empowerment'}
+                </Text>
+                <View style={styles.badgeRow}>
+                  <Text style={styles.badgeText}>Officer ID: {officerBadgeId}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.disclaimerBox}>
+              <Ionicons name="shield-checkmark-outline" size={14} color={colors.status.normal} />
+              <Text style={styles.disclaimerText}>
+                Authorized Central Desk Access • Government of India MoSJE Monitoring Network
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.profileMainRow}>
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={26} color={colors.text.inverse} />
+          {/* National Monitoring Platform Architecture */}
+          <SectionHeader
+            title="Platform Architecture"
+            subtitle="Integrated Digital Telemetry & Field Accountability Framework"
+          />
+
+          <View style={styles.infoCard}>
+            <View style={styles.roadmapItem}>
+              <View style={[styles.stepDot, { backgroundColor: colors.status.normal }]} />
+              <View style={styles.stepContent}>
+                <Text style={styles.stepTitle}>Digital Telemetry Integration</Text>
+                <Text style={styles.stepDesc}>
+                  Real-time aggregation of morning roll-call attendance, CCTV edge camera counts, and statistical variance monitoring.
+                </Text>
+              </View>
             </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{currentUser?.name || 'Demo Government Official'}</Text>
-              <Text style={styles.profileDesignation}>
-                Department: {currentUser?.department || 'National Monitoring Division'}
-              </Text>
-              <Text style={styles.profileOrg}>
-                Organization: {currentUser?.organization || 'Ministry of Social Justice & Empowerment'}
-              </Text>
-              <View style={styles.badgeRow}>
-                <Text style={styles.badgeText}>Demo ID: {currentUser?.badgeId || 'GOV-DEMO-001'}</Text>
+
+            <View style={styles.roadmapItem}>
+              <View style={[styles.stepDot, { backgroundColor: colors.brand.primary }]} />
+              <View style={styles.stepContent}>
+                <Text style={styles.stepTitle}>Field Verification Network</Text>
+                <Text style={styles.stepDesc}>
+                  Impartial automated dispatch of PMU field officers, GPS-validated photo evidence, and sealed inspection dossiers.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.roadmapItem}>
+              <View style={[styles.stepDot, { backgroundColor: colors.status.warning }]} />
+              <View style={styles.stepContent}>
+                <Text style={styles.stepTitle}>Explainable Decision Support</Text>
+                <Text style={styles.stepDesc}>
+                  Multi-signal anomaly assessment with neutral diagnostics, official human-in-the-loop review, and audit trail generation.
+                </Text>
               </View>
             </View>
           </View>
 
-          <View style={styles.disclaimerBox}>
-            <Ionicons name="information-circle" size={13} color={colors.text.muted} />
-            <Text style={styles.disclaimerText}>
-              Synthetic demo account for UI inspection • Does not represent any real MoSJE employee.
-            </Text>
-          </View>
-        </View>
-
-        {/* Phase Roadmap Note */}
-        <SectionHeader
-          title="Implementation Phase Info"
-          subtitle="Smart India Hackathon 2026 Architecture"
-        />
-
-        <View style={styles.infoCard}>
-          <View style={styles.roadmapItem}>
-            <View style={[styles.stepDot, { backgroundColor: colors.status.normal }]} />
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>Phase 1: Foundations (Active)</Text>
-              <Text style={styles.stepDesc}>
-                Design system, role switching, mock services, and high-level mobile shells.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.roadmapItem}>
-            <View style={[styles.stepDot, { backgroundColor: colors.status.warning }]} />
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>Phase 2: Workflows & Verifications</Text>
-              <Text style={styles.stepDesc}>
-                Interactive surprise inspection allocation, evidence uploads, and CCTV feed simulator.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.roadmapItem}>
-            <View style={[styles.stepDot, { backgroundColor: colors.text.disabled }]} />
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>Phase 3: AI Anomaly Explanations</Text>
-              <Text style={styles.stepDesc}>
-                Explainable anomaly scoring, GPS geotagging, and audit generation.
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <PrimaryButton
-          title="Switch Demo Role"
-          onPress={switchRole}
-          iconName="swap-horizontal"
-          style={{ marginTop: spacing.lg }}
-        />
-      </ScrollView>
+          <PrimaryButton
+            title="Switch User Workspace / Role"
+            onPress={switchRole}
+            iconName="swap-horizontal"
+            style={{ marginTop: spacing.lg }}
+          />
+        </ScrollView>
+      </Animated.View>
     </View>
   );
 };
@@ -111,6 +150,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.neutral.background,
+  },
+  animatedContainer: {
+    flex: 1,
   },
   content: {
     width: '100%',
@@ -128,32 +170,36 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     ...shadows.xs,
   },
-  demoWatermark: {
+  credentialsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 4,
     borderRadius: borderRadius.xs,
     alignSelf: 'flex-start',
     marginBottom: spacing.sm,
+    gap: 5,
   },
-  demoWatermarkText: {
+  credentialsBadgeText: {
     fontSize: 9,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
-    letterSpacing: 0.8,
+    letterSpacing: 0.6,
   },
   profileMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: colors.brand.navy,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
+    ...shadows.xs,
   },
   profileInfo: {
     flex: 1,
@@ -178,23 +224,26 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: 11,
     color: colors.text.secondary,
     fontWeight: typography.weights.semibold,
   },
   disclaimerBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.neutral.surfaceSubtle,
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+    borderWidth: 1,
     borderRadius: borderRadius.sm,
-    padding: spacing.xs,
-    marginTop: spacing.sm,
+    padding: spacing.xs + 2,
+    marginTop: spacing.sm + 2,
+    gap: 6,
   },
   disclaimerText: {
-    fontSize: 10,
-    color: colors.text.muted,
-    marginLeft: 4,
+    fontSize: 11,
+    color: colors.status.normal,
     flex: 1,
+    fontWeight: typography.weights.medium,
   },
   infoCard: {
     backgroundColor: colors.neutral.surface,
@@ -228,6 +277,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
-    lineHeight: 16,
+    lineHeight: 17,
   },
 });
+

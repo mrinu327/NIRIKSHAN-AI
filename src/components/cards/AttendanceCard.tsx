@@ -31,7 +31,7 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({
     <View style={[styles.card, style]}>
       <View style={styles.headerRow}>
         <View style={styles.headerTitleArea}>
-          <Text style={styles.cardOverline}>DAILY BENEFICIARY ATTENDANCE</Text>
+          <Text style={styles.cardOverline}>Daily Beneficiary Attendance</Text>
           <Text style={styles.instituteName} numberOfLines={2}>{instituteName}</Text>
         </View>
         <StatusBadge
@@ -74,8 +74,8 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({
           <Text style={styles.footerText}>Submitted at: {summary.lastSubmittedTime}</Text>
         </View>
         <View style={styles.secureTag}>
-          <Ionicons name="checkmark-circle" size={12} color={colors.status.normal} />
-          <Text style={styles.secureText}>Logged to Registry</Text>
+          <Ionicons name="checkmark-circle-outline" size={13} color={colors.status.normal} />
+          <Text style={styles.secureText}>Logged to Central Registry</Text>
         </View>
       </View>
     </View>
@@ -85,7 +85,7 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.neutral.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     padding: spacing.base,
@@ -105,10 +105,10 @@ const styles = StyleSheet.create({
     minWidth: 160,
   },
   cardOverline: {
-    fontSize: 10,
-    fontWeight: typography.weights.bold,
+    fontSize: 11,
+    fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
-    letterSpacing: 0.8,
+    letterSpacing: 0.3,
   },
   instituteName: {
     fontSize: typography.sizes.md,
@@ -116,13 +116,16 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginTop: 2,
     lineHeight: 20,
+    letterSpacing: -0.2,
   },
   metricsBreakdownGrid: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.neutral.surfaceSubtle,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
     marginTop: spacing.xs,
@@ -134,15 +137,14 @@ const styles = StyleSheet.create({
   },
   breakdownDivider: {
     width: 1,
-    height: 24,
+    height: 22,
     backgroundColor: colors.neutral.border,
   },
   breakdownLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: typography.weights.medium,
     color: colors.text.muted,
     marginBottom: 2,
-    textTransform: 'uppercase',
   },
   breakdownValue: {
     fontSize: typography.sizes.md,
@@ -150,9 +152,9 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   progressTrack: {
-    height: 8,
+    height: 6,
     backgroundColor: colors.neutral.surfaceSubtle,
-    borderRadius: 4,
+    borderRadius: borderRadius.xs,
     overflow: 'hidden',
     marginTop: spacing.sm,
     marginBottom: spacing.md,
@@ -160,7 +162,7 @@ const styles = StyleSheet.create({
   progressBar: {
     height: '100%',
     backgroundColor: colors.status.normal,
-    borderRadius: 4,
+    borderRadius: borderRadius.xs,
   },
   footerRow: {
     flexDirection: 'row',
@@ -189,6 +191,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.status.normal,
     fontWeight: typography.weights.semibold,
-    marginLeft: 3,
+    marginLeft: 4,
   },
 });
