@@ -27,12 +27,16 @@ import { StatusBadge, BadgeVariant } from '../../components/common/StatusBadge';
 import { PriorityBadge } from '../../components/common/PriorityBadge';
 import { AlertCard } from '../../components/cards/AlertCard';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { SecondaryButton } from '../../components/common/SecondaryButton';
+import { AttendanceAnalyticsSection } from '../../components/analytics/AttendanceAnalyticsSection';
 import { mockProjectService } from '../../services/mock/mockProjectService';
 import { mockAlertService } from '../../services/mock/mockAlertService';
 import { mockInspectionService } from '../../services/mock/mockInspectionService';
+import { mockAnalyticsService } from '../../services/mock/mockAnalyticsService';
 import { Project } from '../../types/project';
 import { AnomalyAlert } from '../../types/alert';
 import { InspectionAssignment } from '../../types/inspection';
+import { AttendanceAnalytics } from '../../types/attendance';
 import { SUNRISE_ATTENDANCE } from '../../data/mockData';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -53,17 +57,20 @@ export const ProjectDetailsScreen: React.FC = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [alerts, setAlerts] = useState<AnomalyAlert[]>([]);
   const [inspections, setInspections] = useState<InspectionAssignment[]>([]);
+  const [analytics, setAnalytics] = useState<AttendanceAnalytics | null>(null);
 
   const loadData = async () => {
     try {
-      const [projData, alertsData, inspData] = await Promise.all([
+      const [projData, alertsData, inspData, analyticsData] = await Promise.all([
         mockProjectService.getProjectById(projectId),
         mockAlertService.getAlertsByProjectId(projectId),
         mockInspectionService.getInspectionsByProjectId(projectId),
+        mockAnalyticsService.getProjectAttendanceAnalytics(projectId),
       ]);
       setProject(projData || null);
       setAlerts(alertsData);
       setInspections(inspData);
+      setAnalytics(analyticsData);
     } catch (error) {
       console.error('Error loading project details:', error);
     } finally {
@@ -172,37 +179,20 @@ export const ProjectDetailsScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* SECTION B: Attendance Monitoring */}
+        {/* SECTION B: Attendance Analytics Layer */}
         <SectionHeader
-          title="Attendance Monitoring"
-          subtitle="Daily roll-call & biometric submission breakdown"
+          title="Attendance Analytics"
+          subtitle="Roll-call turnout, CCTV estimated occupancy & historical variance"
         />
 
-        <View style={styles.statsGrid}>
-          <View style={[styles.statBox, { width: metricItemWidth }]}>
-            <Text style={styles.statLabel}>Present Count</Text>
-            <Text style={styles.statValue}>{presentCount}</Text>
-            <Text style={styles.statSub}>Morning verified</Text>
-          </View>
-
-          <View style={[styles.statBox, { width: metricItemWidth }]}>
-            <Text style={styles.statLabel}>Sanctioned Capacity</Text>
-            <Text style={styles.statValue}>{capacityCount}</Text>
-            <Text style={styles.statSub}>Grant-allocated</Text>
-          </View>
-
-          <View style={[styles.statBox, { width: metricItemWidth }]}>
-            <Text style={styles.statLabel}>Turnout Percentage</Text>
-            <Text style={[styles.statValue, { color: colors.brand.primary }]}>{attendanceRate}%</Text>
-            <Text style={styles.statSub}>Overall ratio</Text>
-          </View>
-
-          <View style={[styles.statBox, { width: metricItemWidth }]}>
-            <Text style={styles.statLabel}>Absent Count</Text>
-            <Text style={[styles.statValue, { color: colors.status.warning }]}>{absentCount}</Text>
-            <Text style={styles.statSub}>Reported on leave</Text>
-          </View>
-        </View>
+        {analytics && (
+          <AttendanceAnalyticsSection
+            analytics={analytics}
+            onViewDetails={() =>
+              navigation.navigate('AttendanceAnalytics', { projectId: project.id })
+            }
+          />
+        )}
 
         {/* SECTION C: CCTV Telemetry */}
         <SectionHeader
@@ -324,7 +314,7 @@ export const ProjectDetailsScreen: React.FC = () => {
           )}
         </View>
 
-        {/* SECTION F: Primary Action Button */}
+        {/* SECTION F: Governance Actions */}
         <View style={styles.actionSection}>
           <PrimaryButton
             title="Initiate Surprise Inspection"
@@ -336,6 +326,14 @@ export const ProjectDetailsScreen: React.FC = () => {
               })
             }
             style={styles.initiateButton}
+          />
+          <SecondaryButton
+            title="View In-Depth Attendance Analytics"
+            iconName="stats-chart"
+            onPress={() =>
+              navigation.navigate('AttendanceAnalytics', { projectId: project.id })
+            }
+            style={{ marginTop: 10 }}
           />
         </View>
       </ScrollView>

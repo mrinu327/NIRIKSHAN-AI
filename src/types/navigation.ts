@@ -30,6 +30,7 @@ export type OfficialStackParamList = {
   ProjectDetails: { projectId: string };
   AlertReview: { alertId: string };
   InitiateInspection: { projectId: string; alertId?: string };
+  AttendanceAnalytics: { projectId: string };
 };
 
 // Type-safe navigation props for Official workflow
