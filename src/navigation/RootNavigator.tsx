@@ -10,7 +10,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { RoleSelectionScreen } from '../screens/auth/RoleSelectionScreen';
 import { OfficialStackNavigator } from './OfficialStackNavigator';
-import { InspectorTabNavigator } from './InspectorTabNavigator';
+import { InspectorStackNavigator } from './InspectorStackNavigator';
 import { NgoTabNavigator } from './NgoTabNavigator';
 import { colors } from '../theme/colors';
 
@@ -22,7 +22,7 @@ export const RootNavigator: React.FC = () => {
       case 'official':
         return <OfficialStackNavigator />;
       case 'inspector':
-        return <InspectorTabNavigator />;
+        return <InspectorStackNavigator />;
       case 'ngo':
         return <NgoTabNavigator />;
       case null:

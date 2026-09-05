@@ -13,7 +13,8 @@ interface AuthContextType {
   currentRole: UserRole | null;
   currentUser: UserProfile | null;
   isLoading: boolean;
-  selectRole: (role: UserRole) => Promise<void>;
+  selectRole: (role: UserRole, specificProfileKey?: string) => Promise<void>;
+  switchInspectorProfile: (profileKey: 'inspector_a' | 'inspector_b') => Promise<void>;
   logout: () => Promise<void>;
   switchRole: () => void;
 }
@@ -25,14 +26,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const selectRole = async (role: UserRole) => {
+  const selectRole = async (role: UserRole, specificProfileKey?: string) => {
     setIsLoading(true);
     try {
-      const profile = await mockAuthService.loginAsRole(role);
+      const profile = await mockAuthService.loginAsRole(role, specificProfileKey);
       setCurrentRole(role);
       setCurrentUser(profile);
     } catch (err) {
       console.error('Failed to select role:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const switchInspectorProfile = async (profileKey: 'inspector_a' | 'inspector_b') => {
+    setIsLoading(true);
+    try {
+      const profile = await mockAuthService.loginAsProfile(profileKey);
+      setCurrentRole('inspector');
+      setCurrentUser(profile);
+    } catch (err) {
+      console.error('Failed to switch inspector profile:', err);
     } finally {
       setIsLoading(false);
     }
@@ -61,6 +75,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         currentUser,
         isLoading,
         selectRole,
+        switchInspectorProfile,
         logout,
         switchRole,
       }}

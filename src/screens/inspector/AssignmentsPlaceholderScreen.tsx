@@ -1,36 +1,59 @@
-/**
- * AssignmentsPlaceholderScreen
- * PMU Inspector - All Field Assignments & Route Map Preview
- */
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, StatusBar } from 'react-native';
+import { useAuth } from '../../context/AuthContext';
 import { AppHeader } from '../../components/common/AppHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { InspectionCard } from '../../components/cards/InspectionCard';
 import { LoadingState } from '../../components/common/LoadingState';
 import { mockInspectionService } from '../../services/mock/mockInspectionService';
+import { mockAssignmentService } from '../../services/mock/mockAssignmentService';
 import { InspectionAssignment } from '../../types/inspection';
 import { colors } from '../../theme/colors';
 import { spacing } from '../../theme/spacing';
 
 export const AssignmentsPlaceholderScreen: React.FC = () => {
+  const { currentUser } = useAuth();
+  const activeOfficerId = currentUser?.id || 'USR-INSP-DEMO-004';
+  const activeBadgeId = currentUser?.badgeId || 'PMU-DEMO-004';
+
   const [assignments, setAssignments] = useState<InspectionAssignment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    mockInspectionService.getAssignedInspections().then((data) => {
+  const loadAssignments = useCallback(async () => {
+    try {
+      const data = await mockInspectionService.getAssignedInspections();
       setAssignments(data);
+    } catch (error) {
+      console.error('Failed to load assignments:', error);
+    } finally {
       setLoading(false);
-    });
+    }
   }, []);
+
+  useEffect(() => {
+    loadAssignments();
+  }, [loadAssignments, currentUser]);
+
+  const handleAcknowledge = async (inspectionId: string) => {
+    try {
+      await mockAssignmentService.acknowledgeAssignment(
+        inspectionId,
+        activeOfficerId,
+        currentUser?.name || 'Demo Field Inspector',
+        activeBadgeId
+      );
+      await loadAssignments();
+    } catch (err) {
+      console.error('Error acknowledging assignment:', err);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
       <AppHeader
         title="Field Assignments"
-        subtitle="Assigned institutes and inspection orders"
+        subtitle={`Logged in as ${currentUser?.name || 'Inspector'} (${activeBadgeId})`}
       />
 
       {loading ? (
@@ -43,7 +66,12 @@ export const AssignmentsPlaceholderScreen: React.FC = () => {
             badgeCount={assignments.length}
           />
           {assignments.map((assignment) => (
-            <InspectionCard key={assignment.id} inspection={assignment} />
+            <InspectionCard
+              key={assignment.id}
+              inspection={assignment}
+              isInspectorView={true}
+              onAcknowledge={() => handleAcknowledge(assignment.id)}
+            />
           ))}
         </ScrollView>
       )}
