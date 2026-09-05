@@ -9,7 +9,7 @@
 
 import { Project, ProjectStatsSummary } from '../types/project';
 import { AnomalyAlert } from '../types/alert';
-import { InspectionAssignment } from '../types/inspection';
+import { InspectionAssignment, DemoInspector } from '../types/inspection';
 import { AttendanceSubmission, AttendanceSummary } from '../types/attendance';
 import { RoleConfig, UserProfile } from '../types/role';
 
@@ -24,6 +24,51 @@ export const SUNRISE_ATTENDANCE = {
   submittedAt: '09:28 AM Today',
   status: 'Submitted' as const,
 };
+
+// ==========================================
+// DEMO INSPECTOR POOL (MoSJE PMU ROSTER)
+// ==========================================
+export const DEMO_INSPECTORS: DemoInspector[] = [
+  {
+    id: 'USR-INSP-DEMO-004',
+    name: 'Demo Field Inspector A',
+    demoId: 'PMU-DEMO-004',
+    designation: 'PMU Field Inspection Officer',
+    department: 'PMU Field Inspection Wing',
+    organization: 'State Project Monitoring Unit (Demo)',
+    assignedLocation: 'Delhi North & NCR (Demo)',
+    jurisdiction: 'Zone 1 - Rohini / North Delhi',
+    active: true,
+    currentAssignmentCount: 1,
+    contactEmail: 'inspector.a.demo@pmu.gov.in.demo',
+  },
+  {
+    id: 'USR-INSP-DEMO-005',
+    name: 'Demo Field Inspector B',
+    demoId: 'PMU-DEMO-005',
+    designation: 'PMU Senior Inspection Officer',
+    department: 'PMU Field Inspection Wing',
+    organization: 'State Project Monitoring Unit (Demo)',
+    assignedLocation: 'Delhi Central & NCR (Demo)',
+    jurisdiction: 'Zone 2 - Central & West Delhi',
+    active: true,
+    currentAssignmentCount: 2,
+    contactEmail: 'inspector.b.demo@pmu.gov.in.demo',
+  },
+  {
+    id: 'USR-INSP-DEMO-006',
+    name: 'Demo Field Inspector C',
+    demoId: 'PMU-DEMO-006',
+    designation: 'PMU Reserve Inspection Officer',
+    department: 'PMU Field Inspection Wing',
+    organization: 'State Project Monitoring Unit (Demo)',
+    assignedLocation: 'NCR South District (Demo)',
+    jurisdiction: 'Zone 3 - South Delhi',
+    active: false, // Inactive / On Medical Leave to demonstrate transparent active pool filtering
+    currentAssignmentCount: 0,
+    contactEmail: 'inspector.c.demo@pmu.gov.in.demo',
+  },
+];
 
 // ==========================================
 // ROLE SELECTION CONFIGURATIONS
@@ -70,15 +115,37 @@ export const DEMO_PROFILES: Record<string, UserProfile> = {
     badgeId: 'GOV-DEMO-001',
   },
   inspector: {
-    id: 'USR-INSP-DEMO-02',
-    name: 'Demo PMU Inspector',
+    id: 'USR-INSP-DEMO-004',
+    name: 'Demo Field Inspector A',
     role: 'inspector',
-    designation: 'PMU Field Inspection Wing',
+    designation: 'PMU Field Inspection Officer',
     department: 'PMU Field Inspection Wing',
     organization: 'State Project Monitoring Unit (Demo)',
-    email: 'inspector.demo@pmu.gov.in.demo',
-    assignedLocation: 'NCR North District (Demo)',
-    badgeId: 'PMU-DEMO-002',
+    email: 'inspector.a.demo@pmu.gov.in.demo',
+    assignedLocation: 'Delhi North & NCR (Demo)',
+    badgeId: 'PMU-DEMO-004',
+  },
+  inspector_a: {
+    id: 'USR-INSP-DEMO-004',
+    name: 'Demo Field Inspector A',
+    role: 'inspector',
+    designation: 'PMU Field Inspection Officer',
+    department: 'PMU Field Inspection Wing',
+    organization: 'State Project Monitoring Unit (Demo)',
+    email: 'inspector.a.demo@pmu.gov.in.demo',
+    assignedLocation: 'Delhi North & NCR (Demo)',
+    badgeId: 'PMU-DEMO-004',
+  },
+  inspector_b: {
+    id: 'USR-INSP-DEMO-005',
+    name: 'Demo Field Inspector B',
+    role: 'inspector',
+    designation: 'PMU Senior Inspection Officer',
+    department: 'PMU Field Inspection Wing',
+    organization: 'State Project Monitoring Unit (Demo)',
+    email: 'inspector.b.demo@pmu.gov.in.demo',
+    assignedLocation: 'Delhi Central & NCR (Demo)',
+    badgeId: 'PMU-DEMO-005',
   },
   ngo: {
     id: 'USR-NGO-DEMO-03',
@@ -280,9 +347,9 @@ export const MOCK_INSPECTIONS: InspectionAssignment[] = [
     city: 'New Delhi',
     type: 'Surprise Inspection',
     priority: 'HIGH',
-    status: 'Assigned',
-    assignedOfficerId: 'USR-INSP-DEMO-02',
-    assignedOfficerName: 'Demo PMU Inspector',
+    status: 'Awaiting Assignment',
+    assignedOfficerId: '',
+    assignedOfficerName: 'Unassigned (Awaiting Automated Selection)',
     assignedDate: 'Today, 10:30 AM',
     dueDate: 'Today, 04:00 PM',
     scheduledTime: '11:45 AM',
@@ -299,8 +366,11 @@ export const MOCK_INSPECTIONS: InspectionAssignment[] = [
     type: 'Routine Inspection',
     priority: 'NORMAL',
     status: 'In Progress',
-    assignedOfficerId: 'USR-INSP-DEMO-02',
-    assignedOfficerName: 'Demo PMU Inspector',
+    assignedOfficerId: 'USR-INSP-DEMO-005',
+    assignedOfficerName: 'Demo Field Inspector B',
+    assignedOfficerDemoId: 'PMU-DEMO-005',
+    assignmentMethod: 'Automated Random Selection',
+    assignmentTimestamp: '02 Feb 2026, 09:30 AM',
     assignedDate: '02 Feb 2026',
     dueDate: '15 Feb 2026',
     scheduledTime: '02:00 PM',
@@ -317,8 +387,11 @@ export const MOCK_INSPECTIONS: InspectionAssignment[] = [
     type: 'Special Audit',
     priority: 'MEDIUM',
     status: 'Scheduled',
-    assignedOfficerId: 'USR-INSP-DEMO-02',
-    assignedOfficerName: 'Demo PMU Inspector',
+    assignedOfficerId: 'USR-INSP-DEMO-004',
+    assignedOfficerName: 'Demo Field Inspector A',
+    assignedOfficerDemoId: 'PMU-DEMO-004',
+    assignmentMethod: 'Automated Random Selection',
+    assignmentTimestamp: '01 Feb 2026, 11:00 AM',
     assignedDate: '01 Feb 2026',
     dueDate: '20 Feb 2026',
     scheduledTime: '10:00 AM (Tomorrow)',

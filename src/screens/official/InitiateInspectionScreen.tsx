@@ -225,7 +225,7 @@ export const InitiateInspectionScreen: React.FC = () => {
           <View style={styles.protocolNotice}>
             <Ionicons name="information-circle" size={16} color={colors.brand.navyLight} />
             <Text style={styles.protocolNoticeText}>
-              Confirmation dispatches an authorized inspection assignment to the PMU field roster. Assigned officers receive physical verification checklists with geofence validation.
+              Confirmation registers an unassigned inspection order in the PMU docket. You can run automated random assignment from the Field Inspection Oversight dashboard to impartially dispatch an active field officer.
             </Text>
           </View>
         </View>
@@ -233,7 +233,7 @@ export const InitiateInspectionScreen: React.FC = () => {
         {/* Action Buttons */}
         <View style={styles.actionsBox}>
           <PrimaryButton
-            title="Confirm & Dispatch Inspection Request"
+            title="Confirm & Initiate Inspection Order"
             iconName="checkmark-circle"
             onPress={handleConfirm}
             loading={submitting}

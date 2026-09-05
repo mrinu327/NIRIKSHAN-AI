@@ -13,10 +13,19 @@ export class MockAuthService {
     return DEMO_ROLES;
   }
 
-  async loginAsRole(role: UserRole): Promise<UserProfile> {
-    const profile = DEMO_PROFILES[role];
+  async loginAsRole(role: UserRole, specificProfileKey?: string): Promise<UserProfile> {
+    const key = specificProfileKey || role;
+    const profile = DEMO_PROFILES[key] || DEMO_PROFILES[role];
     if (!profile) {
       throw new Error(`Invalid role selected: ${role}`);
+    }
+    return profile;
+  }
+
+  async loginAsProfile(profileKey: string): Promise<UserProfile> {
+    const profile = DEMO_PROFILES[profileKey];
+    if (!profile) {
+      throw new Error(`Invalid profile selected: ${profileKey}`);
     }
     return profile;
   }

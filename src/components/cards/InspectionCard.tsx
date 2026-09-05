@@ -17,20 +17,32 @@ import { spacing, borderRadius, shadows } from '../../theme/spacing';
 interface InspectionCardProps {
   inspection: InspectionAssignment;
   onPress?: () => void;
+  onRunAssignment?: () => void;
+  onAcknowledge?: () => void;
+  isInspectorView?: boolean;
   style?: ViewStyle;
 }
 
 export const InspectionCard: React.FC<InspectionCardProps> = ({
   inspection,
   onPress,
+  onRunAssignment,
+  onAcknowledge,
+  isInspectorView,
   style,
 }) => {
   const isSurprise = inspection.type === 'Surprise Inspection';
+  const isAwaitingAssignment = inspection.status === 'Awaiting Assignment';
+  const isAcknowledged = inspection.status === 'Accepted / Acknowledged';
 
   const getStatusVariant = () => {
     switch (inspection.status) {
+      case 'Awaiting Assignment':
+        return 'warning' as const;
       case 'Assigned':
         return 'info' as const;
+      case 'Accepted / Acknowledged':
+        return 'normal' as const;
       case 'In Progress':
         return 'warning' as const;
       case 'Completed':
@@ -49,6 +61,7 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
       style={[
         styles.card,
         isSurprise && styles.cardSurprise,
+        isAwaitingAssignment && styles.cardAwaiting,
         style,
       ]}
     >
@@ -74,6 +87,71 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
           {inspection.projectAddress}
         </Text>
       </View>
+
+      {/* Assignment & Officer Status Section */}
+      {isAwaitingAssignment ? (
+        <View style={styles.unassignedBox}>
+          <View style={styles.unassignedHeader}>
+            <Ionicons name="alert-circle" size={15} color={colors.status.warning} />
+            <Text style={styles.unassignedHeaderText}>Roster Status: Unassigned</Text>
+          </View>
+          <Text style={styles.unassignedNotice}>
+            Inspection order created. Awaiting automated random assignment from active PMU inspector pool.
+          </Text>
+
+          {onRunAssignment && (
+            <TouchableOpacity
+              style={styles.runAssignmentBtn}
+              onPress={onRunAssignment}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="shuffle" size={14} color={colors.text.inverse} style={{ marginRight: 6 }} />
+              <Text style={styles.runAssignmentBtnText}>Run Automated Assignment</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : (
+        <View style={styles.officerBox}>
+          <View style={styles.officerRow}>
+            <View style={styles.officerInfoCol}>
+              <Text style={styles.officerLabel}>Assigned PMU Officer</Text>
+              <Text style={styles.officerName}>
+                {inspection.assignedOfficerName}{' '}
+                {inspection.assignedOfficerDemoId ? (
+                  <Text style={styles.officerBadgeText}>({inspection.assignedOfficerDemoId})</Text>
+                ) : null}
+              </Text>
+            </View>
+
+            {inspection.assignmentMethod && (
+              <View style={styles.methodTag}>
+                <Ionicons name="sparkles" size={11} color={colors.brand.primary} style={{ marginRight: 3 }} />
+                <Text style={styles.methodTagText}>{inspection.assignmentMethod}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Acknowledgment Stamp */}
+          {isAcknowledged ? (
+            <View style={styles.acknowledgedBanner}>
+              <Ionicons name="checkmark-done-circle" size={14} color={colors.status.normal} />
+              <Text style={styles.acknowledgedText}>
+                Acknowledged by {inspection.acknowledgedBy || inspection.assignedOfficerName}
+                {inspection.acknowledgedAt ? ` • ${inspection.acknowledgedAt}` : ''}
+              </Text>
+            </View>
+          ) : inspection.status === 'Assigned' && onAcknowledge ? (
+            <TouchableOpacity
+              style={styles.acknowledgeBtn}
+              onPress={onAcknowledge}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="checkbox-outline" size={15} color={colors.text.inverse} style={{ marginRight: 6 }} />
+              <Text style={styles.acknowledgeBtnText}>Acknowledge Assignment</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      )}
 
       <View style={styles.detailsGrid}>
         <View style={styles.detailItem}>
@@ -225,5 +303,137 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
+  },
+  cardAwaiting: {
+    borderLeftWidth: 4,
+    borderLeftColor: colors.status.warning,
+    borderColor: colors.status.warningBorder,
+  },
+  unassignedBox: {
+    backgroundColor: '#FFFBEB',
+    borderColor: colors.status.warningBorder,
+    borderWidth: 1,
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  unassignedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  unassignedHeaderText: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.bold,
+    color: colors.status.warning,
+  },
+  unassignedNotice: {
+    fontSize: 11,
+    color: '#92400E',
+    lineHeight: 16,
+    marginBottom: spacing.xs,
+  },
+  runAssignmentBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.brand.primary,
+    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.sm,
+    marginTop: 4,
+    ...shadows.xs,
+  },
+  runAssignmentBtnText: {
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.bold,
+    letterSpacing: 0.3,
+  },
+  officerBox: {
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    padding: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  officerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  officerInfoCol: {
+    flex: 1,
+    minWidth: 160,
+  },
+  officerLabel: {
+    fontSize: 10,
+    color: colors.text.muted,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+    fontWeight: typography.weights.medium,
+  },
+  officerName: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+  },
+  officerBadgeText: {
+    color: colors.brand.primary,
+    fontWeight: typography.weights.semibold,
+  },
+  methodTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+    alignSelf: 'flex-start',
+  },
+  methodTagText: {
+    fontSize: 10,
+    fontWeight: typography.weights.semibold,
+    color: colors.brand.primary,
+  },
+  acknowledgedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+    borderWidth: 1,
+    borderRadius: borderRadius.xs,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    marginTop: 8,
+  },
+  acknowledgedText: {
+    fontSize: 11,
+    fontWeight: typography.weights.medium,
+    color: colors.status.normal,
+    flex: 1,
+  },
+  acknowledgeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.status.normal,
+    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.sm,
+    marginTop: 8,
+    ...shadows.xs,
+  },
+  acknowledgeBtnText: {
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.bold,
   },
 });

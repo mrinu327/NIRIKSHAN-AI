@@ -12,6 +12,7 @@ import {
   StyleSheet,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,9 +29,12 @@ export const RoleSelectionScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { selectRole, isLoading } = useAuth();
   const [selectedRole, setSelectedRole] = useState<UserRole>('official');
+  const [inspectorSubProfile, setInspectorSubProfile] = useState<'inspector_a' | 'inspector_b'>('inspector_a');
 
   const handleContinue = async () => {
-    if (selectedRole) {
+    if (selectedRole === 'inspector') {
+      await selectRole('inspector', inspectorSubProfile);
+    } else if (selectedRole) {
       await selectRole(selectedRole);
     }
   };
@@ -74,12 +78,74 @@ export const RoleSelectionScreen: React.FC = () => {
         </View>
 
         {DEMO_ROLES.map((role) => (
-          <RoleCard
-            key={role.id}
-            role={role}
-            isSelected={selectedRole === role.id}
-            onSelect={() => setSelectedRole(role.id)}
-          />
+          <View key={role.id}>
+            <RoleCard
+              role={role}
+              isSelected={selectedRole === role.id}
+              onSelect={() => setSelectedRole(role.id)}
+            />
+            {role.id === 'inspector' && selectedRole === 'inspector' && (
+              <View style={styles.subInspectorCard}>
+                <View style={styles.subInspectorHeader}>
+                  <Ionicons name="people" size={16} color={colors.brand.primary} />
+                  <Text style={styles.subInspectorTitle}>Select Inspector Account:</Text>
+                </View>
+                <Text style={styles.subInspectorDesc}>
+                  Test automated random assignment acknowledgment across multiple officers:
+                </Text>
+
+                <View style={styles.subInspectorOptions}>
+                  <TouchableOpacity
+                    style={[
+                      styles.subOptionBtn,
+                      inspectorSubProfile === 'inspector_a' && styles.subOptionBtnActive,
+                    ]}
+                    onPress={() => setInspectorSubProfile('inspector_a')}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.subOptionRadio}>
+                      {inspectorSubProfile === 'inspector_a' && <View style={styles.subOptionRadioDot} />}
+                    </View>
+                    <View style={styles.subOptionTextCol}>
+                      <Text
+                        style={[
+                          styles.subOptionName,
+                          inspectorSubProfile === 'inspector_a' && styles.subOptionNameActive,
+                        ]}
+                      >
+                        Demo Field Inspector A
+                      </Text>
+                      <Text style={styles.subOptionMeta}>ID: PMU-DEMO-004 • Delhi North</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.subOptionBtn,
+                      inspectorSubProfile === 'inspector_b' && styles.subOptionBtnActive,
+                    ]}
+                    onPress={() => setInspectorSubProfile('inspector_b')}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.subOptionRadio}>
+                      {inspectorSubProfile === 'inspector_b' && <View style={styles.subOptionRadioDot} />}
+                    </View>
+                    <View style={styles.subOptionTextCol}>
+                      <Text
+                        style={[
+                          styles.subOptionName,
+                          inspectorSubProfile === 'inspector_b' && styles.subOptionNameActive,
+                        ]}
+                      >
+                        Demo Field Inspector B
+                      </Text>
+                      <Text style={styles.subOptionMeta}>ID: PMU-DEMO-005 • Delhi Central</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </View>
         ))}
 
         <View style={styles.securityNote}>
@@ -220,5 +286,82 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 720,
     alignSelf: 'center',
+  },
+  subInspectorCard: {
+    backgroundColor: colors.neutral.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.brand.primaryLight,
+    padding: spacing.md,
+    marginTop: -spacing.xs,
+    marginBottom: spacing.md,
+    marginHorizontal: 4,
+    ...shadows.xs,
+  },
+  subInspectorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 6,
+  },
+  subInspectorTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.navy,
+  },
+  subInspectorDesc: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.muted,
+    marginBottom: spacing.sm,
+    lineHeight: 16,
+  },
+  subInspectorOptions: {
+    gap: 8,
+  },
+  subOptionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1.5,
+    borderColor: colors.neutral.border,
+    backgroundColor: colors.neutral.surfaceSubtle,
+  },
+  subOptionBtnActive: {
+    borderColor: colors.brand.primary,
+    backgroundColor: '#EFF6FF',
+  },
+  subOptionRadio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: colors.brand.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  subOptionRadioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.brand.primary,
+  },
+  subOptionTextCol: {
+    flex: 1,
+  },
+  subOptionName: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    color: colors.text.primary,
+  },
+  subOptionNameActive: {
+    color: colors.brand.primary,
+    fontWeight: typography.weights.bold,
+  },
+  subOptionMeta: {
+    fontSize: 11,
+    color: colors.text.muted,
+    marginTop: 2,
   },
 });
