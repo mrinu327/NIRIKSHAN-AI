@@ -14,6 +14,7 @@ import { ProjectDetailsScreen } from '../screens/official/ProjectDetailsScreen';
 import { AlertReviewScreen } from '../screens/official/AlertReviewScreen';
 import { InitiateInspectionScreen } from '../screens/official/InitiateInspectionScreen';
 import { AttendanceAnalyticsScreen } from '../screens/official/AttendanceAnalyticsScreen';
+import { AnomalyDetailScreen } from '../screens/official/AnomalyDetailScreen';
 
 const Stack = createNativeStackNavigator<OfficialStackParamList>();
 
@@ -30,6 +31,7 @@ export const OfficialStackNavigator: React.FC = () => {
       <Stack.Screen name="AlertReview" component={AlertReviewScreen} />
       <Stack.Screen name="InitiateInspection" component={InitiateInspectionScreen} />
       <Stack.Screen name="AttendanceAnalytics" component={AttendanceAnalyticsScreen} />
+      <Stack.Screen name="AnomalyDetail" component={AnomalyDetailScreen} />
     </Stack.Navigator>
   );
 };

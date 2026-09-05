@@ -29,14 +29,17 @@ import { AlertCard } from '../../components/cards/AlertCard';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { SecondaryButton } from '../../components/common/SecondaryButton';
 import { AttendanceAnalyticsSection } from '../../components/analytics/AttendanceAnalyticsSection';
+import { AnomalyAssessmentCard } from '../../components/analytics/AnomalyAssessmentCard';
 import { mockProjectService } from '../../services/mock/mockProjectService';
 import { mockAlertService } from '../../services/mock/mockAlertService';
 import { mockInspectionService } from '../../services/mock/mockInspectionService';
 import { mockAnalyticsService } from '../../services/mock/mockAnalyticsService';
+import { mockAnomalyService } from '../../services/mock/mockAnomalyService';
 import { Project } from '../../types/project';
 import { AnomalyAlert } from '../../types/alert';
 import { InspectionAssignment } from '../../types/inspection';
 import { AttendanceAnalytics } from '../../types/attendance';
+import { AnomalyAssessment } from '../../types/anomaly';
 import { SUNRISE_ATTENDANCE } from '../../data/mockData';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -58,19 +61,22 @@ export const ProjectDetailsScreen: React.FC = () => {
   const [alerts, setAlerts] = useState<AnomalyAlert[]>([]);
   const [inspections, setInspections] = useState<InspectionAssignment[]>([]);
   const [analytics, setAnalytics] = useState<AttendanceAnalytics | null>(null);
+  const [assessment, setAssessment] = useState<AnomalyAssessment | null>(null);
 
   const loadData = async () => {
     try {
-      const [projData, alertsData, inspData, analyticsData] = await Promise.all([
+      const [projData, alertsData, inspData, analyticsData, assessData] = await Promise.all([
         mockProjectService.getProjectById(projectId),
         mockAlertService.getAlertsByProjectId(projectId),
         mockInspectionService.getInspectionsByProjectId(projectId),
         mockAnalyticsService.getProjectAttendanceAnalytics(projectId),
+        mockAnomalyService.getAssessmentForProject(projectId),
       ]);
       setProject(projData || null);
       setAlerts(alertsData);
       setInspections(inspData);
       setAnalytics(analyticsData);
+      setAssessment(assessData);
     } catch (error) {
       console.error('Error loading project details:', error);
     } finally {
@@ -190,6 +196,21 @@ export const ProjectDetailsScreen: React.FC = () => {
             analytics={analytics}
             onViewDetails={() =>
               navigation.navigate('AttendanceAnalytics', { projectId: project.id })
+            }
+          />
+        )}
+
+        {/* SECTION C: AI-Assisted Anomaly Assessment Layer */}
+        <SectionHeader
+          title="AI Anomaly Assessment"
+          subtitle="Multi-signal explainable decision support & score"
+        />
+
+        {assessment && (
+          <AnomalyAssessmentCard
+            assessment={assessment}
+            onReview={() =>
+              navigation.navigate('AnomalyDetail', { projectId: project.id })
             }
           />
         )}
@@ -326,6 +347,14 @@ export const ProjectDetailsScreen: React.FC = () => {
               })
             }
             style={styles.initiateButton}
+          />
+          <SecondaryButton
+            title="Review AI Anomaly Assessment"
+            iconName="hardware-chip-outline"
+            onPress={() =>
+              navigation.navigate('AnomalyDetail', { projectId: project.id })
+            }
+            style={{ marginTop: 10 }}
           />
           <SecondaryButton
             title="View In-Depth Attendance Analytics"
