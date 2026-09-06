@@ -1,6 +1,7 @@
 /**
  * InspectionPlaceholderScreen
  * PMU Inspector - Active Inspection Workflow & Evidence Capture Preview
+ * SIH26095 | MoSJE
  */
 
 import React from 'react';
@@ -8,7 +9,6 @@ import { View, Text, ScrollView, StyleSheet, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../components/common/AppHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
-import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { SUNRISE_ATTENDANCE } from '../../data/mockData';
@@ -36,12 +36,14 @@ export const InspectionPlaceholderScreen: React.FC = () => {
 
         <SectionHeader
           title="On-Site Verification Protocol"
-          subtitle="Mandatory checklist requirements in upcoming Phase 2"
+          subtitle="Mandatory checklist requirements for field verification"
         />
 
         <View style={styles.checklistContainer}>
           <View style={styles.checkItem}>
-            <Ionicons name="location" size={20} color={colors.brand.primary} />
+            <View style={styles.iconCircle}>
+              <Ionicons name="location" size={18} color={colors.brand.primary} />
+            </View>
             <View style={styles.checkTextContainer}>
               <Text style={styles.checkTitle}>GPS Geofence Validation</Text>
               <Text style={styles.checkDesc}>Requires officer within 100m of facility boundary.</Text>
@@ -49,7 +51,9 @@ export const InspectionPlaceholderScreen: React.FC = () => {
           </View>
 
           <View style={styles.checkItem}>
-            <Ionicons name="camera" size={20} color={colors.brand.primary} />
+            <View style={styles.iconCircle}>
+              <Ionicons name="camera" size={18} color={colors.brand.primary} />
+            </View>
             <View style={styles.checkTextContainer}>
               <Text style={styles.checkTitle}>Watermarked Timestamp Photos</Text>
               <Text style={styles.checkDesc}>Assembly hall, kitchen hygiene, and CCTV feed monitor.</Text>
@@ -57,17 +61,21 @@ export const InspectionPlaceholderScreen: React.FC = () => {
           </View>
 
           <View style={styles.checkItem}>
-            <Ionicons name="people" size={20} color={colors.brand.primary} />
+            <View style={styles.iconCircle}>
+              <Ionicons name="people" size={18} color={colors.brand.primary} />
+            </View>
             <View style={styles.checkTextContainer}>
               <Text style={styles.checkTitle}>Physical Headcount Audit</Text>
               <Text style={styles.checkDesc}>
-                Compare actual present count against submitted {SUNRISE_ATTENDANCE.currentSubmittedAttendance} attendees (Capacity: {SUNRISE_ATTENDANCE.totalBeneficiaries}, {SUNRISE_ATTENDANCE.attendanceRate}% turnout, {SUNRISE_ATTENDANCE.absent} absent).
+                {`Compare actual present count against submitted ${SUNRISE_ATTENDANCE.currentSubmittedAttendance} attendees (Capacity: ${SUNRISE_ATTENDANCE.totalBeneficiaries}, ${SUNRISE_ATTENDANCE.attendanceRate}% turnout, ${SUNRISE_ATTENDANCE.absent} absent).`}
               </Text>
             </View>
           </View>
 
-          <View style={styles.checkItem}>
-            <Ionicons name="document-text" size={20} color={colors.brand.primary} />
+          <View style={[styles.checkItem, styles.checkItemLast]}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="document-text" size={18} color={colors.brand.primary} />
+            </View>
             <View style={styles.checkTextContainer}>
               <Text style={styles.checkTitle}>Digital Signature & Submission</Text>
               <Text style={styles.checkDesc}>Joint sign-off by Inspector and Institute In-charge.</Text>
@@ -78,7 +86,7 @@ export const InspectionPlaceholderScreen: React.FC = () => {
         <View style={styles.noticeBox}>
           <Ionicons name="shield-checkmark-outline" size={18} color={colors.brand.navyLight} />
           <Text style={styles.noticeText}>
-            Interactive checklist and camera capture will be unlocked in Phase 2 implementation.
+            Interactive checklist and camera capture will be available for field verification.
           </Text>
         </View>
       </ScrollView>
@@ -96,7 +104,7 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xxxl + 24,
   },
   activeBanner: {
     backgroundColor: colors.neutral.surface,
@@ -134,7 +142,7 @@ const styles = StyleSheet.create({
   },
   activeSub: {
     fontSize: typography.sizes.xs,
-    color: colors.text.muted,
+    color: colors.text.secondary,
     marginTop: 2,
   },
   checklistContainer: {
@@ -148,7 +156,23 @@ const styles = StyleSheet.create({
   checkItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    paddingBottom: spacing.base,
     marginBottom: spacing.base,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral.divider,
+  },
+  checkItemLast: {
+    paddingBottom: 0,
+    marginBottom: 0,
+    borderBottomWidth: 0,
+  },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.brand.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checkTextContainer: {
     flex: 1,
@@ -163,13 +187,15 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
-    lineHeight: 16,
+    lineHeight: 18,
   },
   noticeBox: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#EFF6FF',
     borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: '#D0DDF7',
     padding: spacing.md,
     marginTop: spacing.lg,
   },

@@ -4,9 +4,10 @@
  *
  * Pre-submission review screen presenting checklist completion breakdown,
  * inspector narrative findings, and attached evidence metadata.
+ * Integrated native-style executive header with back navigation.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,15 +15,15 @@ import {
   ScrollView,
   StatusBar,
   TouchableOpacity,
-  ActivityIndicator,
+  Animated,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { InspectorStackParamList, InspectorStackNavigationProp } from '../../types/navigation';
-import { AppHeader } from '../../components/common/AppHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
-import { StatusBadge } from '../../components/common/StatusBadge';
 import { PriorityBadge } from '../../components/common/PriorityBadge';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { SecondaryButton } from '../../components/common/SecondaryButton';
@@ -37,13 +38,42 @@ type ReviewRouteProp = RouteProp<InspectorStackParamList, 'InspectionReview'>;
 export const InspectionReviewScreen: React.FC = () => {
   const navigation = useNavigation<InspectorStackNavigationProp>();
   const route = useRoute<ReviewRouteProp>();
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const { currentUser, currentRole, switchRole } = useAuth();
   const { inspectionId } = route.params;
-  const { currentUser } = useAuth();
 
   const [inspection, setInspection] = useState<InspectionAssignment | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Motion values
+  const screenFade = useRef(new Animated.Value(0)).current;
+  const screenSlide = useRef(new Animated.Value(14)).current;
+  const skeletonPulse = useRef(new Animated.Value(0.35)).current;
+
+  // Pulsing skeleton animation loop
+  useEffect(() => {
+    if (loading) {
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(skeletonPulse, {
+            toValue: 0.85,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+          Animated.timing(skeletonPulse, {
+            toValue: 0.35,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseAnimation.start();
+      return () => pulseAnimation.stop();
+    }
+  }, [loading]);
 
   useEffect(() => {
     mockInspectionService.getInspectionById(inspectionId).then((data) => {
@@ -52,12 +82,96 @@ export const InspectionReviewScreen: React.FC = () => {
     });
   }, [inspectionId]);
 
+  useEffect(() => {
+    if (!loading && inspection) {
+      Animated.parallel([
+        Animated.timing(screenFade, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(screenSlide, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [loading, inspection]);
+
+  const getRoleLabel = () => {
+    switch (currentRole) {
+      case 'official':
+        return 'MoSJE Official';
+      case 'inspector':
+        return 'PMU Inspection Officer';
+      case 'ngo':
+        return 'NGO / Institute';
+      default:
+        return 'MoSJE Portal';
+    }
+  };
+
   if (loading || !inspection) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
-        <AppHeader title="Review Inspection" subtitle="Compiling field dossier..." />
-        <ActivityIndicator size="large" color={colors.brand.primary} style={{ marginTop: 40 }} />
+
+        {/* Integrated Skeleton Header */}
+        <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, 12) + spacing.xs }]}>
+          <View style={styles.headerInner}>
+            <View style={styles.headerTopRow}>
+              <View style={styles.headerBranding}>
+                <View style={styles.headerEmblem}>
+                  <Ionicons name="shield-checkmark-outline" size={14} color={colors.text.inverse} />
+                </View>
+                <Text style={styles.headerMinistry}>MoSJE • Government of India</Text>
+              </View>
+            </View>
+
+            <View style={styles.headerMainRow}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.headerBackBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Back to findings"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="arrow-back" size={20} color={colors.text.inverse} />
+              </TouchableOpacity>
+
+              <View style={styles.headerTitleContainer}>
+                <Text style={styles.headerTitle} numberOfLines={1}>
+                  Review & Sign Off
+                </Text>
+                <Text style={styles.headerSubtitle} numberOfLines={1}>
+                  Compiling field dossier...
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Skeleton Content */}
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.skeletonCard}>
+            <Animated.View style={[styles.skeletonLine, { width: 100, height: 16, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonLine, { width: '80%', height: 22, marginTop: 10, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonLine, { width: '60%', height: 14, marginTop: 6, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonBox, { height: 32, marginTop: 12, opacity: skeletonPulse }]} />
+          </View>
+
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+            <Animated.View style={[styles.skeletonBox, { flex: 1, height: 72, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonBox, { flex: 1, height: 72, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonBox, { flex: 1, height: 72, opacity: skeletonPulse }]} />
+          </View>
+
+          <View style={styles.skeletonCard}>
+            <Animated.View style={[styles.skeletonLine, { width: 160, height: 16, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonLine, { width: '100%', height: 48, marginTop: 10, opacity: skeletonPulse }]} />
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -72,6 +186,9 @@ export const InspectionReviewScreen: React.FC = () => {
 
   const findings = inspection.findings;
   const evidenceList = inspection.evidenceItems || [];
+
+  const officerName = currentUser?.name || inspection.assignedOfficerName;
+  const officerBadge = (currentUser?.badgeId || inspection.assignedOfficerDemoId || 'PMU-004').replace('DEMO-', '');
 
   const handleSubmit = async () => {
     if (unverifiedCount > 0) {
@@ -108,192 +225,252 @@ export const InspectionReviewScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
-      <AppHeader
-        title="Review & Sign Off"
-        subtitle={`Order #${inspection.id} • Final Field Dossier`}
-      />
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Back Button */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={16} color={colors.brand.primary} />
-          <Text style={styles.backButtonText}>Back to Findings</Text>
-        </TouchableOpacity>
-
-        {validationError && (
-          <View style={styles.errorBanner}>
-            <Ionicons name="alert-circle" size={18} color={colors.status.warning} />
-            <Text style={styles.errorBannerText}>{validationError}</Text>
-          </View>
-        )}
-
-        {/* Target Summary Card */}
-        <View style={styles.targetCard}>
-          <View style={styles.targetTopRow}>
-            <Text style={styles.targetId}>#{inspection.id}</Text>
-            <PriorityBadge priority={inspection.priority} />
-          </View>
-          <Text style={styles.projectName}>{inspection.projectName}</Text>
-          <Text style={styles.projectAddress}>{inspection.projectAddress}</Text>
-
-          <View style={styles.officerStampRow}>
-            <Ionicons name="person-outline" size={13} color={colors.text.muted} />
-            <Text style={styles.officerStampText}>
-              Inspected by: {currentUser?.name || inspection.assignedOfficerName} (
-              {currentUser?.badgeId || inspection.assignedOfficerDemoId || 'PMU-DEMO-004'})
-            </Text>
-          </View>
-        </View>
-
-        {/* 1. Checklist Summary */}
-        <SectionHeader
-          title="Checklist Evaluation Summary"
-          subtitle={`${verifiedCount + attentionCount + naCount} / ${totalCount} Criteria Verified`}
-        />
-
-        <View style={styles.statsRow}>
-          <View style={[styles.statBox, { borderColor: '#BBF7D0', backgroundColor: '#F0FDF4' }]}>
-            <Text style={[styles.statCount, { color: colors.status.normal }]}>{verifiedCount}</Text>
-            <Text style={styles.statLabel}>Verified</Text>
-          </View>
-
-          <View style={[styles.statBox, { borderColor: colors.status.warningBorder, backgroundColor: '#FFFBEB' }]}>
-            <Text style={[styles.statCount, { color: colors.status.warning }]}>{attentionCount}</Text>
-            <Text style={styles.statLabel}>Needs Attention</Text>
-          </View>
-
-          <View style={[styles.statBox, { borderColor: '#CBD5E1', backgroundColor: '#F8FAFC' }]}>
-            <Text style={[styles.statCount, { color: '#475569' }]}>{naCount}</Text>
-            <Text style={styles.statLabel}>Not Applicable</Text>
-          </View>
-        </View>
-
-        {/* Items Flagged Needs Attention */}
-        {attentionCount > 0 ? (
-          <View style={styles.attentionItemsCard}>
-            <View style={styles.attentionHeader}>
-              <Ionicons name="alert-circle" size={15} color={colors.status.warning} />
-              <Text style={styles.attentionTitle}>Criteria Flagged "Needs Attention":</Text>
+      {/* Integrated Executive MoSJE Header with Native Back Navigation */}
+      <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, 12) + spacing.xs }]}>
+        <View style={styles.headerInner}>
+          <View style={styles.headerTopRow}>
+            <View style={styles.headerBranding}>
+              <View style={styles.headerEmblem}>
+                <Ionicons name="shield-checkmark-outline" size={14} color={colors.text.inverse} />
+              </View>
+              <Text style={styles.headerMinistry}>MoSJE • Government of India</Text>
             </View>
-            {checklistList
-              .filter((item) => item.status === 'Needs Attention')
-              .map((item) => (
-                <View key={item.id} style={styles.attentionItemRow}>
-                  <Text style={styles.attentionItemDot}>•</Text>
-                  <View style={styles.attentionItemTextCol}>
-                    <Text style={styles.attentionItemTitle}>{item.title}</Text>
-                    {item.notes ? (
-                      <Text style={styles.attentionItemNote}>Note: "{item.notes}"</Text>
-                    ) : null}
+
+            <View style={styles.headerActionsRight}>
+              <View style={styles.roleBadge}>
+                <Text style={styles.roleBadgeText}>{getRoleLabel()}</Text>
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={switchRole}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={styles.switchButton}
+              >
+                <Ionicons name="swap-horizontal-outline" size={14} color={colors.text.inverse} />
+                <Text style={styles.switchText}>Switch Role</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.headerMainRow}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.headerBackBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Back to findings"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              activeOpacity={0.75}
+            >
+              <Ionicons name="arrow-back" size={20} color={colors.text.inverse} />
+            </TouchableOpacity>
+
+            <View style={styles.headerTitleContainer}>
+              <Text style={styles.headerTitle} numberOfLines={1}>
+                Review & Sign Off
+              </Text>
+              <Text style={styles.headerSubtitle} numberOfLines={1}>
+                Order #{inspection.id} • Final Field Dossier
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: Math.max(insets.bottom, 20) + spacing.xxxl + 28 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View
+          style={{
+            opacity: screenFade,
+            transform: [{ translateY: screenSlide }],
+          }}
+        >
+          {/* Validation Error Banner */}
+          {validationError ? (
+            <View style={styles.errorBanner}>
+              <Ionicons name="alert-circle" size={18} color={colors.status.warning} />
+              <Text style={styles.errorBannerText}>{validationError}</Text>
+            </View>
+          ) : null}
+
+          {/* Target Summary Card */}
+          <View style={styles.targetCard}>
+            <View style={styles.targetTopRow}>
+              <View style={styles.orderIdBadge}>
+                <Text style={styles.targetId}>#{inspection.id}</Text>
+              </View>
+              <PriorityBadge priority={inspection.priority} />
+            </View>
+            <Text style={styles.projectName}>{inspection.projectName}</Text>
+            <View style={styles.addressRow}>
+              <Ionicons name="location-outline" size={14} color={colors.brand.primary} />
+              <Text style={styles.projectAddress}>{inspection.projectAddress}</Text>
+            </View>
+
+            <View style={styles.officerStampRow}>
+              <Ionicons name="shield-checkmark" size={14} color={colors.brand.primary} />
+              <Text style={styles.officerStampText}>
+                Inspected by: <Text style={styles.officerStampHighlight}>{officerName}</Text> ({officerBadge})
+              </Text>
+            </View>
+          </View>
+
+          {/* 1. Checklist Summary */}
+          <SectionHeader
+            title="Checklist Evaluation Summary"
+            subtitle={`${verifiedCount + attentionCount + naCount} / ${totalCount} Criteria Verified`}
+          />
+
+          <View style={styles.statsRow}>
+            <View style={[styles.statBox, styles.statBoxVerified]}>
+              <Text style={[styles.statCount, { color: colors.status.normal }]}>{verifiedCount}</Text>
+              <Text style={styles.statLabel}>Verified</Text>
+            </View>
+
+            <View style={[styles.statBox, styles.statBoxAttention]}>
+              <Text style={[styles.statCount, { color: colors.status.warning }]}>{attentionCount}</Text>
+              <Text style={styles.statLabel}>Needs Attention</Text>
+            </View>
+
+            <View style={[styles.statBox, styles.statBoxNA]}>
+              <Text style={[styles.statCount, { color: colors.status.offline }]}>{naCount}</Text>
+              <Text style={styles.statLabel}>Not Applicable</Text>
+            </View>
+          </View>
+
+          {/* Items Flagged Needs Attention */}
+          {attentionCount > 0 ? (
+            <View style={styles.attentionItemsCard}>
+              <View style={styles.attentionHeader}>
+                <Ionicons name="alert-circle" size={16} color={colors.status.warning} />
+                <Text style={styles.attentionTitle}>Criteria Flagged "Needs Attention":</Text>
+              </View>
+              {checklistList
+                .filter((item) => item.status === 'Needs Attention')
+                .map((item) => (
+                  <View key={item.id} style={styles.attentionItemRow}>
+                    <Ionicons name="ellipse" size={6} color={colors.status.warning} style={{ marginTop: 6, marginRight: 6 }} />
+                    <View style={styles.attentionItemTextCol}>
+                      <Text style={styles.attentionItemTitle}>{item.title}</Text>
+                      {item.notes ? (
+                        <Text style={styles.attentionItemNote}>Note: "{item.notes}"</Text>
+                      ) : null}
+                    </View>
+                  </View>
+                ))}
+            </View>
+          ) : null}
+
+          {/* 2. Findings Summary */}
+          <SectionHeader
+            title="Inspector Field Observation"
+            subtitle="Narrative findings submitted for administrative record"
+          />
+
+          <View style={styles.findingsCard}>
+            <View style={styles.findingField}>
+              <Text style={styles.findingLabel}>OVERALL OBSERVATION</Text>
+              <Text style={styles.findingValue}>
+                {findings?.overallObservation || 'None recorded'}
+              </Text>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.findingField}>
+              <Text style={styles.findingLabel}>KEY FINDINGS</Text>
+              <Text style={styles.findingValue}>
+                {findings?.keyFindings || 'None recorded'}
+              </Text>
+            </View>
+
+            {findings?.issuesRequiringFollowUp ? (
+              <>
+                <View style={styles.divider} />
+                <View style={styles.findingField}>
+                  <Text style={styles.findingLabel}>ISSUES REQUIRING FOLLOW-UP</Text>
+                  <Text style={styles.findingValue}>{findings.issuesRequiringFollowUp}</Text>
+                </View>
+              </>
+            ) : null}
+
+            {findings?.additionalRemarks ? (
+              <>
+                <View style={styles.divider} />
+                <View style={styles.findingField}>
+                  <Text style={styles.findingLabel}>ADDITIONAL REMARKS</Text>
+                  <Text style={styles.findingValue}>{findings.additionalRemarks}</Text>
+                </View>
+              </>
+            ) : null}
+          </View>
+
+          {/* 3. Evidence Items Summary */}
+          <SectionHeader
+            title="Attached Verification Evidence"
+            subtitle="Registered media timestamps and metadata"
+            badgeCount={evidenceList.length}
+          />
+
+          {evidenceList.length === 0 ? (
+            <View style={styles.noEvidenceBox}>
+              <Ionicons name="images-outline" size={24} color={colors.text.muted} style={{ marginBottom: 4 }} />
+              <Text style={styles.noEvidenceText}>No evidence files attached to this inspection.</Text>
+            </View>
+          ) : (
+            <View style={styles.evidenceReviewList}>
+              {evidenceList.map((item) => (
+                <View key={item.id} style={styles.evidenceReviewItem}>
+                  <View style={styles.evidenceIconCircle}>
+                    <Ionicons
+                      name={item.type === 'photo' ? 'camera' : item.type === 'video' ? 'videocam' : 'document-text'}
+                      size={16}
+                      color={colors.brand.primary}
+                    />
+                  </View>
+                  <View style={styles.evidenceReviewTextCol}>
+                    <Text style={styles.evidenceReviewTitle}>{item.title}</Text>
+                    <Text style={styles.evidenceReviewMeta}>
+                      {item.category} • {item.timestamp} • {item.locationStatus}
+                    </Text>
                   </View>
                 </View>
               ))}
-          </View>
-        ) : null}
+            </View>
+          )}
 
-        {/* 2. Findings Summary */}
-        <SectionHeader
-          title="Inspector Field Observation"
-          subtitle="Narrative findings submitted for administrative record"
-        />
-
-        <View style={styles.findingsCard}>
-          <View style={styles.findingField}>
-            <Text style={styles.findingLabel}>OVERALL OBSERVATION</Text>
-            <Text style={styles.findingValue}>
-              {findings?.overallObservation || 'None recorded'}
+          {/* Submission Disclaimer */}
+          <View style={styles.disclaimerBox}>
+            <Ionicons name="shield-checkmark-outline" size={18} color={colors.brand.navyLight} />
+            <Text style={styles.disclaimerText}>
+              Submitting marks this inspection as "Submitted / Awaiting Review". The official Central Desk will be notified with timestamped field records.
             </Text>
           </View>
 
-          <View style={styles.divider} />
-
-          <View style={styles.findingField}>
-            <Text style={styles.findingLabel}>KEY FINDINGS</Text>
-            <Text style={styles.findingValue}>
-              {findings?.keyFindings || 'None recorded'}
-            </Text>
+          {/* Action Buttons */}
+          <View style={styles.actionButtonsCol}>
+            <PrimaryButton
+              title="Submit Inspection"
+              iconName="paper-plane"
+              onPress={handleSubmit}
+              loading={submitting}
+              style={styles.primaryActionBtn}
+            />
+            <SecondaryButton
+              title="Edit Inspection (Back to Checklist)"
+              iconName="create-outline"
+              onPress={() => navigation.navigate('InspectionChecklist', { inspectionId: inspection.id })}
+              disabled={submitting}
+              style={{ marginTop: 10, minHeight: 48 }}
+            />
           </View>
-
-          {findings?.issuesRequiringFollowUp ? (
-            <>
-              <View style={styles.divider} />
-              <View style={styles.findingField}>
-                <Text style={styles.findingLabel}>ISSUES REQUIRING FOLLOW-UP</Text>
-                <Text style={styles.findingValue}>{findings.issuesRequiringFollowUp}</Text>
-              </View>
-            </>
-          ) : null}
-
-          {findings?.additionalRemarks ? (
-            <>
-              <View style={styles.divider} />
-              <View style={styles.findingField}>
-                <Text style={styles.findingLabel}>ADDITIONAL REMARKS</Text>
-                <Text style={styles.findingValue}>{findings.additionalRemarks}</Text>
-              </View>
-            </>
-          ) : null}
-        </View>
-
-        {/* 3. Evidence Items Summary */}
-        <SectionHeader
-          title="Attached Verification Evidence"
-          subtitle="Registered media timestamps and metadata"
-          badgeCount={evidenceList.length}
-        />
-
-        {evidenceList.length === 0 ? (
-          <View style={styles.noEvidenceBox}>
-            <Text style={styles.noEvidenceText}>No evidence files attached to this inspection.</Text>
-          </View>
-        ) : (
-          <View style={styles.evidenceReviewList}>
-            {evidenceList.map((item) => (
-              <View key={item.id} style={styles.evidenceReviewItem}>
-                <Ionicons
-                  name={item.type === 'photo' ? 'camera' : item.type === 'video' ? 'videocam' : 'document-text'}
-                  size={16}
-                  color={colors.brand.primary}
-                />
-                <View style={styles.evidenceReviewTextCol}>
-                  <Text style={styles.evidenceReviewTitle}>{item.title}</Text>
-                  <Text style={styles.evidenceReviewMeta}>
-                    {item.category} • {item.timestamp} • {item.locationStatus}
-                  </Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Submission Disclaimer */}
-        <View style={styles.disclaimerBox}>
-          <Ionicons name="shield-checkmark-outline" size={16} color={colors.brand.navyLight} />
-          <Text style={styles.disclaimerText}>
-            Submitting marks this inspection as "Submitted / Awaiting Review". The official Central Desk will be notified with timestamped field records.
-          </Text>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionButtonsCol}>
-          <PrimaryButton
-            title="Submit Inspection"
-            iconName="paper-plane"
-            onPress={handleSubmit}
-            loading={submitting}
-          />
-          <SecondaryButton
-            title="Edit Inspection (Back to Checklist)"
-            iconName="create-outline"
-            onPress={() => navigation.navigate('InspectionChecklist', { inspectionId: inspection.id })}
-            disabled={submitting}
-            style={{ marginTop: 8 }}
-          />
-        </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -304,60 +481,125 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.neutral.background,
   },
-  centerContainer: {
-    flex: 1,
-    backgroundColor: colors.neutral.background,
-  },
   scrollContent: {
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl,
   },
-  backButton: {
+
+  // Executive Header
+  headerContainer: {
+    backgroundColor: colors.brand.navy,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+    ...shadows.sm,
+  },
+  headerInner: {
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
+    paddingHorizontal: spacing.base,
+    paddingBottom: spacing.md,
+  },
+  headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.neutral.surface,
-    borderWidth: 1,
-    borderColor: colors.neutral.border,
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
   },
-  backButtonText: {
-    fontSize: typography.sizes.xs + 1,
-    fontWeight: typography.weights.semibold,
-    color: colors.brand.primary,
-    marginLeft: 6,
-  },
-  errorBanner: {
+  headerBranding: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFBEB',
-    borderColor: colors.status.warningBorder,
-    borderWidth: 1,
-    borderRadius: borderRadius.sm,
-    padding: spacing.sm,
-    marginBottom: spacing.md,
-    gap: 8,
   },
-  errorBannerText: {
-    fontSize: typography.sizes.xs + 1,
+  headerEmblem: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.xs,
+  },
+  headerMinistry: {
+    fontSize: 10,
+    fontWeight: typography.weights.bold,
+    color: colors.text.inverse,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  headerActionsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  roleBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  roleBadgeText: {
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+  },
+  switchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(42, 92, 224, 0.25)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(42, 92, 224, 0.4)',
+  },
+  switchText: {
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
-    color: '#92400E',
+  },
+  headerMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  headerBackBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitleContainer: {
     flex: 1,
   },
+  headerTitle: {
+    fontSize: typography.sizes.md + 1,
+    fontWeight: typography.weights.bold,
+    color: colors.text.inverse,
+    letterSpacing: -0.2,
+  },
+  headerSubtitle: {
+    fontSize: typography.sizes.xs,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 1,
+  },
+
+  // Target Summary Card
   targetCard: {
     backgroundColor: colors.neutral.surface,
     borderColor: colors.neutral.border,
     borderWidth: 1,
     borderRadius: borderRadius.lg,
     padding: spacing.base,
-    marginBottom: spacing.md,
-    ...shadows.sm,
+    marginBottom: spacing.base,
+    ...shadows.xs,
   },
   targetTopRow: {
     flexDirection: 'row',
@@ -365,41 +607,62 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
+  orderIdBadge: {
+    backgroundColor: colors.brand.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: borderRadius.xs,
+  },
   targetId: {
-    fontSize: typography.sizes.xs + 1,
+    fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
+    letterSpacing: 0.3,
   },
   projectName: {
-    fontSize: typography.sizes.lg,
+    fontSize: typography.sizes.sm + 3,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
-    marginTop: 2,
+    marginTop: 4,
+    letterSpacing: -0.2,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+    marginBottom: spacing.sm,
   },
   projectAddress: {
-    fontSize: typography.sizes.xs + 1,
+    fontSize: typography.sizes.xs,
     color: colors.text.secondary,
-    marginTop: 2,
-    marginBottom: spacing.sm,
+    flex: 1,
   },
   officerStampRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.neutral.surfaceSubtle,
-    borderRadius: borderRadius.xs,
-    paddingVertical: 5,
-    paddingHorizontal: 8,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     gap: 6,
   },
   officerStampText: {
     fontSize: 11,
     color: colors.text.secondary,
-    fontWeight: typography.weights.medium,
   },
+  officerStampHighlight: {
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+  },
+
+  // Stats Row
   statsRow: {
     flexDirection: 'row',
     gap: spacing.sm,
-    marginBottom: spacing.md,
+    marginBottom: spacing.base,
   },
   statBox: {
     flex: 1,
@@ -408,6 +671,19 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.xs,
+  },
+  statBoxVerified: {
+    borderColor: colors.status.normalBorder,
+    backgroundColor: colors.status.normalLight,
+  },
+  statBoxAttention: {
+    borderColor: colors.status.warningBorder,
+    backgroundColor: colors.status.warningLight,
+  },
+  statBoxNA: {
+    borderColor: colors.status.offlineBorder,
+    backgroundColor: colors.status.offlineLight,
   },
   statCount: {
     fontSize: typography.sizes.xl,
@@ -415,24 +691,31 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 10,
-    fontWeight: typography.weights.semibold,
+    fontWeight: typography.weights.bold,
     color: colors.text.secondary,
     marginTop: 2,
     textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
+
+  // Attention Items Card
   attentionItemsCard: {
-    backgroundColor: '#FFFDF7',
+    backgroundColor: colors.status.warningLight,
     borderColor: colors.status.warningBorder,
     borderWidth: 1,
     borderRadius: borderRadius.md,
-    padding: spacing.sm + 2,
-    marginBottom: spacing.md,
+    padding: spacing.base,
+    marginBottom: spacing.base,
+    ...shadows.xs,
   },
   attentionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 6,
+    marginBottom: 8,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.status.warningBorder,
   },
   attentionTitle: {
     fontSize: 11,
@@ -442,13 +725,7 @@ const styles = StyleSheet.create({
   attentionItemRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 6,
     marginTop: 4,
-  },
-  attentionItemDot: {
-    fontSize: 14,
-    color: colors.status.warning,
-    lineHeight: 18,
   },
   attentionItemTextCol: {
     flex: 1,
@@ -457,24 +734,28 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
+    lineHeight: 18,
   },
   attentionItemNote: {
     fontSize: 11,
     fontStyle: 'italic',
     color: colors.text.secondary,
-    marginTop: 1,
+    marginTop: 2,
+    lineHeight: 16,
   },
+
+  // Findings Card
   findingsCard: {
     backgroundColor: colors.neutral.surface,
     borderColor: colors.neutral.border,
     borderWidth: 1,
     borderRadius: borderRadius.lg,
     padding: spacing.base,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.base,
     ...shadows.xs,
   },
   findingField: {
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   findingLabel: {
     fontSize: 10,
@@ -493,20 +774,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.divider,
     marginVertical: spacing.sm,
   },
+
+  // Evidence Review List
   noEvidenceBox: {
-    backgroundColor: colors.neutral.surfaceSubtle,
-    borderRadius: borderRadius.sm,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    backgroundColor: colors.neutral.surface,
+    borderColor: colors.neutral.border,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
+    marginBottom: spacing.base,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   noEvidenceText: {
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
   },
   evidenceReviewList: {
-    gap: 6,
-    marginBottom: spacing.md,
+    gap: spacing.sm,
+    marginBottom: spacing.base,
   },
   evidenceReviewItem: {
     flexDirection: 'row',
@@ -514,9 +800,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.surface,
     borderColor: colors.neutral.border,
     borderWidth: 1,
-    borderRadius: borderRadius.sm,
-    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm + 4,
     gap: spacing.sm,
+    ...shadows.xs,
+  },
+  evidenceIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.brand.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   evidenceReviewTextCol: {
     flex: 1,
@@ -527,26 +822,76 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   evidenceReviewMeta: {
-    fontSize: 10,
-    color: colors.text.muted,
+    fontSize: 11,
+    color: colors.text.secondary,
     marginTop: 2,
   },
+
+  // Disclaimer Box
   disclaimerBox: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    borderRadius: borderRadius.sm,
-    padding: spacing.sm,
-    marginBottom: spacing.md,
+    alignItems: 'flex-start',
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderColor: colors.neutral.border,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm + 2,
+    marginBottom: spacing.base,
     gap: 8,
   },
   disclaimerText: {
     fontSize: 11,
-    color: colors.brand.navyLight,
+    color: colors.text.secondary,
     lineHeight: 16,
     flex: 1,
   },
+
+  // Action Buttons
   actionButtonsCol: {
     marginBottom: spacing.xl,
+  },
+  primaryActionBtn: {
+    minHeight: 48,
+  },
+
+  // Validation Error Banner
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.status.warningLight,
+    borderColor: colors.status.warningBorder,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm + 2,
+    marginBottom: spacing.base,
+    gap: 8,
+  },
+  errorBannerText: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.semibold,
+    color: '#92400E',
+    flex: 1,
+    lineHeight: 18,
+  },
+
+  // Skeleton Styles
+  skeletonCard: {
+    backgroundColor: colors.neutral.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    padding: spacing.base,
+    marginBottom: spacing.base,
+    ...shadows.xs,
+  },
+  skeletonLine: {
+    backgroundColor: colors.neutral.border,
+    borderRadius: borderRadius.xs,
+  },
+  skeletonBox: {
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
   },
 });

@@ -1,12 +1,25 @@
 /**
  * ProfilePlaceholderScreen (NGO)
- * NGO / Institute - Profile & Authorized Signatory Details
+ * SIH26095 | MoSJE NGO / Institute Portal
+ *
+ * Institute Profile & Authorized Signatory Record.
+ * Displays authorized representative credentials, registered facility details,
+ * and DDRS scheme information under MoSJE.
  */
 
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, StatusBar } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  StatusBar,
+  TouchableOpacity,
+  Animated,
+  useWindowDimensions,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { AppHeader } from '../../components/common/AppHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
@@ -16,74 +29,235 @@ import { typography } from '../../theme/typography';
 import { spacing, borderRadius, shadows } from '../../theme/spacing';
 
 export const ProfilePlaceholderScreen: React.FC = () => {
-  const { currentUser, switchRole } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const { currentRole, currentUser, switchRole } = useAuth();
+
+  // Motion values
+  const screenFade = useRef(new Animated.Value(0)).current;
+  const screenSlide = useRef(new Animated.Value(14)).current;
+  const cardAnims = useRef<Animated.Value[]>([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(screenFade, {
+        toValue: 1,
+        duration: 240,
+        useNativeDriver: true,
+      }),
+      Animated.timing(screenSlide, {
+        toValue: 0,
+        duration: 240,
+        useNativeDriver: true,
+      }),
+      Animated.stagger(
+        60,
+        cardAnims.map((anim) =>
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 240,
+            useNativeDriver: true,
+          })
+        )
+      ),
+    ]).start();
+  }, []);
+
+  const getRoleLabel = () => {
+    switch (currentRole) {
+      case 'official':
+        return 'MoSJE Official';
+      case 'inspector':
+        return 'PMU Inspection Officer';
+      case 'ngo':
+        return 'NGO / Institute';
+      default:
+        return 'MoSJE Portal';
+    }
+  };
+
+  // Presentation-only cleanup of development wording while preserving underlying values
+  const displayName = currentUser?.name
+    ? currentUser.name.replace('Demo ', '')
+    : 'Institute Representative';
+  const displayDesignation = currentUser?.designation
+    ? currentUser.designation.replace(' (Demo)', '').replace('Demo ', '')
+    : 'Centre Administrator';
+  const displayOrg = currentUser?.organization
+    ? currentUser.organization.replace(' (Demo)', '')
+    : 'Sunrise Rehabilitation Centre';
+  const displayBadgeId = (currentUser?.badgeId || 'NGO-003').replace('DEMO-', '');
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
-      <AppHeader
-        title="Institute Profile"
-        subtitle="MoSJE Grantee & Authorized Signatory Record"
-      />
+
+      {/* Executive Government-Grade MoSJE Header */}
+      <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, 12) + spacing.xs }]}>
+        <View style={styles.headerInner}>
+          <View style={styles.headerTopRow}>
+            <View style={styles.headerBranding}>
+              <View style={styles.headerEmblem}>
+                <Ionicons name="shield-checkmark-outline" size={14} color={colors.text.inverse} />
+              </View>
+              <Text style={styles.headerMinistry}>MoSJE • Government of India</Text>
+            </View>
+
+            <View style={styles.headerActionsRight}>
+              <View style={styles.roleBadge}>
+                <Text style={styles.roleBadgeText}>{getRoleLabel()}</Text>
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={switchRole}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={styles.switchButton}
+                accessibilityRole="button"
+                accessibilityLabel="Switch Role"
+              >
+                <Ionicons name="swap-horizontal-outline" size={14} color={colors.text.inverse} />
+                <Text style={styles.switchText}>Switch Role</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.headerMainRow}>
+            <View style={styles.headerTitleContainer}>
+              <Text style={styles.headerTitle} numberOfLines={1}>
+                Institute Profile
+              </Text>
+              <Text style={styles.headerSubtitle} numberOfLines={1}>
+                MoSJE Grantee & Authorized Signatory Record
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.profileCard}>
-          <View style={styles.demoWatermark}>
-            <Text style={styles.demoWatermarkText}>DEMO / PROTOTYPE IDENTITY</Text>
-          </View>
-
-          <View style={styles.profileMainRow}>
-            <View style={styles.avatar}>
-              <Ionicons name="business" size={26} color={colors.text.inverse} />
-            </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{currentUser?.name || 'Demo Institute Representative'}</Text>
-              <Text style={styles.profileDesignation}>
-                {currentUser?.designation || 'Centre Administrator (Demo)'}
-              </Text>
-              <Text style={styles.profileOrg}>
-                {currentUser?.organization || 'Sunrise Rehabilitation Centre (Demo)'}
-              </Text>
-              <View style={styles.badgeRow}>
-                <Text style={styles.badgeText}>Registration ID: {currentUser?.badgeId || 'NGO-DEMO-003'}</Text>
+        <Animated.View style={{ opacity: screenFade, transform: [{ translateY: screenSlide }] }}>
+          {/* Institutional Identity Card */}
+          <Animated.View
+            style={[
+              styles.profileCard,
+              {
+                opacity: cardAnims[0],
+                transform: [
+                  {
+                    translateY: cardAnims[0].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [12, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.profileMainRow}>
+              <View style={styles.avatar}>
+                <Ionicons name="business" size={26} color={colors.text.inverse} />
+              </View>
+              <View style={styles.profileInfo}>
+                <Text style={styles.profileName}>{displayName}</Text>
+                <Text style={styles.profileDesignation}>{displayDesignation}</Text>
+                <Text style={styles.profileOrg}>{displayOrg}</Text>
+                <View style={styles.badgeRow}>
+                  <View style={styles.badgePill}>
+                    <Text style={styles.badgeText}>Registration ID: {displayBadgeId}</Text>
+                  </View>
+                </View>
               </View>
             </View>
-          </View>
+          </Animated.View>
 
-          <View style={styles.disclaimerBox}>
-            <Ionicons name="information-circle" size={13} color={colors.text.muted} />
-            <Text style={styles.disclaimerText}>
-              Synthetic demo account for UI inspection • Does not represent any real organization representative.
-            </Text>
-          </View>
-        </View>
+          {/* Section: Facility Details */}
+          <SectionHeader
+            title="Facility Details"
+            subtitle="Location & Capacity registered under MoSJE scheme"
+          />
 
-        <SectionHeader
-          title="Facility Details"
-          subtitle="Location & Capacity registered under MoSJE scheme"
-        />
+          {/* Registered Facility Information Card */}
+          <Animated.View
+            style={[
+              styles.infoCard,
+              {
+                opacity: cardAnims[1],
+                transform: [
+                  {
+                    translateY: cardAnims[1].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [12, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            {/* Address Row */}
+            <View style={styles.detailRow}>
+              <View style={styles.detailIconBox}>
+                <Ionicons name="location-outline" size={16} color={colors.brand.primary} />
+              </View>
+              <View style={styles.detailTextContainer}>
+                <Text style={styles.detailLabel}>Facility Address:</Text>
+                <Text style={styles.detailValue}>Plot 42, Institutional Area, Sector 14, Rohini, New Delhi</Text>
+              </View>
+            </View>
 
-        <View style={styles.infoCard}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Facility Address:</Text>
-            <Text style={styles.detailValue}>Plot 42, Institutional Area, Sector 14, Rohini, New Delhi</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Sanctioned Beneficiary Capacity:</Text>
-            <Text style={styles.detailValue}>{SUNRISE_ATTENDANCE.totalBeneficiaries} In-house Residents</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Scheme Category:</Text>
-            <Text style={styles.detailValue}>Deendayal Disabled Rehabilitation Scheme (DDRS)</Text>
-          </View>
-        </View>
+            <View style={styles.divider} />
 
-        <PrimaryButton
-          title="Switch Demo Role"
-          onPress={switchRole}
-          iconName="swap-horizontal"
-          style={{ marginTop: spacing.lg }}
-        />
+            {/* Capacity Row */}
+            <View style={styles.detailRow}>
+              <View style={styles.detailIconBox}>
+                <Ionicons name="people-outline" size={16} color={colors.brand.primary} />
+              </View>
+              <View style={styles.detailTextContainer}>
+                <Text style={styles.detailLabel}>Sanctioned Beneficiary Capacity:</Text>
+                <Text style={styles.detailValue}>{SUNRISE_ATTENDANCE.totalBeneficiaries} In-house Residents</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            {/* Scheme Row */}
+            <View style={styles.detailRow}>
+              <View style={styles.detailIconBox}>
+                <Ionicons name="ribbon-outline" size={16} color={colors.brand.primary} />
+              </View>
+              <View style={styles.detailTextContainer}>
+                <Text style={styles.detailLabel}>Scheme Category:</Text>
+                <Text style={styles.detailValue}>Deendayal Disabled Rehabilitation Scheme (DDRS)</Text>
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* Role Switching Action */}
+          <Animated.View
+            style={{
+              opacity: cardAnims[2],
+              transform: [
+                {
+                  translateY: cardAnims[2].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [12, 0],
+                  }),
+                },
+              ],
+            }}
+          >
+            <PrimaryButton
+              title="Switch Role"
+              onPress={switchRole}
+              iconName="swap-horizontal"
+              style={styles.switchActionButton}
+            />
+          </Animated.View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -94,100 +268,203 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.neutral.background,
   },
-  content: {
+
+  // Executive MoSJE Header
+  headerContainer: {
+    backgroundColor: colors.brand.navy,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+    ...shadows.sm,
+  },
+  headerInner: {
     width: '100%',
     maxWidth: 1200,
     alignSelf: 'center',
-    padding: spacing.base,
-    paddingBottom: spacing.xxl,
+    paddingHorizontal: spacing.base,
+    paddingBottom: spacing.md,
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
+  },
+  headerBranding: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerEmblem: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.xs,
+  },
+  headerMinistry: {
+    fontSize: 10,
+    fontWeight: typography.weights.bold,
+    color: colors.text.inverse,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  headerActionsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  roleBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  roleBadgeText: {
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+  },
+  switchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(42, 92, 224, 0.25)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(42, 92, 224, 0.4)',
+    minHeight: 28,
+  },
+  switchText: {
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+  },
+  headerMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  headerTitleContainer: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: typography.sizes.lg + 1,
+    fontWeight: typography.weights.bold,
+    color: colors.text.inverse,
+    letterSpacing: -0.2,
+  },
+  headerSubtitle: {
+    fontSize: typography.sizes.xs,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 2,
+  },
+
+  // Main Scroll Content
+  content: {
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
+    padding: spacing.base,
+    paddingBottom: spacing.xxxl,
+  },
+
+  // Institutional Identity Card
   profileCard: {
     backgroundColor: colors.neutral.surface,
     padding: spacing.base,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.neutral.border,
-    marginBottom: spacing.md,
+    marginBottom: spacing.base,
     ...shadows.xs,
-  },
-  demoWatermark: {
-    backgroundColor: colors.brand.primaryLight,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: borderRadius.xs,
-    alignSelf: 'flex-start',
-    marginBottom: spacing.sm,
-  },
-  demoWatermarkText: {
-    fontSize: 9,
-    fontWeight: typography.weights.bold,
-    color: colors.brand.primary,
-    letterSpacing: 0.8,
   },
   profileMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: colors.brand.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
+    ...shadows.xs,
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
-    fontSize: typography.sizes.md,
+    fontSize: typography.sizes.base + 2,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
+    letterSpacing: -0.2,
   },
   profileDesignation: {
-    fontSize: typography.sizes.sm,
+    fontSize: typography.sizes.xs + 1,
     color: colors.brand.primary,
-    fontWeight: typography.weights.medium,
-    marginTop: 1,
+    fontWeight: typography.weights.semibold,
+    marginTop: 2,
   },
   profileOrg: {
     fontSize: typography.sizes.xs,
-    color: colors.text.muted,
-    marginTop: 1,
+    color: colors.text.secondary,
+    marginTop: 2,
   },
   badgeRow: {
-    marginTop: 4,
+    marginTop: 6,
+  },
+  badgePill: {
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+    alignSelf: 'flex-start',
   },
   badgeText: {
     fontSize: 10,
     color: colors.text.secondary,
     fontWeight: typography.weights.semibold,
+    letterSpacing: 0.2,
   },
-  disclaimerBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.neutral.surfaceSubtle,
-    borderRadius: borderRadius.sm,
-    padding: spacing.xs,
-    marginTop: spacing.sm,
-  },
-  disclaimerText: {
-    fontSize: 10,
-    color: colors.text.muted,
-    marginLeft: 4,
-    flex: 1,
-  },
+
+  // Facility Details Card
   infoCard: {
     backgroundColor: colors.neutral.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.base,
     borderWidth: 1,
     borderColor: colors.neutral.border,
+    marginBottom: spacing.base,
     ...shadows.xs,
   },
   detailRow: {
-    marginBottom: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 2,
+  },
+  detailIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(42, 92, 224, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm + 2,
+    marginTop: 2,
+  },
+  detailTextContainer: {
+    flex: 1,
   },
   detailLabel: {
     fontSize: typography.sizes.xs,
@@ -198,5 +475,17 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.text.primary,
     fontWeight: typography.weights.medium,
+    lineHeight: 20,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.neutral.divider,
+    marginVertical: spacing.sm,
+  },
+
+  // Role Switching Action
+  switchActionButton: {
+    marginTop: spacing.sm,
+    minHeight: 48,
   },
 });

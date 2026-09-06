@@ -4,10 +4,11 @@
  *
  * Multi-category structured inspection checklist with 4 evaluation states:
  * Not Checked | Verified | Needs Attention | Not Applicable
- * Mobile-first touch-friendly selector pills with real-time progress.
+ * Mobile-first touch-friendly selector buttons (>=44px touch target) with real-time progress.
+ * Integrated native-style executive header with back navigation.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,13 +17,14 @@ import {
   StatusBar,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
+  Animated,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { InspectorStackParamList, InspectorStackNavigationProp } from '../../types/navigation';
-import { AppHeader } from '../../components/common/AppHeader';
-import { SectionHeader } from '../../components/common/SectionHeader';
+import { useAuth } from '../../context/AuthContext';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { mockInspectionService } from '../../services/mock/mockInspectionService';
 import { ChecklistItem, ChecklistStatus, ChecklistCategory } from '../../types/inspection';
@@ -59,16 +61,49 @@ const CATEGORIES: { id: ChecklistCategory; title: string; subtitle: string; icon
   },
 ];
 
-const STATUS_OPTIONS: { label: ChecklistStatus; color: string; bgColor: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { label: 'Not Checked', color: colors.text.muted, bgColor: colors.neutral.surfaceSubtle, icon: 'ellipse-outline' },
-  { label: 'Verified', color: colors.status.normal, bgColor: '#F0FDF4', icon: 'checkmark-circle' },
-  { label: 'Needs Attention', color: colors.status.warning, bgColor: '#FFFBEB', icon: 'alert-circle' },
-  { label: 'Not Applicable', color: '#475569', bgColor: '#F1F5F9', icon: 'remove-circle-outline' },
+const STATUS_OPTIONS: {
+  label: ChecklistStatus;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}[] = [
+  {
+    label: 'Not Checked',
+    color: colors.text.muted,
+    bgColor: colors.neutral.surfaceSubtle,
+    borderColor: colors.neutral.border,
+    icon: 'ellipse-outline',
+  },
+  {
+    label: 'Verified',
+    color: colors.status.normal,
+    bgColor: '#F0FDF4',
+    borderColor: colors.status.normal,
+    icon: 'checkmark-circle',
+  },
+  {
+    label: 'Needs Attention',
+    color: colors.status.warning,
+    bgColor: '#FFFBEB',
+    borderColor: colors.status.warning,
+    icon: 'alert-circle',
+  },
+  {
+    label: 'Not Applicable',
+    color: '#475569',
+    bgColor: '#F1F5F9',
+    borderColor: '#94A3B8',
+    icon: 'remove-circle-outline',
+  },
 ];
 
 export const InspectionChecklistScreen: React.FC = () => {
   const navigation = useNavigation<InspectorStackNavigationProp>();
   const route = useRoute<ChecklistRouteProp>();
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const { currentRole, switchRole } = useAuth();
   const { inspectionId } = route.params;
 
   const [items, setItems] = useState<ChecklistItem[]>([]);
@@ -77,12 +112,56 @@ export const InspectionChecklistScreen: React.FC = () => {
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  // Motion values
+  const screenFade = useRef(new Animated.Value(0)).current;
+  const screenSlide = useRef(new Animated.Value(14)).current;
+  const skeletonPulse = useRef(new Animated.Value(0.35)).current;
+
+  // Pulsing skeleton animation loop
+  useEffect(() => {
+    if (loading) {
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(skeletonPulse, {
+            toValue: 0.85,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+          Animated.timing(skeletonPulse, {
+            toValue: 0.35,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseAnimation.start();
+      return () => pulseAnimation.stop();
+    }
+  }, [loading]);
+
   useEffect(() => {
     mockInspectionService.getChecklistTemplate(inspectionId).then((data) => {
       setItems(data);
       setLoading(false);
     });
   }, [inspectionId]);
+
+  useEffect(() => {
+    if (!loading && items.length > 0) {
+      Animated.parallel([
+        Animated.timing(screenFade, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(screenSlide, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [loading, items]);
 
   const handleStatusChange = (itemId: string, newStatus: ChecklistStatus) => {
     setValidationError(null);
@@ -100,6 +179,7 @@ export const InspectionChecklistScreen: React.FC = () => {
   const completedCount = items.filter((i) => i.status !== 'Not Checked').length;
   const totalCount = items.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const isAllComplete = totalCount > 0 && completedCount === totalCount;
 
   const handleProceed = async () => {
     if (completedCount < totalCount) {
@@ -128,12 +208,84 @@ export const InspectionChecklistScreen: React.FC = () => {
     }
   };
 
+  const getRoleLabel = () => {
+    switch (currentRole) {
+      case 'official':
+        return 'MoSJE Official';
+      case 'inspector':
+        return 'PMU Inspection Officer';
+      case 'ngo':
+        return 'NGO / Institute';
+      default:
+        return 'MoSJE Portal';
+    }
+  };
+
+  // Skeleton Loading State
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={styles.container}>
         <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
-        <AppHeader title="Inspection Checklist" subtitle="Loading evaluation template..." />
-        <ActivityIndicator size="large" color={colors.brand.primary} style={{ marginTop: 40 }} />
+
+        {/* Integrated Skeleton Header */}
+        <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, 12) + spacing.xs }]}>
+          <View style={styles.headerInner}>
+            <View style={styles.headerTopRow}>
+              <View style={styles.headerBranding}>
+                <View style={styles.headerEmblem}>
+                  <Ionicons name="shield-checkmark-outline" size={14} color={colors.text.inverse} />
+                </View>
+                <Text style={styles.headerMinistry}>MoSJE • Government of India</Text>
+              </View>
+            </View>
+
+            <View style={styles.headerMainRow}>
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.headerBackBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Back to overview"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="arrow-back" size={20} color={colors.text.inverse} />
+              </TouchableOpacity>
+
+              <View style={styles.headerTitleContainer}>
+                <Text style={styles.headerTitle} numberOfLines={1}>
+                  Inspection Checklist
+                </Text>
+                <Text style={styles.headerSubtitle} numberOfLines={1}>
+                  Loading evaluation criteria...
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Sticky Progress Bar Skeleton */}
+        <View style={styles.progressContainer}>
+          <View style={styles.progressInner}>
+            <View style={styles.progressTextRow}>
+              <Animated.View style={[styles.skeletonLine, { width: 120, height: 14, opacity: skeletonPulse }]} />
+              <Animated.View style={[styles.skeletonLine, { width: 80, height: 14, opacity: skeletonPulse }]} />
+            </View>
+            <View style={styles.progressTrack}>
+              <Animated.View style={[styles.skeletonLine, { width: '30%', height: '100%', opacity: skeletonPulse }]} />
+            </View>
+          </View>
+        </View>
+
+        {/* Skeleton Content */}
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.skeletonCategoryCard}>
+            <Animated.View style={[styles.skeletonLine, { width: 180, height: 18, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonLine, { width: 240, height: 12, marginTop: 6, opacity: skeletonPulse }]} />
+            <View style={{ marginTop: 16, gap: 12 }}>
+              <Animated.View style={[styles.skeletonItemBox, { opacity: skeletonPulse }]} />
+              <Animated.View style={[styles.skeletonItemBox, { opacity: skeletonPulse }]} />
+            </View>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -141,170 +293,274 @@ export const InspectionChecklistScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
-      <AppHeader
-        title="Inspection Checklist"
-        subtitle={`Order #${inspectionId} • On-Site Assessment`}
-      />
 
-      {/* Sticky Progress Bar */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressInner}>
-          <View style={styles.progressTextRow}>
-            <Text style={styles.progressTitle}>Checklist Progress</Text>
-            <Text style={styles.progressCount}>
-              {completedCount} / {totalCount} Completed ({progressPercent}%)
-            </Text>
+      {/* Integrated Executive MoSJE Header with Native Back Navigation */}
+      <View style={[styles.headerContainer, { paddingTop: Math.max(insets.top, 12) + spacing.xs }]}>
+        <View style={styles.headerInner}>
+          <View style={styles.headerTopRow}>
+            <View style={styles.headerBranding}>
+              <View style={styles.headerEmblem}>
+                <Ionicons name="shield-checkmark-outline" size={14} color={colors.text.inverse} />
+              </View>
+              <Text style={styles.headerMinistry}>MoSJE • Government of India</Text>
+            </View>
+
+            <View style={styles.headerActionsRight}>
+              <View style={styles.roleBadge}>
+                <Text style={styles.roleBadgeText}>{getRoleLabel()}</Text>
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={switchRole}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={styles.switchButton}
+              >
+                <Ionicons name="swap-horizontal-outline" size={14} color={colors.text.inverse} />
+                <Text style={styles.switchText}>Switch Role</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+
+          <View style={styles.headerMainRow}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.headerBackBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Back to overview"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              activeOpacity={0.75}
+            >
+              <Ionicons name="arrow-back" size={20} color={colors.text.inverse} />
+            </TouchableOpacity>
+
+            <View style={styles.headerTitleContainer}>
+              <Text style={styles.headerTitle} numberOfLines={1}>
+                Inspection Checklist
+              </Text>
+              <Text style={styles.headerSubtitle} numberOfLines={1}>
+                Order #{inspectionId} • On-Site Assessment
+              </Text>
+            </View>
           </View>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Navigation Back */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={16} color={colors.brand.primary} />
-          <Text style={styles.backButtonText}>Back to Overview</Text>
-        </TouchableOpacity>
-
-        {validationError && (
-          <View style={styles.errorBanner}>
-            <Ionicons name="alert-circle" size={18} color={colors.status.warning} />
-            <Text style={styles.errorBannerText}>{validationError}</Text>
+      {/* Sticky Real-Time Checklist Progress Bar */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressInner}>
+          <View style={styles.progressTextRow}>
+            <Text style={styles.progressTitle}>Checklist Progress</Text>
+            <Text style={[styles.progressCount, isAllComplete && styles.progressCountComplete]}>
+              {completedCount} / {totalCount} Completed ({progressPercent}%)
+            </Text>
           </View>
-        )}
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${progressPercent}%` },
+                isAllComplete && styles.progressFillComplete,
+              ]}
+            />
+          </View>
+        </View>
+      </View>
 
-        {/* Categories and Checklist Items */}
-        {CATEGORIES.map((category) => {
-          const categoryItems = items.filter((item) => item.category === category.id);
-          const categoryCompleted = categoryItems.filter((item) => item.status !== 'Not Checked').length;
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: Math.max(insets.bottom, 20) + spacing.xxxl + 28 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View
+          style={{
+            opacity: screenFade,
+            transform: [{ translateY: screenSlide }],
+          }}
+        >
+          {/* Validation Error Banner */}
+          {validationError ? (
+            <View style={styles.errorBanner}>
+              <Ionicons name="alert-circle" size={18} color={colors.status.warning} />
+              <Text style={styles.errorBannerText}>{validationError}</Text>
+            </View>
+          ) : null}
 
-          return (
-            <View key={category.id} style={styles.categoryCard}>
-              <View style={styles.categoryHeader}>
-                <View style={styles.categoryIconCircle}>
-                  <Ionicons name={category.icon} size={18} color={colors.brand.primary} />
-                </View>
-                <View style={styles.categoryTextCol}>
-                  <Text style={styles.categoryTitle}>{category.title}</Text>
-                  <Text style={styles.categorySubtitle}>{category.subtitle}</Text>
-                </View>
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryBadgeText}>
-                    {categoryCompleted}/{categoryItems.length}
-                  </Text>
-                </View>
-              </View>
+          {/* Categories and Checklist Items */}
+          {CATEGORIES.map((category) => {
+            const categoryItems = items.filter((item) => item.category === category.id);
+            const categoryCompleted = categoryItems.filter((item) => item.status !== 'Not Checked').length;
+            const isCategoryComplete = categoryItems.length > 0 && categoryCompleted === categoryItems.length;
 
-              <View style={styles.itemsList}>
-                {categoryItems.map((item, index) => {
-                  const isNoteActive = activeNoteId === item.id || Boolean(item.notes);
-
-                  return (
-                    <View
-                      key={item.id}
+            return (
+              <View key={category.id} style={styles.categoryCard}>
+                <View style={styles.categoryHeader}>
+                  <View
+                    style={[
+                      styles.categoryIconCircle,
+                      isCategoryComplete && styles.categoryIconCircleComplete,
+                    ]}
+                  >
+                    <Ionicons
+                      name={category.icon}
+                      size={18}
+                      color={isCategoryComplete ? colors.status.normal : colors.brand.primary}
+                    />
+                  </View>
+                  <View style={styles.categoryTextCol}>
+                    <Text style={styles.categoryTitle}>{category.title}</Text>
+                    <Text style={styles.categorySubtitle}>{category.subtitle}</Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.categoryBadge,
+                      isCategoryComplete && styles.categoryBadgeComplete,
+                    ]}
+                  >
+                    <Text
                       style={[
-                        styles.itemBox,
-                        item.status === 'Verified' && styles.itemBoxVerified,
-                        item.status === 'Needs Attention' && styles.itemBoxAttention,
-                        item.status === 'Not Applicable' && styles.itemBoxNA,
+                        styles.categoryBadgeText,
+                        isCategoryComplete && styles.categoryBadgeTextComplete,
                       ]}
                     >
-                      <View style={styles.itemHeaderRow}>
-                        <View style={styles.itemNumBadge}>
-                          <Text style={styles.itemNumText}>{index + 1}</Text>
-                        </View>
-                        <View style={styles.itemTextCol}>
-                          <Text style={styles.itemTitle}>{item.title}</Text>
-                          <Text style={styles.itemDesc}>{item.description}</Text>
-                        </View>
-                      </View>
+                      {categoryCompleted}/{categoryItems.length}
+                    </Text>
+                  </View>
+                </View>
 
-                      {/* 4-Option Status Selector */}
-                      <View style={styles.optionsRow}>
-                        {STATUS_OPTIONS.map((opt) => {
-                          const isSelected = item.status === opt.label;
+                <View style={styles.itemsList}>
+                  {categoryItems.map((item, index) => {
+                    const isNoteActive = activeNoteId === item.id || Boolean(item.notes);
+                    const isVerified = item.status === 'Verified';
+                    const isNeedsAttention = item.status === 'Needs Attention';
+                    const isNA = item.status === 'Not Applicable';
 
-                          return (
-                            <TouchableOpacity
-                              key={opt.label}
+                    return (
+                      <View
+                        key={item.id}
+                        style={[
+                          styles.itemBox,
+                          isVerified && styles.itemBoxVerified,
+                          isNeedsAttention && styles.itemBoxAttention,
+                          isNA && styles.itemBoxNA,
+                        ]}
+                      >
+                        <View style={styles.itemHeaderRow}>
+                          <View
+                            style={[
+                              styles.itemNumBadge,
+                              isVerified && styles.itemNumBadgeVerified,
+                              isNeedsAttention && styles.itemNumBadgeAttention,
+                              isNA && styles.itemNumBadgeNA,
+                            ]}
+                          >
+                            <Text
                               style={[
-                                styles.optionPill,
-                                isSelected && {
-                                  backgroundColor: opt.bgColor,
-                                  borderColor: opt.color,
-                                  borderWidth: 1.5,
-                                },
+                                styles.itemNumText,
+                                isVerified && styles.itemNumTextVerified,
+                                isNeedsAttention && styles.itemNumTextAttention,
+                                isNA && styles.itemNumTextNA,
                               ]}
-                              onPress={() => handleStatusChange(item.id, opt.label)}
-                              activeOpacity={0.7}
                             >
-                              <Ionicons
-                                name={opt.icon}
-                                size={13}
-                                color={isSelected ? opt.color : colors.text.muted}
-                                style={{ marginRight: 3 }}
-                              />
-                              <Text
+                              {index + 1}
+                            </Text>
+                          </View>
+                          <View style={styles.itemTextCol}>
+                            <Text style={styles.itemTitle}>{item.title}</Text>
+                            <Text style={styles.itemDesc}>{item.description}</Text>
+                          </View>
+                        </View>
+
+                        {/* 4-Option Status Selector with >=44px Touch Targets */}
+                        <View style={styles.optionsGrid}>
+                          {STATUS_OPTIONS.map((opt) => {
+                            const isSelected = item.status === opt.label;
+
+                            return (
+                              <TouchableOpacity
+                                key={opt.label}
                                 style={[
-                                  styles.optionPillText,
+                                  styles.optionButton,
                                   isSelected && {
-                                    color: opt.color,
-                                    fontWeight: typography.weights.bold,
+                                    backgroundColor: opt.bgColor,
+                                    borderColor: opt.borderColor,
+                                    borderWidth: 1.5,
                                   },
                                 ]}
+                                onPress={() => handleStatusChange(item.id, opt.label)}
+                                activeOpacity={0.7}
+                                accessibilityRole="button"
+                                accessibilityLabel={`${opt.label} for ${item.title}`}
                               >
-                                {opt.label}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
-
-                      {/* Optional Note Section */}
-                      {isNoteActive ? (
-                        <View style={styles.noteInputBox}>
-                          <TextInput
-                            style={styles.noteInput}
-                            placeholder="Add inspector comment / observation..."
-                            placeholderTextColor={colors.text.muted}
-                            value={item.notes || ''}
-                            onChangeText={(text) => handleNoteChange(item.id, text)}
-                            multiline
-                          />
+                                <Ionicons
+                                  name={opt.icon}
+                                  size={15}
+                                  color={isSelected ? opt.color : colors.text.muted}
+                                  style={{ marginRight: 6 }}
+                                />
+                                <Text
+                                  style={[
+                                    styles.optionButtonText,
+                                    isSelected && {
+                                      color: opt.color,
+                                      fontWeight: typography.weights.bold,
+                                    },
+                                  ]}
+                                  numberOfLines={1}
+                                >
+                                  {opt.label}
+                                </Text>
+                              </TouchableOpacity>
+                            );
+                          })}
                         </View>
-                      ) : (
-                        <TouchableOpacity
-                          style={styles.addNoteBtn}
-                          onPress={() => setActiveNoteId(item.id)}
-                          activeOpacity={0.7}
-                        >
-                          <Ionicons name="chatbubble-outline" size={12} color={colors.brand.primary} />
-                          <Text style={styles.addNoteBtnText}>+ Add Observation Remark</Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          );
-        })}
 
-        {/* Action Button */}
-        <View style={styles.actionSection}>
-          <PrimaryButton
-            title="Proceed to Findings & Evidence"
-            iconName="arrow-forward"
-            onPress={handleProceed}
-            loading={saving}
-          />
-        </View>
+                        {/* Optional Observation / Note Section */}
+                        {isNoteActive ? (
+                          <View style={styles.noteInputBox}>
+                            <TextInput
+                              style={styles.noteInput}
+                              placeholder="Add inspector comment / observation..."
+                              placeholderTextColor={colors.text.muted}
+                              value={item.notes || ''}
+                              onChangeText={(text) => handleNoteChange(item.id, text)}
+                              multiline
+                              numberOfLines={3}
+                              textAlignVertical="top"
+                            />
+                          </View>
+                        ) : (
+                          <TouchableOpacity
+                            style={styles.addNoteBtn}
+                            onPress={() => setActiveNoteId(item.id)}
+                            activeOpacity={0.7}
+                            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                          >
+                            <Ionicons name="chatbubble-outline" size={12} color={colors.brand.primary} />
+                            <Text style={styles.addNoteBtnText}>+ Add Observation Remark</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            );
+          })}
+
+          {/* Action Section */}
+          <View style={styles.actionSection}>
+            <PrimaryButton
+              title="Proceed to Findings & Evidence"
+              iconName="arrow-forward"
+              onPress={handleProceed}
+              loading={saving}
+              style={styles.primaryActionBtn}
+            />
+          </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -315,10 +571,117 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.neutral.background,
   },
-  centerContainer: {
-    flex: 1,
-    backgroundColor: colors.neutral.background,
+  scrollContent: {
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
+    padding: spacing.base,
   },
+
+  // Executive Header
+  headerContainer: {
+    backgroundColor: colors.brand.navy,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+    ...shadows.sm,
+  },
+  headerInner: {
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
+    paddingHorizontal: spacing.base,
+    paddingBottom: spacing.md,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.xs,
+  },
+  headerBranding: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerEmblem: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.xs,
+  },
+  headerMinistry: {
+    fontSize: 10,
+    fontWeight: typography.weights.bold,
+    color: colors.text.inverse,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
+  headerActionsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  roleBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  roleBadgeText: {
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+  },
+  switchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(42, 92, 224, 0.25)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(42, 92, 224, 0.4)',
+  },
+  switchText: {
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.semibold,
+  },
+  headerMainRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  headerBackBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitleContainer: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: typography.sizes.md + 1,
+    fontWeight: typography.weights.bold,
+    color: colors.text.inverse,
+    letterSpacing: -0.2,
+  },
+  headerSubtitle: {
+    fontSize: typography.sizes.xs,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 1,
+  },
+
+  // Sticky Progress Bar
   progressContainer: {
     backgroundColor: colors.neutral.surface,
     borderBottomWidth: 1,
@@ -336,7 +699,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   progressTitle: {
     fontSize: typography.sizes.xs + 1,
@@ -348,51 +711,37 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
   },
+  progressCountComplete: {
+    color: colors.status.normal,
+    fontWeight: typography.weights.bold,
+  },
   progressTrack: {
     height: 6,
     backgroundColor: colors.neutral.surfaceSubtle,
     borderRadius: 3,
     overflow: 'hidden',
+    borderWidth: 0.5,
+    borderColor: colors.neutral.border,
   },
   progressFill: {
     height: '100%',
     backgroundColor: colors.brand.primary,
     borderRadius: 3,
   },
-  scrollContent: {
-    width: '100%',
-    maxWidth: 900,
-    alignSelf: 'center',
-    padding: spacing.base,
-    paddingBottom: spacing.xxl,
+  progressFillComplete: {
+    backgroundColor: colors.status.normal,
   },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.neutral.surface,
-    borderWidth: 1,
-    borderColor: colors.neutral.border,
-  },
-  backButtonText: {
-    fontSize: typography.sizes.xs + 1,
-    fontWeight: typography.weights.semibold,
-    color: colors.brand.primary,
-    marginLeft: 6,
-  },
+
+  // Validation Error Banner
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFBEB',
+    backgroundColor: colors.status.warningLight,
     borderColor: colors.status.warningBorder,
     borderWidth: 1,
-    borderRadius: borderRadius.sm,
-    padding: spacing.sm,
-    marginBottom: spacing.md,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm + 2,
+    marginBottom: spacing.base,
     gap: 8,
   },
   errorBannerText: {
@@ -400,7 +749,10 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     color: '#92400E',
     flex: 1,
+    lineHeight: 18,
   },
+
+  // Category Cards
   categoryCard: {
     backgroundColor: colors.neutral.surface,
     borderColor: colors.neutral.border,
@@ -414,18 +766,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.sm + 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral.divider,
     gap: spacing.sm,
   },
   categoryIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#EFF6FF',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.brand.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  categoryIconCircleComplete: {
+    backgroundColor: '#F0FDF4',
   },
   categoryTextCol: {
     flex: 1,
@@ -437,7 +792,8 @@ const styles = StyleSheet.create({
   },
   categorySubtitle: {
     fontSize: 11,
-    color: colors.text.muted,
+    color: colors.text.secondary,
+    marginTop: 1,
   },
   categoryBadge: {
     backgroundColor: colors.neutral.surfaceSubtle,
@@ -447,23 +803,32 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: borderRadius.full,
   },
+  categoryBadgeComplete: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
   categoryBadgeText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
+  categoryBadgeTextComplete: {
+    color: colors.status.normal,
+  },
+
+  // Checklist Items List
   itemsList: {
-    gap: spacing.sm,
+    gap: spacing.sm + 2,
   },
   itemBox: {
     backgroundColor: colors.neutral.surfaceSubtle,
     borderColor: colors.neutral.border,
     borderWidth: 1,
     borderRadius: borderRadius.md,
-    padding: spacing.sm + 2,
+    padding: spacing.sm + 4,
   },
   itemBoxVerified: {
-    borderColor: '#BBF7D0',
+    borderColor: '#86EFAC',
     backgroundColor: '#FAFDFB',
   },
   itemBoxAttention: {
@@ -477,13 +842,13 @@ const styles = StyleSheet.create({
   itemHeaderRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: spacing.xs + 2,
+    gap: spacing.sm,
     marginBottom: spacing.sm,
   },
   itemNumBadge: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: colors.neutral.surface,
     borderColor: colors.neutral.border,
     borderWidth: 1,
@@ -491,74 +856,133 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 1,
   },
+  itemNumBadgeVerified: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#86EFAC',
+  },
+  itemNumBadgeAttention: {
+    backgroundColor: '#FFFBEB',
+    borderColor: colors.status.warningBorder,
+  },
+  itemNumBadgeNA: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
+  },
   itemNumText: {
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.text.secondary,
   },
+  itemNumTextVerified: {
+    color: colors.status.normal,
+  },
+  itemNumTextAttention: {
+    color: colors.status.warning,
+  },
+  itemNumTextNA: {
+    color: '#475569',
+  },
   itemTextCol: {
     flex: 1,
   },
   itemTitle: {
-    fontSize: typography.sizes.xs + 1,
+    fontSize: typography.sizes.xs + 2,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   itemDesc: {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.text.secondary,
-    lineHeight: 15,
+    lineHeight: 17,
     marginTop: 2,
   },
-  optionsRow: {
+
+  // 4-Option Status Selector Grid (>=44px touch targets)
+  optionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 2,
+    gap: 8,
+    marginTop: 4,
   },
-  optionPill: {
+  optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: '47%',
+    flex: 1,
+    minHeight: 44,
     backgroundColor: colors.neutral.surface,
     borderColor: colors.neutral.border,
     borderWidth: 1,
     borderRadius: borderRadius.sm,
-    paddingVertical: 5,
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 10,
   },
-  optionPillText: {
-    fontSize: 10,
+  optionButtonText: {
+    fontSize: 11,
     fontWeight: typography.weights.medium,
     color: colors.text.secondary,
   },
+
+  // Note Input Box
   noteInputBox: {
-    marginTop: spacing.xs + 2,
+    marginTop: spacing.sm,
     backgroundColor: colors.neutral.surface,
     borderColor: colors.neutral.border,
     borderWidth: 1,
-    borderRadius: borderRadius.xs,
-    padding: spacing.xs + 2,
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
   },
   noteInput: {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.text.primary,
-    minHeight: 36,
+    minHeight: 56,
+    lineHeight: 18,
   },
   addNoteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    marginTop: 6,
+    marginTop: 8,
     gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
   },
   addNoteBtnText: {
     fontSize: 11,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
   },
+
+  // Action Section
   actionSection: {
     marginTop: spacing.sm,
     marginBottom: spacing.xl,
+  },
+  primaryActionBtn: {
+    minHeight: 48,
+  },
+
+  // Skeleton Styles
+  skeletonCategoryCard: {
+    backgroundColor: colors.neutral.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    padding: spacing.base,
+    marginBottom: spacing.base,
+    ...shadows.xs,
+  },
+  skeletonItemBox: {
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    height: 110,
+  },
+  skeletonLine: {
+    backgroundColor: colors.neutral.border,
+    borderRadius: borderRadius.xs,
   },
 });

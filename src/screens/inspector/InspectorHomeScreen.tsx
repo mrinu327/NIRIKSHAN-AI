@@ -1,4 +1,16 @@
-import React, { useEffect, useState, useCallback } from 'react';
+/**
+ * InspectorHomeScreen
+ * SIH26095 | MoSJE PMU Field Inspection Officer Workflow
+ *
+ * Operational field inspection workspace for PMU officers:
+ * - Active officer credentials and profile switcher
+ * - Current assigned inspection hero card with rapid action dispatch
+ * - Inspection schedule overview statistics
+ * - Filterable roster of assigned field orders (My Queue vs All PMU Orders)
+ * Fully responsive for mobile and desktop viewports.
+ */
+
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +20,7 @@ import {
   StatusBar,
   TouchableOpacity,
   useWindowDimensions,
+  Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +33,6 @@ import { StatusBadge } from '../../components/common/StatusBadge';
 import { PriorityBadge } from '../../components/common/PriorityBadge';
 import { InspectionCard } from '../../components/cards/InspectionCard';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
-import { LoadingState } from '../../components/common/LoadingState';
 import { mockInspectionService } from '../../services/mock/mockInspectionService';
 import { mockAssignmentService } from '../../services/mock/mockAssignmentService';
 import { InspectionAssignment } from '../../types/inspection';
@@ -51,6 +63,57 @@ export const InspectorHomeScreen: React.FC = () => {
   });
   const [allInspections, setAllInspections] = useState<InspectionAssignment[]>([]);
 
+  // Entrance animations
+  const screenFade = useRef(new Animated.Value(0)).current;
+  const screenSlide = useRef(new Animated.Value(14)).current;
+
+  // Skeleton pulse animation
+  const skeletonPulse = useRef(new Animated.Value(0.35)).current;
+
+  // Toast animation
+  const toastFade = useRef(new Animated.Value(0)).current;
+  const toastSlide = useRef(new Animated.Value(-8)).current;
+
+  useEffect(() => {
+    if (loading) {
+      const pulseAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(skeletonPulse, {
+            toValue: 0.85,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+          Animated.timing(skeletonPulse, {
+            toValue: 0.35,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulseAnimation.start();
+      return () => pulseAnimation.stop();
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    if (ackNotice) {
+      toastFade.setValue(0);
+      toastSlide.setValue(-8);
+      Animated.parallel([
+        Animated.timing(toastFade, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(toastSlide, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [ackNotice]);
+
   const loadInspectorData = useCallback(async () => {
     try {
       const [statsData, assignmentsData] = await Promise.all([
@@ -74,6 +137,23 @@ export const InspectorHomeScreen: React.FC = () => {
     });
     return unsubscribe;
   }, [navigation, loadInspectorData, currentUser]);
+
+  useEffect(() => {
+    if (!loading) {
+      Animated.parallel([
+        Animated.timing(screenFade, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+        Animated.timing(screenSlide, {
+          toValue: 0,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [loading]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -134,17 +214,67 @@ export const InspectorHomeScreen: React.FC = () => {
 
   const statItemWidth = isDesktop ? '23.8%' : isNarrow ? '100%' : '48%';
 
+  const headerTitle = `Good morning, ${currentUser?.name ? currentUser.name.replace('Demo ', '') : 'Inspector'}`;
+  const headerSubtitle = `${currentUser?.department || 'PMU Field Inspection Wing'} • ${currentUser?.assignedLocation || 'Delhi NCR'}`;
+
+  // Skeleton loading screen
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
+        <AppHeader title={headerTitle} subtitle={headerSubtitle} />
+
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Identity Skeleton */}
+          <View style={styles.skeletonCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Animated.View style={[styles.skeletonCircle, { opacity: skeletonPulse }]} />
+              <View style={{ flex: 1, gap: 6 }}>
+                <Animated.View style={[styles.skeletonLine, { width: 140, height: 16, opacity: skeletonPulse }]} />
+                <Animated.View style={[styles.skeletonLine, { width: 90, height: 12, opacity: skeletonPulse }]} />
+              </View>
+            </View>
+          </View>
+
+          {/* Hero Card Skeleton */}
+          <View style={[styles.skeletonCard, { marginTop: spacing.sm }]}>
+            <Animated.View style={[styles.skeletonLine, { width: 200, height: 16, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonLine, { width: '80%', height: 24, marginTop: 12, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonLine, { width: '60%', height: 14, marginTop: 8, opacity: skeletonPulse }]} />
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
+              <Animated.View style={[styles.skeletonBox, { width: '30%', height: 40, opacity: skeletonPulse }]} />
+              <Animated.View style={[styles.skeletonBox, { width: '30%', height: 40, opacity: skeletonPulse }]} />
+              <Animated.View style={[styles.skeletonBox, { width: '30%', height: 40, opacity: skeletonPulse }]} />
+            </View>
+            <Animated.View style={[styles.skeletonLine, { width: '100%', height: 44, marginTop: 16, borderRadius: borderRadius.md, opacity: skeletonPulse }]} />
+          </View>
+
+          {/* Stats Grid Skeleton */}
+          <View style={styles.statsGrid}>
+            <Animated.View style={[styles.skeletonStatBox, { width: statItemWidth, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonStatBox, { width: statItemWidth, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonStatBox, { width: statItemWidth, opacity: skeletonPulse }]} />
+            <Animated.View style={[styles.skeletonStatBox, { width: statItemWidth, opacity: skeletonPulse }]} />
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
-      <AppHeader
-        title={`Good morning, ${currentUser?.name ? currentUser.name.replace('Demo ', '') : 'Inspector'}`}
-        subtitle={`${currentUser?.department || 'PMU Field Inspection Wing'} • ${currentUser?.assignedLocation || 'Delhi NCR'}`}
-      />
+      <AppHeader title={headerTitle} subtitle={headerSubtitle} />
 
-      {loading ? (
-        <LoadingState message="Synchronizing field inspection roster..." />
-      ) : (
+      <Animated.View
+        style={[
+          styles.animatedContainer,
+          {
+            opacity: screenFade,
+            transform: [{ translateY: screenSlide }],
+          },
+        ]}
+      >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -156,7 +286,7 @@ export const InspectorHomeScreen: React.FC = () => {
           <View style={styles.officerIdentityBanner}>
             <View style={styles.identityLeft}>
               <View style={styles.identityBadge}>
-                <Ionicons name="person-circle" size={24} color={colors.brand.primary} />
+                <Ionicons name="person-circle" size={26} color={colors.brand.primary} />
               </View>
               <View style={styles.identityTextCol}>
                 <View style={styles.nameRow}>
@@ -174,9 +304,11 @@ export const InspectorHomeScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.switchOfficerBtn}
               onPress={handleSwitchOfficer}
-              activeOpacity={0.8}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel="Switch active inspector profile"
             >
-              <Ionicons name="swap-horizontal" size={14} color={colors.brand.primary} style={{ marginRight: 4 }} />
+              <Ionicons name="swap-horizontal" size={15} color={colors.brand.primary} style={{ marginRight: 5 }} />
               <Text style={styles.switchOfficerBtnText}>
                 {activeBadgeId === 'PMU-DEMO-004' ? 'Switch to Inspector B' : 'Switch to Inspector A'}
               </Text>
@@ -185,15 +317,28 @@ export const InspectorHomeScreen: React.FC = () => {
 
           {/* Acknowledgment Alert Toast */}
           {ackNotice && (
-            <View style={styles.ackToast}>
+            <Animated.View
+              style={[
+                styles.ackToast,
+                {
+                  opacity: toastFade,
+                  transform: [{ translateY: toastSlide }],
+                },
+              ]}
+            >
               <Ionicons name="checkmark-circle" size={18} color={colors.status.normal} />
               <Text style={styles.ackToastText}>{ackNotice}</Text>
-            </View>
+            </Animated.View>
           )}
 
           {/* Current Assigned Inspection Hero Card (Phase 3 Requirement) */}
           {currentAssignedInspection && (
-            <View style={styles.heroCard}>
+            <View
+              style={[
+                styles.heroCard,
+                currentAssignedInspection.priority === 'HIGH' && styles.heroCardHighPriority,
+              ]}
+            >
               <View style={styles.heroHeader}>
                 <View style={styles.heroBadgeRow}>
                   <View style={styles.liveIndicator}>
@@ -237,7 +382,7 @@ export const InspectorHomeScreen: React.FC = () => {
               </View>
 
               <View style={styles.heroAddressRow}>
-                <Ionicons name="location-outline" size={14} color={colors.text.muted} style={{ marginTop: 1 }} />
+                <Ionicons name="location-outline" size={16} color={colors.brand.primary} style={{ marginTop: 1 }} />
                 <Text style={styles.heroAddressText} numberOfLines={2}>
                   {currentAssignedInspection.projectAddress}
                 </Text>
@@ -262,6 +407,7 @@ export const InspectorHomeScreen: React.FC = () => {
                       inspectionId: currentAssignedInspection.id,
                     })
                   }
+                  style={styles.heroPrimaryBtn}
                 />
               </View>
             </View>
@@ -320,7 +466,9 @@ export const InspectorHomeScreen: React.FC = () => {
               <TouchableOpacity
                 style={[styles.rosterFilterChip, filterMode === 'MY' && styles.rosterFilterChipActive]}
                 onPress={() => setFilterMode('MY')}
-                activeOpacity={0.7}
+                activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityLabel="Filter by My Queue"
               >
                 <Text
                   style={[
@@ -335,7 +483,9 @@ export const InspectorHomeScreen: React.FC = () => {
               <TouchableOpacity
                 style={[styles.rosterFilterChip, filterMode === 'ALL' && styles.rosterFilterChipActive]}
                 onPress={() => setFilterMode('ALL')}
-                activeOpacity={0.7}
+                activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityLabel="Filter by All PMU Orders"
               >
                 <Text
                   style={[
@@ -376,7 +526,7 @@ export const InspectorHomeScreen: React.FC = () => {
             ))
           )}
         </ScrollView>
-      )}
+      </Animated.View>
     </View>
   );
 };
@@ -386,13 +536,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.neutral.background,
   },
+  animatedContainer: {
+    flex: 1,
+  },
   scrollContent: {
     width: '100%',
     maxWidth: 1200,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xxxl + 24,
   },
+
+  /* Active Officer Identity Banner */
   officerIdentityBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -400,7 +555,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.surface,
     borderColor: colors.neutral.border,
     borderWidth: 1,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     padding: spacing.md,
     marginBottom: spacing.md,
     flexWrap: 'wrap',
@@ -415,9 +570,9 @@ const styles = StyleSheet.create({
     minWidth: 200,
   },
   identityBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -448,6 +603,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
+    letterSpacing: 0.3,
   },
   identityJurisdiction: {
     fontSize: 11,
@@ -460,25 +616,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#EFF6FF',
     borderColor: '#BFDBFE',
     borderWidth: 1,
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 6,
+    paddingHorizontal: spacing.sm + 4,
+    paddingVertical: 8,
+    minHeight: 44,
     borderRadius: borderRadius.sm,
+    justifyContent: 'center',
   },
   switchOfficerBtnText: {
-    fontSize: 11,
+    fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
+
+  /* Acknowledgment Toast */
   ackToast: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F0FDF4',
     borderColor: '#BBF7D0',
     borderWidth: 1,
-    borderRadius: borderRadius.sm,
-    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     marginBottom: spacing.md,
-    gap: spacing.xs,
+    gap: spacing.xs + 2,
+    ...shadows.xs,
   },
   ackToastText: {
     fontSize: typography.sizes.xs + 1,
@@ -486,6 +647,120 @@ const styles = StyleSheet.create({
     color: colors.status.normal,
     flex: 1,
   },
+
+  /* Current Assigned Inspection Hero Card */
+  heroCard: {
+    backgroundColor: colors.neutral.surface,
+    borderColor: colors.brand.primary,
+    borderWidth: 1,
+    borderLeftWidth: 5,
+    borderLeftColor: colors.brand.primary,
+    borderRadius: borderRadius.lg,
+    padding: spacing.base,
+    marginBottom: spacing.base,
+    ...shadows.sm,
+  },
+  heroCardHighPriority: {
+    borderLeftColor: colors.status.highPriority,
+  },
+  heroHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  heroBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs + 2,
+    flexWrap: 'wrap',
+  },
+  liveIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderWidth: 1,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: borderRadius.xs,
+    gap: 5,
+  },
+  livePulse: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.brand.primary,
+  },
+  heroHeaderTag: {
+    fontSize: 9,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.primary,
+    letterSpacing: 0.6,
+  },
+  heroInspectionId: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
+    color: colors.text.muted,
+  },
+  heroProjectName: {
+    fontSize: typography.sizes.lg,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.navy,
+    marginVertical: 4,
+    lineHeight: 24,
+  },
+  heroMetaGrid: {
+    flexDirection: 'row',
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    marginVertical: spacing.xs,
+    gap: 12,
+    flexWrap: 'wrap',
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+  },
+  heroMetaItem: {
+    minWidth: '28%',
+    flex: 1,
+  },
+  heroMetaLabel: {
+    fontSize: 9,
+    textTransform: 'uppercase',
+    fontWeight: typography.weights.semibold,
+    color: colors.text.muted,
+    marginBottom: 3,
+    letterSpacing: 0.3,
+  },
+  heroMetaValue: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.semibold,
+    color: colors.text.primary,
+  },
+  heroAddressRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 6,
+    marginBottom: spacing.md,
+    gap: 6,
+  },
+  heroAddressText: {
+    fontSize: typography.sizes.xs + 1,
+    color: colors.text.secondary,
+    flex: 1,
+    lineHeight: 18,
+  },
+  heroActionRow: {
+    marginTop: 2,
+  },
+  heroPrimaryBtn: {
+    minHeight: 48,
+  },
+
+  /* Stats Grid */
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -495,6 +770,8 @@ const styles = StyleSheet.create({
   statGridItem: {
     marginBottom: spacing.md,
   },
+
+  /* Roster Header & Filter Chips */
   rosterHeaderRow: {
     marginBottom: spacing.xs,
   },
@@ -505,19 +782,22 @@ const styles = StyleSheet.create({
     marginTop: -spacing.xs,
   },
   rosterFilterChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    minHeight: 44,
     borderRadius: borderRadius.full,
     backgroundColor: colors.neutral.surface,
     borderColor: colors.neutral.border,
     borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   rosterFilterChipActive: {
     backgroundColor: colors.brand.navy,
     borderColor: colors.brand.navy,
   },
   rosterFilterChipText: {
-    fontSize: typography.sizes.xs,
+    fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.medium,
     color: colors.text.secondary,
   },
@@ -525,6 +805,8 @@ const styles = StyleSheet.create({
     color: colors.text.inverse,
     fontWeight: typography.weights.bold,
   },
+
+  /* Empty State */
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -550,103 +832,35 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
 
-  /* Hero Card Styles */
-  heroCard: {
+  /* Skeleton Loading Styles */
+  skeletonCard: {
     backgroundColor: colors.neutral.surface,
-    borderColor: colors.brand.primary,
-    borderWidth: 2,
-    borderLeftWidth: 6,
-    borderLeftColor: colors.brand.primary,
     borderRadius: borderRadius.lg,
     padding: spacing.base,
-    marginBottom: spacing.base,
-    ...shadows.md,
-  },
-  heroHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  heroBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 2,
-  },
-  liveIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
     borderWidth: 1,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: borderRadius.xs,
-    gap: 4,
-  },
-  livePulse: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.brand.primary,
-  },
-  heroHeaderTag: {
-    fontSize: 9,
-    fontWeight: typography.weights.bold,
-    color: colors.brand.primary,
-    letterSpacing: 0.5,
-  },
-  heroInspectionId: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.bold,
-    color: colors.text.muted,
-  },
-  heroProjectName: {
-    fontSize: typography.sizes.md + 2,
-    fontWeight: typography.weights.bold,
-    color: colors.brand.navy,
-    marginVertical: 4,
-  },
-  heroMetaGrid: {
-    flexDirection: 'row',
-    backgroundColor: colors.neutral.surfaceSubtle,
-    borderRadius: borderRadius.sm,
-    padding: spacing.sm,
-    marginVertical: spacing.xs,
-    gap: 12,
-    flexWrap: 'wrap',
-  },
-  heroMetaItem: {
-    minWidth: '28%',
-    flex: 1,
-  },
-  heroMetaLabel: {
-    fontSize: 9,
-    textTransform: 'uppercase',
-    color: colors.text.muted,
-    marginBottom: 2,
-  },
-  heroMetaValue: {
-    fontSize: typography.sizes.xs,
-    fontWeight: typography.weights.semibold,
-    color: colors.text.primary,
-  },
-  heroAddressRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginTop: 4,
+    borderColor: colors.neutral.border,
     marginBottom: spacing.md,
-    gap: 4,
   },
-  heroAddressText: {
-    fontSize: typography.sizes.xs,
-    color: colors.text.muted,
-    flex: 1,
-    lineHeight: 16,
+  skeletonLine: {
+    backgroundColor: colors.neutral.border,
+    borderRadius: borderRadius.xs,
   },
-  heroActionRow: {
-    marginTop: 2,
+  skeletonCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.neutral.border,
+  },
+  skeletonBox: {
+    backgroundColor: colors.neutral.border,
+    borderRadius: borderRadius.sm,
+  },
+  skeletonStatBox: {
+    height: 100,
+    backgroundColor: colors.neutral.surface,
+    borderColor: colors.neutral.border,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.md,
   },
 });

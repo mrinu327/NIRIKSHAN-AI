@@ -2,10 +2,11 @@
  * MorePlaceholderScreen
  * MoSJE Official - System Profile, Guidelines, and Settings
  * Central oversight credentials and national platform architecture.
+ * Fully responsive for mobile and desktop viewports.
  */
 
 import React, { useEffect, useRef } from 'react';
-import { View, Text, ScrollView, StyleSheet, StatusBar, Animated } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, StatusBar, Animated, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../components/common/AppHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
@@ -17,6 +18,8 @@ import { spacing, borderRadius, shadows } from '../../theme/spacing';
 
 export const MorePlaceholderScreen: React.FC = () => {
   const { currentUser, switchRole } = useAuth();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 900;
 
   // Entrance animation
   const screenFade = useRef(new Animated.Value(0)).current;
@@ -62,7 +65,10 @@ export const MorePlaceholderScreen: React.FC = () => {
           },
         ]}
       >
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[styles.content, isDesktop && styles.contentDesktop]}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Official Profile & Credentials Card */}
           <View style={styles.profileCard}>
             <View style={styles.credentialsBadge}>
@@ -72,7 +78,7 @@ export const MorePlaceholderScreen: React.FC = () => {
 
             <View style={styles.profileMainRow}>
               <View style={styles.avatar}>
-                <Ionicons name="person" size={26} color={colors.text.inverse} />
+                <Ionicons name="person" size={24} color={colors.text.inverse} />
               </View>
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>{officerName}</Text>
@@ -113,6 +119,8 @@ export const MorePlaceholderScreen: React.FC = () => {
               </View>
             </View>
 
+            <View style={styles.divider} />
+
             <View style={styles.roadmapItem}>
               <View style={[styles.stepDot, { backgroundColor: colors.brand.primary }]} />
               <View style={styles.stepContent}>
@@ -122,6 +130,8 @@ export const MorePlaceholderScreen: React.FC = () => {
                 </Text>
               </View>
             </View>
+
+            <View style={styles.divider} />
 
             <View style={styles.roadmapItem}>
               <View style={[styles.stepDot, { backgroundColor: colors.status.warning }]} />
@@ -134,12 +144,14 @@ export const MorePlaceholderScreen: React.FC = () => {
             </View>
           </View>
 
-          <PrimaryButton
-            title="Switch User Workspace / Role"
-            onPress={switchRole}
-            iconName="swap-horizontal"
-            style={{ marginTop: spacing.lg }}
-          />
+          <View style={styles.actionContainer}>
+            <PrimaryButton
+              title="Switch User Workspace / Role"
+              onPress={switchRole}
+              iconName="swap-horizontal"
+              style={styles.switchButton}
+            />
+          </View>
         </ScrollView>
       </Animated.View>
     </View>
@@ -156,10 +168,12 @@ const styles = StyleSheet.create({
   },
   content: {
     width: '100%',
-    maxWidth: 1200,
-    alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xxxl + 24,
+  },
+  contentDesktop: {
+    maxWidth: 780,
+    alignSelf: 'center',
   },
   profileCard: {
     backgroundColor: colors.neutral.surface,
@@ -192,9 +206,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: colors.brand.navy,
     alignItems: 'center',
     justifyContent: 'center',
@@ -205,15 +219,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
-    fontSize: typography.sizes.md,
+    fontSize: typography.sizes.md + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   profileDesignation: {
-    fontSize: typography.sizes.sm,
+    fontSize: typography.sizes.xs + 1,
     color: colors.brand.primary,
     fontWeight: typography.weights.medium,
-    marginTop: 1,
+    marginTop: 2,
   },
   profileOrg: {
     fontSize: typography.sizes.xs,
@@ -251,12 +265,13 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     borderWidth: 1,
     borderColor: colors.neutral.border,
+    marginBottom: spacing.md,
     ...shadows.xs,
   },
   roadmapItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: spacing.md,
+    paddingVertical: spacing.xs,
   },
   stepDot: {
     width: 10,
@@ -276,8 +291,20 @@ const styles = StyleSheet.create({
   stepDesc: {
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
-    marginTop: 2,
-    lineHeight: 17,
+    marginTop: 3,
+    lineHeight: 18,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.neutral.border,
+    marginVertical: spacing.sm,
+  },
+  actionContainer: {
+    marginTop: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  switchButton: {
+    backgroundColor: colors.brand.primary,
+    minHeight: 48,
   },
 });
-
