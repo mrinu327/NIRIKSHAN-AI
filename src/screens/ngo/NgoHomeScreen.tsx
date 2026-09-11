@@ -6,7 +6,7 @@
  * submission state, CCTV edge telemetry notice, and verified MoSJE registry records.
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,19 +18,27 @@ import {
   Animated,
   useWindowDimensions,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { NgoTabNavigationProp } from '../../types/navigation';
 import { StatCard } from '../../components/common/StatCard';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { AttendanceCard } from '../../components/cards/AttendanceCard';
+import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { mockAttendanceService } from '../../services/mock/mockAttendanceService';
+import { mockNgoService } from '../../services/mock/mockNgoService';
+import { mockCCTVService } from '../../services/mock/mockCCTVService';
 import { AttendanceSummary } from '../../types/attendance';
+import { NgoComplianceStatus, SurpriseVideoCallSession } from '../../types/ngo';
+import { SurpriseVideoCallModal } from './SurpriseVideoCallModal';
 import { colors } from '../../theme/colors';
 import { spacing, borderRadius, shadows } from '../../theme/spacing';
 import { typography } from '../../theme/typography';
 
 export const NgoHomeScreen: React.FC = () => {
+  const navigation = useNavigation<NgoTabNavigationProp<'Home'>>();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isNarrow = width < 360;
@@ -40,6 +48,9 @@ export const NgoHomeScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [summary, setSummary] = useState<AttendanceSummary | null>(null);
+  const [compliance, setCompliance] = useState<NgoComplianceStatus | null>(null);
+  const [incomingVc, setIncomingVc] = useState<SurpriseVideoCallSession | null>(null);
+  const [vcModalVisible, setVcModalVisible] = useState(false);
 
   // Motion values
   const screenFade = useRef(new Animated.Value(0)).current;
@@ -68,21 +79,41 @@ export const NgoHomeScreen: React.FC = () => {
     }
   }, [loading]);
 
-  const loadNgoData = async () => {
+  const loadNgoData = useCallback(async () => {
     try {
-      const summaryData = await mockAttendanceService.getTodaySummary();
+      const [summaryData, complianceData, vcData] = await Promise.all([
+        mockAttendanceService.getTodaySummary('PRJ-101'),
+        mockNgoService.getComplianceStatus('PRJ-101'),
+        mockNgoService.getIncomingSurpriseVideoCall(),
+      ]);
       setSummary(summaryData);
+      setCompliance(complianceData);
+      setIncomingVc(vcData);
     } catch (error) {
       console.error('Error loading NGO dashboard:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadNgoData();
-  }, []);
+    const unsubFocus = navigation.addListener('focus', () => {
+      loadNgoData();
+    });
+    const unsubAttendance = mockAttendanceService.subscribe(() => {
+      loadNgoData();
+    });
+    const unsubNgo = mockNgoService.subscribe(() => {
+      loadNgoData();
+    });
+    return () => {
+      unsubFocus();
+      unsubAttendance();
+      unsubNgo();
+    };
+  }, [navigation, loadNgoData]);
 
   useEffect(() => {
     if (!loading && summary) {
@@ -208,6 +239,26 @@ export const NgoHomeScreen: React.FC = () => {
           }
         >
           <Animated.View style={{ opacity: screenFade, transform: [{ translateY: screenSlide }] }}>
+            {/* Incoming Surprise Video-Call Alert Banner */}
+            {incomingVc && incomingVc.status === 'REQUESTED' && (
+              <TouchableOpacity
+                style={styles.vcAlertBanner}
+                onPress={() => setVcModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.vcAlertIcon}>
+                  <Ionicons name="videocam" size={20} color={colors.text.inverse} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.vcAlertTitle}>Surprise Video Verification Request</Text>
+                  <Text style={styles.vcAlertSub}>
+                    {incomingVc.officerName} ({incomingVc.officerTitle}) • Tap to open simulated verification
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.brand.primary} />
+              </TouchableOpacity>
+            )}
+
             {/* Summary Stat Cards */}
             <SectionHeader
               title="Facility Monitoring Summary"
@@ -217,36 +268,81 @@ export const NgoHomeScreen: React.FC = () => {
             <View style={styles.statsGrid}>
               <StatCard
                 label="Today's Attendance"
-                value={`${summary?.todayPresent ?? 42}/${summary?.todayCapacity ?? 50}`}
+                value={summary ? `${summary.todayPresent}/${summary.todayCapacity}` : '—'}
                 iconName="people"
                 variant="normal"
-                subtitle="84% turnout"
+                subtitle={`${summary && summary.todayCapacity > 0 ? Math.round((summary.todayPresent / summary.todayCapacity) * 100) : 0}% turnout`}
+                onPress={() => navigation.navigate('Attendance')}
                 style={[styles.statGridItem, { width: statItemWidth }]}
               />
               <StatCard
                 label="Submission Status"
-                value={summary?.submissionStatus ?? 'Submitted'}
+                value={summary?.submissionStatus ?? 'Pending'}
                 iconName="checkmark-circle"
-                variant="normal"
-                subtitle="09:28 AM on time"
+                variant={summary?.submissionStatus === 'Submitted' ? 'normal' : 'warning'}
+                subtitle={summary?.lastSubmittedTime ? `${summary.lastSubmittedTime}` : 'Not submitted yet'}
+                onPress={() => navigation.navigate('Attendance')}
                 style={[styles.statGridItem, { width: statItemWidth }]}
               />
               <StatCard
                 label="Pending Requests"
-                value="1"
+                value={compliance?.unresolvedRequestsCount ?? 0}
                 iconName="mail"
-                variant="warning"
-                subtitle="Audit clarification"
+                variant={compliance && compliance.unresolvedRequestsCount > 0 ? 'warning' : 'normal'}
+                subtitle={compliance && compliance.unresolvedRequestsCount > 0 ? 'Audit clarification' : 'All clear'}
+                onPress={() => navigation.navigate('Requests')}
                 style={[styles.statGridItem, { width: statItemWidth }]}
               />
               <StatCard
-                label="Project Status"
-                value="Active"
+                label="Compliance Index"
+                value={compliance ? `${compliance.complianceScore}/100` : '—'}
                 iconName="shield-checkmark"
-                variant="primary"
-                subtitle="MoSJE Registered"
+                variant={compliance && compliance.complianceScore >= 80 ? 'normal' : 'warning'}
+                subtitle="DDRS Scheme Score"
+                onPress={() => navigation.navigate('Status')}
                 style={[styles.statGridItem, { width: statItemWidth }]}
               />
+            </View>
+
+            {/* Quick Actions Strip */}
+            <View style={styles.actionStrip}>
+              <TouchableOpacity
+                style={styles.actionPill}
+                onPress={() => navigation.navigate('Attendance')}
+                activeOpacity={0.75}
+              >
+                <Ionicons name="create-outline" size={14} color={colors.brand.primary} />
+                <Text style={styles.actionPillText}>Update Attendance</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionPill}
+                onPress={() => navigation.navigate('Attendance')}
+                activeOpacity={0.75}
+              >
+                <Ionicons name="people-outline" size={14} color={colors.brand.primary} />
+                <Text style={styles.actionPillText}>Beneficiary Roster</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionPill}
+                onPress={() => navigation.navigate('Requests')}
+                activeOpacity={0.75}
+              >
+                <Ionicons name="chatbubbles-outline" size={14} color={colors.brand.primary} />
+                <Text style={styles.actionPillText}>Inquiries ({compliance?.unresolvedRequestsCount ?? 0})</Text>
+              </TouchableOpacity>
+
+              {incomingVc && (
+                <TouchableOpacity
+                  style={[styles.actionPill, styles.actionPillVc]}
+                  onPress={() => setVcModalVisible(true)}
+                  activeOpacity={0.75}
+                >
+                  <Ionicons name="videocam" size={14} color={colors.status.highPriority} />
+                  <Text style={[styles.actionPillText, { color: colors.status.highPriority }]}>Surprise VC</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Dedicated Attendance Card */}
@@ -263,20 +359,61 @@ export const NgoHomeScreen: React.FC = () => {
             )}
 
             {/* Compliance & CCTV Health Banner */}
-            <View style={styles.complianceCard}>
+            <View
+              style={[
+                styles.complianceCard,
+                {
+                  borderLeftColor:
+                    compliance && compliance.variance > 10 ? colors.status.warning : colors.status.normal,
+                },
+              ]}
+            >
               <View style={styles.complianceHeader}>
-                <View style={styles.complianceIconBadge}>
-                  <Ionicons name="videocam" size={16} color={colors.status.warning} />
+                <View
+                  style={[
+                    styles.complianceIconBadge,
+                    {
+                      backgroundColor:
+                        compliance && compliance.variance > 10
+                          ? colors.status.warningLight
+                          : colors.status.normalLight,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="videocam"
+                    size={16}
+                    color={
+                      compliance && compliance.variance > 10
+                        ? colors.status.warning
+                        : colors.status.normal
+                    }
+                  />
                 </View>
-                <Text style={styles.complianceTitle}>CCTV Feed Telemetry Status</Text>
+                <Text style={styles.complianceTitle}>
+                  CCTV Feed Telemetry Status ({compliance?.cctvStatus || 'Online'})
+                </Text>
               </View>
               <Text style={styles.complianceDesc}>
-                Stream is active. System detected a temporary headcount variance (25 estimated vs 42 submitted). A routine PMU verification has been scheduled.
+                {compliance && compliance.variance > 0
+                  ? `Stream is active. System detected a headcount variance (${compliance.cctvEstimatedCount} estimated vs ${summary?.todayPresent ?? 0} submitted in morning roll-call). PMU verification active.`
+                  : `Stream is active. Telemetry headcount matches current on-site enrollment (${summary?.todayPresent ?? 0} present). Operational telemetry compliant.`}
               </Text>
             </View>
           </Animated.View>
         </ScrollView>
       )}
+
+      {/* Surprise Video-Call Verification Modal */}
+      <SurpriseVideoCallModal
+        visible={vcModalVisible}
+        session={incomingVc}
+        onClose={() => setVcModalVisible(false)}
+        onSuccess={() => {
+          setVcModalVisible(false);
+          loadNgoData();
+        }}
+      />
     </View>
   );
 };
@@ -437,6 +574,66 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     lineHeight: 18,
+  },
+
+  // Surprise Video Call Alert Banner
+  vcAlertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FCA5A5',
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+    ...shadows.xs,
+  },
+  vcAlertIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.status.highPriority,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vcAlertTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    color: colors.status.highPriority,
+  },
+  vcAlertSub: {
+    fontSize: typography.sizes.xs - 1,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+
+  // Action Strip
+  actionStrip: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginBottom: spacing.md,
+  },
+  actionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.brand.primaryLight,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.brand.primary + '30',
+    gap: 4,
+  },
+  actionPillText: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+    color: colors.brand.primary,
+  },
+  actionPillVc: {
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FCA5A5',
   },
 
   // Skeleton Styles

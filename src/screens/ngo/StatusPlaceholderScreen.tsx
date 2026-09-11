@@ -4,9 +4,10 @@
  *
  * Institute Compliance Index & Systems Telemetry Register.
  * Displays institutional DDRS verification status and connected edge telemetry health.
+ * All metrics dynamically derived from mockNgoService and mockAttendanceService.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -21,7 +22,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { SectionHeader } from '../../components/common/SectionHeader';
-import { SUNRISE_ATTENDANCE } from '../../data/mockData';
+import { mockNgoService } from '../../services/mock/mockNgoService';
+import { mockAttendanceService } from '../../services/mock/mockAttendanceService';
+import { mockCCTVService } from '../../services/mock/mockCCTVService';
+import { NgoComplianceStatus } from '../../types/ngo';
+import { AttendanceSummary } from '../../types/attendance';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, borderRadius, shadows } from '../../theme/spacing';
@@ -31,24 +36,62 @@ export const StatusPlaceholderScreen: React.FC = () => {
   const { width } = useWindowDimensions();
   const { currentRole, switchRole } = useAuth();
 
+  const [compliance, setCompliance] = useState<NgoComplianceStatus | null>(null);
+  const [summary, setSummary] = useState<AttendanceSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+
   // Motion values
   const screenFade = useRef(new Animated.Value(0)).current;
   const screenSlide = useRef(new Animated.Value(12)).current;
 
+  const loadData = async () => {
+    try {
+      const [compData, sumData] = await Promise.all([
+        mockNgoService.getComplianceStatus(),
+        mockAttendanceService.getTodaySummary(),
+      ]);
+      setCompliance(compData);
+      setSummary(sumData);
+    } catch (err) {
+      console.error('Error loading compliance status:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(screenFade, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(screenSlide, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    loadData();
+
+    // Re-derive metrics whenever attendance or official requests change
+    const unsubNgo = mockNgoService.subscribe(() => {
+      loadData();
+    });
+    const unsubAtt = mockAttendanceService.subscribe(() => {
+      loadData();
+    });
+
+    return () => {
+      unsubNgo();
+      unsubAtt();
+    };
   }, []);
+
+  useEffect(() => {
+    if (!loading && compliance) {
+      Animated.parallel([
+        Animated.timing(screenFade, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(screenSlide, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [loading, compliance]);
 
   const getRoleLabel = () => {
     switch (currentRole) {
@@ -62,6 +105,9 @@ export const StatusPlaceholderScreen: React.FC = () => {
         return 'MoSJE Portal';
     }
   };
+
+  const isGoodStanding = compliance && compliance.complianceScore >= 80;
+  const hasVariance = compliance && compliance.variance > 0;
 
   return (
     <View style={styles.container}>
@@ -113,32 +159,121 @@ export const StatusPlaceholderScreen: React.FC = () => {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Animated.View style={{ opacity: screenFade, transform: [{ translateY: screenSlide }] }}>
           {/* Primary Compliance Area */}
-          <View style={styles.scoreCard}>
+          <View
+            style={[
+              styles.scoreCard,
+              { borderLeftColor: isGoodStanding ? colors.status.normal : colors.status.warning },
+            ]}
+          >
             <View style={styles.scoreHeaderRow}>
               <Text style={styles.scoreLabel}>INSTITUTE COMPLIANCE INDEX</Text>
-              <View style={styles.scoreBadge}>
-                <Ionicons name="alert-circle" size={14} color={colors.status.warning} />
-                <Text style={styles.scoreStatus}>Notice: Attention Required</Text>
+              <View
+                style={[
+                  styles.scoreBadge,
+                  {
+                    backgroundColor: isGoodStanding
+                      ? 'rgba(30, 142, 90, 0.1)'
+                      : colors.status.warningLight,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={isGoodStanding ? 'checkmark-circle' : 'alert-circle'}
+                  size={14}
+                  color={isGoodStanding ? colors.status.normal : colors.status.warning}
+                />
+                <Text
+                  style={[
+                    styles.scoreStatus,
+                    { color: isGoodStanding ? colors.status.normal : colors.status.warning },
+                  ]}
+                >
+                  {isGoodStanding ? 'Good Standing' : 'Notice: Attention Required'}
+                </Text>
               </View>
             </View>
 
-            <Text style={styles.scoreValue}>71 / 100</Text>
+            <Text style={styles.scoreValue}>
+              {compliance ? `${compliance.complianceScore} / 100` : '—'}
+            </Text>
 
             {/* Headcount Variance Exception Panel */}
             <View style={styles.variancePanel}>
               <View style={styles.varianceHeader}>
-                <Ionicons name="information-circle" size={16} color={colors.status.warning} />
+                <Ionicons
+                  name={hasVariance ? 'information-circle' : 'shield-checkmark'}
+                  size={16}
+                  color={hasVariance ? colors.status.warning : colors.status.normal}
+                />
               </View>
               <Text style={styles.scoreDesc}>
-                Variance flagged between camera estimate (25) and morning attendance ({SUNRISE_ATTENDANCE.currentSubmittedAttendance}/{SUNRISE_ATTENDANCE.totalBeneficiaries}). Pending inspector verification.
+                {hasVariance && compliance
+                  ? `Variance flagged between camera estimate (${compliance.cctvEstimatedCount}) and morning attendance (${compliance.reportedCount}/${compliance.capacity}). ${
+                      compliance.unresolvedRequestsCount > 0
+                        ? 'Official inquiry notice pending response in Inquiries tab.'
+                        : 'Pending physical inspection verification.'
+                    }`
+                  : `Camera telemetry estimate (${compliance?.cctvEstimatedCount ?? 0}) and morning attendance (${compliance?.reportedCount ?? 0}/${compliance?.capacity ?? 0}) are fully aligned. Zero telemetry discrepancy detected.`}
               </Text>
             </View>
+
+            {/* Metric Breakdown Grid */}
+            {compliance && (
+              <View style={styles.breakdownGrid}>
+                <View style={styles.breakdownCol}>
+                  <Text style={styles.breakdownColLbl}>Attendance Rate</Text>
+                  <Text style={styles.breakdownColVal}>{compliance.attendanceRate}%</Text>
+                  <Text style={styles.breakdownColSub}>
+                    {compliance.reportedCount}/{compliance.capacity} Enrolled
+                  </Text>
+                </View>
+
+                <View style={styles.breakdownColDivider} />
+
+                <View style={styles.breakdownCol}>
+                  <Text style={styles.breakdownColLbl}>CCTV Estimate</Text>
+                  <Text
+                    style={[
+                      styles.breakdownColVal,
+                      { color: hasVariance ? colors.status.warning : colors.status.normal },
+                    ]}
+                  >
+                    {compliance.cctvEstimatedCount} Headcount
+                  </Text>
+                  <Text style={styles.breakdownColSub}>
+                    {hasVariance ? `Variance: -${compliance.variance}` : 'Synchronized'}
+                  </Text>
+                </View>
+
+                <View style={styles.breakdownColDivider} />
+
+                <View style={styles.breakdownCol}>
+                  <Text style={styles.breakdownColLbl}>Official Inquiries</Text>
+                  <Text
+                    style={[
+                      styles.breakdownColVal,
+                      {
+                        color:
+                          compliance.unresolvedRequestsCount > 0
+                            ? colors.status.warning
+                            : colors.status.normal,
+                      },
+                    ]}
+                  >
+                    {compliance.unresolvedRequestsCount} Pending
+                  </Text>
+                  <Text style={styles.breakdownColSub}>
+                    {compliance.unresolvedRequestsCount > 0 ? 'Action Required' : 'All Clear'}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* Telemetry Subsystems Register */}
           <SectionHeader
             title="Telemetry Subsystems"
-            subtitle="Real-time monitoring health metrics"
+            subtitle="Real-time monitoring health metrics & hardware sync status"
           />
 
           <View style={styles.subsystemCard}>
@@ -149,7 +284,9 @@ export const StatusPlaceholderScreen: React.FC = () => {
               </View>
               <View style={styles.itemInfo}>
                 <Text style={styles.itemTitle}>Biometric Terminal</Text>
-                <Text style={styles.itemSub}>Device #BIO-01 • Synced 09:30 AM</Text>
+                <Text style={styles.itemSub}>
+                  Device #BIO-01 • Synced at {summary?.lastSubmittedTime ?? '09:30 AM'}
+                </Text>
               </View>
               <View style={[styles.statusPill, styles.pillNormal]}>
                 <Ionicons name="checkmark-circle" size={12} color={colors.status.normal} />
@@ -161,16 +298,46 @@ export const StatusPlaceholderScreen: React.FC = () => {
 
             {/* Subsystem 2: CCTV Edge Stream */}
             <View style={styles.itemRow}>
-              <View style={[styles.itemIconBadge, styles.iconWarning]}>
-                <Ionicons name="videocam" size={18} color={colors.status.warning} />
+              <View
+                style={[
+                  styles.itemIconBadge,
+                  hasVariance ? styles.iconWarning : styles.iconNormal,
+                ]}
+              >
+                <Ionicons
+                  name="videocam"
+                  size={18}
+                  color={hasVariance ? colors.status.warning : colors.status.normal}
+                />
               </View>
               <View style={styles.itemInfo}>
                 <Text style={styles.itemTitle}>CCTV Edge Stream</Text>
-                <Text style={styles.itemSub}>Channel 1 (Main Hall) • Discrepancy logged</Text>
+                <Text style={styles.itemSub}>
+                  Channel 1 (Main Hall) •{' '}
+                  {hasVariance
+                    ? `Discrepancy logged (${compliance?.cctvEstimatedCount} est vs ${compliance?.reportedCount} att)`
+                    : 'Stream live & synchronized'}
+                </Text>
               </View>
-              <View style={[styles.statusPill, styles.pillWarning]}>
-                <Ionicons name="alert-circle" size={12} color={colors.status.warning} />
-                <Text style={[styles.itemStatus, { color: colors.status.warning }]}>Flagged</Text>
+              <View
+                style={[
+                  styles.statusPill,
+                  hasVariance ? styles.pillWarning : styles.pillNormal,
+                ]}
+              >
+                <Ionicons
+                  name={hasVariance ? 'alert-circle' : 'checkmark-circle'}
+                  size={12}
+                  color={hasVariance ? colors.status.warning : colors.status.normal}
+                />
+                <Text
+                  style={[
+                    styles.itemStatus,
+                    { color: hasVariance ? colors.status.warning : colors.status.normal },
+                  ]}
+                >
+                  {hasVariance ? 'Flagged' : 'Online'}
+                </Text>
               </View>
             </View>
 
@@ -183,7 +350,9 @@ export const StatusPlaceholderScreen: React.FC = () => {
               </View>
               <View style={styles.itemInfo}>
                 <Text style={styles.itemTitle}>Quarterly Audits</Text>
-                <Text style={styles.itemSub}>Last verified 12 Jan 2026</Text>
+                <Text style={styles.itemSub}>
+                  PMU Central Standing • Last verified {compliance?.lastAuditedDate ?? '12 Jan 2026'}
+                </Text>
               </View>
               <View style={[styles.statusPill, styles.pillNormal]}>
                 <Ionicons name="checkmark-circle" size={12} color={colors.status.normal} />
@@ -337,7 +506,6 @@ const styles = StyleSheet.create({
   scoreBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.status.warningLight,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: borderRadius.xs,
@@ -346,7 +514,6 @@ const styles = StyleSheet.create({
   scoreStatus: {
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
-    color: colors.status.warning,
   },
   scoreValue: {
     fontSize: typography.sizes.display,
@@ -364,6 +531,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral.border,
     padding: spacing.md,
+    marginBottom: spacing.md,
   },
   varianceHeader: {
     flexDirection: 'row',
@@ -375,6 +543,44 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     lineHeight: 18,
+  },
+
+  // Metric Breakdown
+  breakdownGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+  },
+  breakdownCol: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  breakdownColLbl: {
+    fontSize: 10,
+    fontWeight: typography.weights.medium,
+    color: colors.text.muted,
+    marginBottom: 2,
+  },
+  breakdownColVal: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+  },
+  breakdownColSub: {
+    fontSize: 10,
+    color: colors.text.muted,
+    marginTop: 2,
+  },
+  breakdownColDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: colors.neutral.border,
   },
 
   // Structured Telemetry Subsystems Card

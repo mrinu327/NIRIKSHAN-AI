@@ -4,10 +4,10 @@
  *
  * Institute Profile & Authorized Signatory Record.
  * Displays authorized representative credentials, registered facility details,
- * and DDRS scheme information under MoSJE.
+ * verified telemetry devices, and DDRS scheme information under MoSJE.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -22,8 +22,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { SecondaryButton } from '../../components/common/SecondaryButton';
 import { useAuth } from '../../context/AuthContext';
-import { SUNRISE_ATTENDANCE } from '../../data/mockData';
+import { mockAttendanceService } from '../../services/mock/mockAttendanceService';
+import { AttendanceSummary } from '../../types/attendance';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, borderRadius, shadows } from '../../theme/spacing';
@@ -31,7 +33,10 @@ import { spacing, borderRadius, shadows } from '../../theme/spacing';
 export const ProfilePlaceholderScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { currentRole, currentUser, switchRole } = useAuth();
+  const { currentRole, currentUser, switchRole, logout, resetDemoData } = useAuth();
+
+  const [summary, setSummary] = useState<AttendanceSummary | null>(null);
+  const [resetNotice, setResetNotice] = useState<string | null>(null);
 
   // Motion values
   const screenFade = useRef(new Animated.Value(0)).current;
@@ -40,7 +45,22 @@ export const ProfilePlaceholderScreen: React.FC = () => {
     new Animated.Value(0),
     new Animated.Value(0),
     new Animated.Value(0),
+    new Animated.Value(0),
   ]).current;
+
+  useEffect(() => {
+    mockAttendanceService.getTodaySummary().then((data) => {
+      setSummary(data);
+    });
+
+    const unsub = mockAttendanceService.subscribe(() => {
+      mockAttendanceService.getTodaySummary().then((data) => {
+        setSummary(data);
+      });
+    });
+
+    return unsub;
+  }, []);
 
   useEffect(() => {
     Animated.parallel([
@@ -83,14 +103,16 @@ export const ProfilePlaceholderScreen: React.FC = () => {
   // Presentation-only cleanup of development wording while preserving underlying values
   const displayName = currentUser?.name
     ? currentUser.name.replace('Demo ', '')
-    : 'Institute Representative';
+    : 'Dr. Rajesh Sharma';
   const displayDesignation = currentUser?.designation
     ? currentUser.designation.replace(' (Demo)', '').replace('Demo ', '')
-    : 'Centre Administrator';
+    : 'Centre Administrator & Medical Officer';
   const displayOrg = currentUser?.organization
     ? currentUser.organization.replace(' (Demo)', '')
     : 'Sunrise Rehabilitation Centre';
   const displayBadgeId = (currentUser?.badgeId || 'NGO-003').replace('DEMO-', '');
+
+  const totalCapacity = summary?.todayCapacity ?? 50;
 
   return (
     <View style={styles.container}>
@@ -205,7 +227,9 @@ export const ProfilePlaceholderScreen: React.FC = () => {
               </View>
               <View style={styles.detailTextContainer}>
                 <Text style={styles.detailLabel}>Facility Address:</Text>
-                <Text style={styles.detailValue}>Plot 42, Institutional Area, Sector 14, Rohini, New Delhi</Text>
+                <Text style={styles.detailValue}>
+                  Plot 42, Institutional Area, Sector 14, Rohini, New Delhi - 110085
+                </Text>
               </View>
             </View>
 
@@ -218,7 +242,7 @@ export const ProfilePlaceholderScreen: React.FC = () => {
               </View>
               <View style={styles.detailTextContainer}>
                 <Text style={styles.detailLabel}>Sanctioned Beneficiary Capacity:</Text>
-                <Text style={styles.detailValue}>{SUNRISE_ATTENDANCE.totalBeneficiaries} In-house Residents</Text>
+                <Text style={styles.detailValue}>{totalCapacity} In-house Residents (DDRS Approved)</Text>
               </View>
             </View>
 
@@ -236,13 +260,62 @@ export const ProfilePlaceholderScreen: React.FC = () => {
             </View>
           </Animated.View>
 
-          {/* Role Switching Action */}
+          {/* Section: Verified Telemetry Hardware */}
+          <SectionHeader
+            title="Connected Hardware"
+            subtitle="Registered edge devices transmitting telemetry to MoSJE"
+          />
+
+          <Animated.View
+            style={[
+              styles.infoCard,
+              {
+                opacity: cardAnims[2],
+                transform: [
+                  {
+                    translateY: cardAnims[2].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [12, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <View style={styles.detailRow}>
+              <View style={styles.detailIconBox}>
+                <Ionicons name="finger-print-outline" size={16} color={colors.brand.primary} />
+              </View>
+              <View style={styles.detailTextContainer}>
+                <Text style={styles.detailLabel}>Biometric Terminal #BIO-01:</Text>
+                <Text style={styles.detailValue}>
+                  UIDAI / Aadhaar enabled dual Iris & Optical Fingerprint Scanner (Online)
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.detailRow}>
+              <View style={styles.detailIconBox}>
+                <Ionicons name="videocam-outline" size={16} color={colors.brand.primary} />
+              </View>
+              <View style={styles.detailTextContainer}>
+                <Text style={styles.detailLabel}>CCTV Edge Gateway #CAM-01:</Text>
+                <Text style={styles.detailValue}>
+                  Channel 1 (Main Entrance & Activity Hall) • 1080p RTSP Stream Active
+                </Text>
+              </View>
+            </View>
+          </Animated.View>
+
+          {/* Role Switching & Account Actions */}
           <Animated.View
             style={{
-              opacity: cardAnims[2],
+              opacity: cardAnims[3],
               transform: [
                 {
-                  translateY: cardAnims[2].interpolate({
+                  translateY: cardAnims[3].interpolate({
                     inputRange: [0, 1],
                     outputRange: [12, 0],
                   }),
@@ -250,13 +323,57 @@ export const ProfilePlaceholderScreen: React.FC = () => {
               ],
             }}
           >
-            <PrimaryButton
-              title="Switch Role"
-              onPress={switchRole}
-              iconName="swap-horizontal"
-              style={styles.switchActionButton}
+            {resetNotice ? (
+              <View style={styles.resetNoticeBox}>
+                <Ionicons name="checkmark-circle" size={15} color={colors.status.normal} />
+                <Text style={styles.resetNoticeText}>{resetNotice}</Text>
+              </View>
+            ) : null}
+
+            <Text style={styles.actionSectionLabel}>DEMO ROLE NAVIGATION</Text>
+            <View style={styles.switchButtonsRow}>
+              <TouchableOpacity
+                style={styles.roleSwitchBtn}
+                onPress={() => switchRole('official')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="shield-checkmark-outline" size={15} color={colors.brand.primary} />
+                <Text style={styles.roleSwitchBtnText}>Switch to Official</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.roleSwitchBtn}
+                onPress={() => switchRole('inspector')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="clipboard-outline" size={15} color={colors.brand.primary} />
+                <Text style={styles.roleSwitchBtnText}>Switch to Inspector</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ height: 12 }} />
+
+            <SecondaryButton
+              title="Reset Demo Data"
+              iconName="refresh-outline"
+              onPress={async () => {
+                await resetDemoData();
+                setResetNotice('Demo datasets restored to initial state (42/50 attendance, 25 CCTV, ALT-2601 active).');
+                setTimeout(() => setResetNotice(null), 4000);
+              }}
+              style={styles.actionButtonSecondary}
+            />
+
+            <View style={{ height: 8 }} />
+
+            <SecondaryButton
+              title="Logout / Exit Workspace"
+              iconName="log-out-outline"
+              onPress={() => logout()}
+              style={styles.actionButtonSecondary}
             />
           </Animated.View>
+
         </Animated.View>
       </ScrollView>
     </View>
@@ -488,4 +605,55 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     minHeight: 48,
   },
+  resetNoticeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
+    gap: 8,
+  },
+  resetNoticeText: {
+    fontSize: typography.sizes.xs,
+    color: '#065F46',
+    fontWeight: typography.weights.medium,
+    flex: 1,
+  },
+  actionSectionLabel: {
+    fontSize: 11,
+    fontWeight: typography.weights.bold,
+    color: colors.text.muted,
+    letterSpacing: 0.6,
+    marginBottom: spacing.xs + 2,
+  },
+  switchButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  roleSwitchBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.neutral.surface,
+    borderWidth: 1,
+    borderColor: colors.brand.primary,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.sm,
+    gap: 6,
+    ...shadows.xs,
+  },
+  roleSwitchBtnText: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.semibold,
+    color: colors.brand.navyDark,
+  },
+  actionButtonSecondary: {
+    width: '100%',
+  },
 });
+
