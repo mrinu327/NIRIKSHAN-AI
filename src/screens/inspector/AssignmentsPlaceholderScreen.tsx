@@ -45,6 +45,8 @@ export const AssignmentsPlaceholderScreen: React.FC = () => {
   const activeOfficerId = currentUser?.id || 'USR-INSP-DEMO-004';
   const activeBadgeId = currentUser?.badgeId || 'PMU-DEMO-004';
 
+  type FilterType = 'ALL' | 'TODAY' | 'PENDING' | 'COMPLETED' | 'SURPRISE';
+  const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
   const [assignments, setAssignments] = useState<InspectionAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -228,6 +230,33 @@ export const AssignmentsPlaceholderScreen: React.FC = () => {
     );
   }
 
+  // Filtered assignments calculation
+  const filteredAssignments = assignments.filter((a) => {
+    switch (activeFilter) {
+      case 'TODAY':
+        return (
+          a.dueDate.toLowerCase().includes('today') ||
+          a.assignedDate.toLowerCase().includes('today')
+        );
+      case 'PENDING':
+        return (
+          a.status === 'Assigned' ||
+          a.status === 'In Progress' ||
+          a.status === 'Accepted / Acknowledged'
+        );
+      case 'COMPLETED':
+        return (
+          a.status === 'Completed' ||
+          a.status === 'Submitted / Awaiting Review'
+        );
+      case 'SURPRISE':
+        return a.type === 'Surprise Inspection' || Boolean(a.isSurprise);
+      case 'ALL':
+      default:
+        return true;
+    }
+  });
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
@@ -272,10 +301,79 @@ export const AssignmentsPlaceholderScreen: React.FC = () => {
           <SectionHeader
             title="Active Inspection Orders"
             subtitle="Follow MoSJE protocol during on-site visit"
-            badgeCount={assignments.length}
+            badgeCount={filteredAssignments.length}
           />
 
-          {assignments.length === 0 ? (
+          {/* Filter Chips Bar */}
+          <View style={styles.filterBar}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterScroll}
+            >
+              {[
+                { key: 'ALL', label: `All (${assignments.length})` },
+                {
+                  key: 'TODAY',
+                  label: `Today (${assignments.filter((a) => a.dueDate.toLowerCase().includes('today') || a.assignedDate.toLowerCase().includes('today')).length})`,
+                },
+                {
+                  key: 'PENDING',
+                  label: `Pending (${assignments.filter((a) => a.status === 'Assigned' || a.status === 'In Progress' || a.status === 'Accepted / Acknowledged').length})`,
+                },
+                {
+                  key: 'COMPLETED',
+                  label: `Completed (${assignments.filter((a) => a.status === 'Completed' || a.status === 'Submitted / Awaiting Review').length})`,
+                },
+                {
+                  key: 'SURPRISE',
+                  label: `⚡ Surprise (${assignments.filter((a) => a.type === 'Surprise Inspection' || Boolean(a.isSurprise)).length})`,
+                },
+              ].map((tab) => (
+                <TouchableOpacity
+                  key={tab.key}
+                  style={[
+                    styles.filterChip,
+                    activeFilter === tab.key && styles.filterChipActive,
+                    tab.key === 'SURPRISE' && activeFilter === tab.key && styles.filterChipSurprise,
+                  ]}
+                  onPress={() => setActiveFilter(tab.key as FilterType)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      activeFilter === tab.key && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Dedicated Inspection History Shortcut Banner */}
+          {activeFilter === 'COMPLETED' && (
+            <TouchableOpacity
+              style={styles.historyBanner}
+              onPress={() => navigation.navigate('InspectionHistory')}
+              activeOpacity={0.8}
+            >
+              <View style={styles.historyBannerLeft}>
+                <Ionicons name="time" size={18} color={colors.brand.primary} />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={styles.historyBannerTitle}>Inspection History Archive</Text>
+                  <Text style={styles.historyBannerSub}>
+                    Browse all submitted audit dockets with verified SHA-256 evidence
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="arrow-forward" size={16} color={colors.brand.primary} />
+            </TouchableOpacity>
+          )}
+
+          {filteredAssignments.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons
                 name="clipboard-outline"
@@ -283,22 +381,25 @@ export const AssignmentsPlaceholderScreen: React.FC = () => {
                 color={colors.text.muted}
                 style={{ marginBottom: spacing.sm }}
               />
-              <Text style={styles.emptyTitle}>No Active Inspection Orders</Text>
+              <Text style={styles.emptyTitle}>No Matching Inspection Orders</Text>
               <Text style={styles.emptySubtitle}>
-                There are currently no inspection assignments in your queue.
+                There are currently no inspection assignments matching the selected filter.
               </Text>
               <TouchableOpacity
                 style={styles.refreshButton}
-                onPress={onRefresh}
+                onPress={() => setActiveFilter('ALL')}
                 activeOpacity={0.8}
               >
                 <Ionicons name="refresh-outline" size={16} color={colors.brand.primary} style={{ marginRight: 6 }} />
-                <Text style={styles.refreshButtonText}>Refresh Queue</Text>
+                <Text style={styles.refreshButtonText}>View All Assignments</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            assignments.map((assignment, index) => {
+            filteredAssignments.map((assignment, index) => {
               const cardAnim = cardAnims[index] || new Animated.Value(1);
+              const isHistorical =
+                assignment.status === 'Completed' ||
+                assignment.status === 'Submitted / Awaiting Review';
               return (
                 <Animated.View
                   key={assignment.id}
@@ -319,10 +420,14 @@ export const AssignmentsPlaceholderScreen: React.FC = () => {
                     isInspectorView={true}
                     onAcknowledge={() => handleAcknowledge(assignment.id)}
                     onOpenInspection={() =>
-                      navigation.navigate('InspectionOverview', { inspectionId: assignment.id })
+                      isHistorical
+                        ? navigation.navigate('InspectionReview', { inspectionId: assignment.id })
+                        : navigation.navigate('InspectionOverview', { inspectionId: assignment.id })
                     }
                     onPress={() =>
-                      navigation.navigate('InspectionOverview', { inspectionId: assignment.id })
+                      isHistorical
+                        ? navigation.navigate('InspectionReview', { inspectionId: assignment.id })
+                        : navigation.navigate('InspectionOverview', { inspectionId: assignment.id })
                     }
                   />
                 </Animated.View>
@@ -373,6 +478,75 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginLeft: spacing.sm,
     flex: 1,
+  },
+
+  // Filter Tabs Bar
+  filterBar: {
+    marginBottom: spacing.base,
+    marginTop: -spacing.xs,
+  },
+  filterScroll: {
+    gap: 8,
+    paddingVertical: 2,
+  },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.neutral.surface,
+    borderColor: colors.neutral.border,
+    borderWidth: 1,
+    minHeight: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.xs,
+  },
+  filterChipActive: {
+    backgroundColor: colors.brand.primary,
+    borderColor: colors.brand.primary,
+  },
+  filterChipSurprise: {
+    backgroundColor: colors.status.highPriority,
+    borderColor: colors.status.highPriority,
+  },
+  filterChipText: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+    color: colors.text.secondary,
+  },
+  filterChipTextActive: {
+    color: colors.text.inverse,
+    fontWeight: typography.weights.bold,
+  },
+
+  // History Banner
+  historyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.brand.primary,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.base,
+    ...shadows.xs,
+  },
+  historyBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  historyBannerTitle: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.primary,
+  },
+  historyBannerSub: {
+    fontSize: 11,
+    color: colors.text.secondary,
+    marginTop: 2,
   },
 
   // Empty State

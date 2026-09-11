@@ -7,7 +7,7 @@
  * biometric encryption readiness, GPS status, and role switcher.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -16,19 +16,23 @@ import {
   StatusBar,
   Animated,
   useWindowDimensions,
+  TouchableOpacity,
 } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../components/common/AppHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { SecondaryButton } from '../../components/common/SecondaryButton';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, borderRadius, shadows } from '../../theme/spacing';
 
 export const ProfilePlaceholderScreen: React.FC = () => {
-  const { currentUser, switchRole } = useAuth();
+  const { currentUser, switchRole, logout, resetDemoData } = useAuth();
   const { width } = useWindowDimensions();
+  const [resetNotice, setResetNotice] = useState<string | null>(null);
 
   // Entrance motion
   const screenFade = useRef(new Animated.Value(0)).current;
@@ -179,7 +183,7 @@ export const ProfilePlaceholderScreen: React.FC = () => {
             </View>
           </Animated.View>
 
-          {/* Role Switching Section */}
+          {/* Role Switching & Account Actions Section */}
           <Animated.View
             style={{
               opacity: cardAnims[2],
@@ -193,13 +197,57 @@ export const ProfilePlaceholderScreen: React.FC = () => {
               ],
             }}
           >
-            <PrimaryButton
-              title="Switch Role"
-              onPress={switchRole}
-              iconName="swap-horizontal"
-              style={styles.switchButton}
+            {resetNotice ? (
+              <View style={styles.resetNoticeBox}>
+                <Ionicons name="checkmark-circle" size={15} color={colors.status.normal} />
+                <Text style={styles.resetNoticeText}>{resetNotice}</Text>
+              </View>
+            ) : null}
+
+            <Text style={styles.actionSectionLabel}>DEMO ROLE NAVIGATION</Text>
+            <View style={styles.switchButtonsRow}>
+              <TouchableOpacity
+                style={styles.roleSwitchBtn}
+                onPress={() => switchRole('official')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="shield-checkmark-outline" size={15} color={colors.brand.primary} />
+                <Text style={styles.roleSwitchBtnText}>Switch to Official</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.roleSwitchBtn}
+                onPress={() => switchRole('ngo')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="business-outline" size={15} color={colors.brand.primary} />
+                <Text style={styles.roleSwitchBtnText}>Switch to NGO</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ height: 12 }} />
+
+            <SecondaryButton
+              title="Reset Demo Data"
+              iconName="refresh-outline"
+              onPress={async () => {
+                await resetDemoData();
+                setResetNotice('Demo datasets restored to initial state (42/50 attendance, 25 CCTV, ALT-2601 active).');
+                setTimeout(() => setResetNotice(null), 4000);
+              }}
+              style={styles.actionButtonSecondary}
+            />
+
+            <View style={{ height: 8 }} />
+
+            <SecondaryButton
+              title="Logout / Exit Workspace"
+              iconName="log-out-outline"
+              onPress={() => logout()}
+              style={styles.actionButtonSecondary}
             />
           </Animated.View>
+
         </Animated.View>
       </ScrollView>
     </View>
@@ -322,4 +370,55 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     minHeight: 48,
   },
+  resetNoticeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
+    gap: 8,
+  },
+  resetNoticeText: {
+    fontSize: typography.sizes.xs,
+    color: '#065F46',
+    fontWeight: typography.weights.medium,
+    flex: 1,
+  },
+  actionSectionLabel: {
+    fontSize: 11,
+    fontWeight: typography.weights.bold,
+    color: colors.text.muted,
+    letterSpacing: 0.6,
+    marginBottom: spacing.xs + 2,
+  },
+  switchButtonsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  roleSwitchBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.neutral.surface,
+    borderWidth: 1,
+    borderColor: colors.brand.primary,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.sm,
+    gap: 6,
+    ...shadows.xs,
+  },
+  roleSwitchBtnText: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.semibold,
+    color: colors.brand.navyDark,
+  },
+  actionButtonSecondary: {
+    width: '100%',
+  },
 });
+

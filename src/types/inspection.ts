@@ -43,11 +43,20 @@ export interface InspectionFindings {
 export interface MockEvidenceItem {
   id: string;
   type: 'photo' | 'video' | 'document';
-  category: 'Facility Entrance' | 'Attendance Register' | 'Service Delivery Area' | 'General Infrastructure';
+  category: string;
   title: string;
   timestamp: string;
-  locationStatus: 'Pending GPS integration';
-  demoLabel: string;
+  locationStatus?: string;
+  demoLabel?: string;
+  fileUri?: string;
+  originalPhotoUri?: string; // Raw unmodified capture preserved
+  latitude?: number;
+  longitude?: number;
+  geofenceStatus?: 'INSIDE' | 'OUTSIDE' | 'OVERRIDDEN';
+  hash?: string; // Cryptographic SHA-256 hash
+  fileSize?: string;
+  fileType?: string;
+  integrityStatus?: 'VERIFIED' | 'TAMPERED';
 }
 
 export interface InspectionAssignment {
@@ -69,6 +78,7 @@ export interface InspectionAssignment {
   dueDate: string;
   scheduledTime?: string;
   triggerReason?: string; // e.g., 'Triggered by discrepancy alert #ALT-1092'
+  isSurprise?: boolean;
   checklistCompletedCount?: number;
   totalChecklistCount?: number;
   acknowledgedAt?: string;
@@ -79,6 +89,21 @@ export interface InspectionAssignment {
   checklistResponses?: Record<string, ChecklistItem>;
   findings?: InspectionFindings;
   evidenceItems?: MockEvidenceItem[];
+
+  // Geofence & Location Verification
+  isLocationVerified?: boolean;
+  distanceMeters?: number;
+  geofenceStatus?: 'INSIDE' | 'OUTSIDE' | 'OVERRIDDEN';
+  geofenceVerifiedAt?: string;
+  overrideReason?: string;
+  overrideAuthorizingAuthority?: string;
+  overrideAuthorizationCode?: string;
+  overrideTimestamp?: string;
+
+  // Biometric Verification
+  isBiometricVerified?: boolean;
+  biometricType?: 'FINGERPRINT' | 'FACIAL' | 'OFFICER_KEY';
+  biometricTimestamp?: string;
 }
 
 export interface DemoInspector {

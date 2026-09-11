@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   Animated,
   useWindowDimensions,
+  Image,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -268,10 +269,14 @@ export const InspectionReviewScreen: React.FC = () => {
 
             <View style={styles.headerTitleContainer}>
               <Text style={styles.headerTitle} numberOfLines={1}>
-                Review & Sign Off
+                {inspection.status === 'Submitted / Awaiting Review' || inspection.status === 'Completed'
+                  ? 'Submitted Audit Dossier'
+                  : 'Review & Sign Off'}
               </Text>
               <Text style={styles.headerSubtitle} numberOfLines={1}>
-                Order #{inspection.id} • Final Field Dossier
+                {inspection.status === 'Submitted / Awaiting Review' || inspection.status === 'Completed'
+                  ? `Ref #${inspection.id} • Authenticated Historical Record`
+                  : `Order #${inspection.id} • Final Field Dossier`}
               </Text>
             </View>
           </View>
@@ -318,6 +323,47 @@ export const InspectionReviewScreen: React.FC = () => {
               <Text style={styles.officerStampText}>
                 Inspected by: <Text style={styles.officerStampHighlight}>{officerName}</Text> ({officerBadge})
               </Text>
+            </View>
+
+            {/* On-Site Gatekeeping Verification Strip */}
+            <View style={styles.reviewGatekeepStrip}>
+              <View style={styles.reviewGatekeepTag}>
+                <Ionicons
+                  name={
+                    inspection.isLocationVerified
+                      ? 'checkmark-circle'
+                      : inspection.geofenceStatus === 'OVERRIDDEN'
+                      ? 'shield-checkmark'
+                      : 'location'
+                  }
+                  size={13}
+                  color={
+                    inspection.isLocationVerified
+                      ? colors.status.normal
+                      : inspection.geofenceStatus === 'OVERRIDDEN'
+                      ? colors.brand.primary
+                      : colors.status.warning
+                  }
+                />
+                <Text style={styles.reviewGatekeepTagText}>
+                  {inspection.isLocationVerified
+                    ? '100m Geofence Verified'
+                    : inspection.geofenceStatus === 'OVERRIDDEN'
+                    ? `Exemption: ${inspection.overrideAuthorizingAuthority}`
+                    : 'Geofence Pending'}
+                </Text>
+              </View>
+
+              <View style={styles.reviewGatekeepTag}>
+                <Ionicons
+                  name={inspection.isBiometricVerified ? 'finger-print' : 'finger-print-outline'}
+                  size={13}
+                  color={inspection.isBiometricVerified ? colors.status.normal : colors.text.muted}
+                />
+                <Text style={styles.reviewGatekeepTagText}>
+                  {inspection.isBiometricVerified ? 'Biometrics Authenticated' : 'Biometrics Required'}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -427,18 +473,28 @@ export const InspectionReviewScreen: React.FC = () => {
             <View style={styles.evidenceReviewList}>
               {evidenceList.map((item) => (
                 <View key={item.id} style={styles.evidenceReviewItem}>
-                  <View style={styles.evidenceIconCircle}>
-                    <Ionicons
-                      name={item.type === 'photo' ? 'camera' : item.type === 'video' ? 'videocam' : 'document-text'}
-                      size={16}
-                      color={colors.brand.primary}
-                    />
-                  </View>
+                  {item.originalPhotoUri ? (
+                    <Image source={{ uri: item.originalPhotoUri }} style={styles.evidenceReviewThumb} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.evidenceIconCircle}>
+                      <Ionicons
+                        name={item.type === 'photo' ? 'camera' : item.type === 'video' ? 'videocam' : 'document-text'}
+                        size={16}
+                        color={colors.brand.primary}
+                      />
+                    </View>
+                  )}
                   <View style={styles.evidenceReviewTextCol}>
                     <Text style={styles.evidenceReviewTitle}>{item.title}</Text>
                     <Text style={styles.evidenceReviewMeta}>
                       {item.category} • {item.timestamp} • {item.locationStatus}
                     </Text>
+                    {item.hash && (
+                      <View style={styles.evidenceHashSnippetRow}>
+                        <Ionicons name="shield-checkmark" size={10} color={colors.status.normal} />
+                        <Text style={styles.evidenceHashSnippetText}>SHA-256: {item.hash.slice(0, 16)}...</Text>
+                      </View>
+                    )}
                   </View>
                 </View>
               ))}
@@ -447,28 +503,66 @@ export const InspectionReviewScreen: React.FC = () => {
 
           {/* Submission Disclaimer */}
           <View style={styles.disclaimerBox}>
-            <Ionicons name="shield-checkmark-outline" size={18} color={colors.brand.navyLight} />
+            <Ionicons
+              name={
+                inspection.status === 'Submitted / Awaiting Review' || inspection.status === 'Completed'
+                  ? 'shield-checkmark'
+                  : 'shield-checkmark-outline'
+              }
+              size={18}
+              color={
+                inspection.status === 'Submitted / Awaiting Review' || inspection.status === 'Completed'
+                  ? colors.status.normal
+                  : colors.brand.navyLight
+              }
+            />
             <Text style={styles.disclaimerText}>
-              Submitting marks this inspection as "Submitted / Awaiting Review". The official Central Desk will be notified with timestamped field records.
+              {inspection.status === 'Submitted / Awaiting Review' || inspection.status === 'Completed'
+                ? `Historical Audit Record: Formally authenticated and submitted by ${inspection.submittedBy || 'PMU Field Inspector'}${inspection.submittedAt ? ` on ${inspection.submittedAt}` : ''}. All checklist criteria and evidence hashes are permanently registered.`
+                : 'Submitting marks this inspection as "Submitted / Awaiting Review". The official Central Desk will be notified with timestamped field records.'}
             </Text>
           </View>
 
           {/* Action Buttons */}
           <View style={styles.actionButtonsCol}>
-            <PrimaryButton
-              title="Submit Inspection"
-              iconName="paper-plane"
-              onPress={handleSubmit}
-              loading={submitting}
-              style={styles.primaryActionBtn}
-            />
-            <SecondaryButton
-              title="Edit Inspection (Back to Checklist)"
-              iconName="create-outline"
-              onPress={() => navigation.navigate('InspectionChecklist', { inspectionId: inspection.id })}
-              disabled={submitting}
-              style={{ marginTop: 10, minHeight: 48 }}
-            />
+            {inspection.status === 'Submitted / Awaiting Review' || inspection.status === 'Completed' ? (
+              <>
+                <PrimaryButton
+                  title="Back to Inspection History"
+                  iconName="arrow-back"
+                  onPress={() => navigation.goBack()}
+                  style={styles.primaryActionBtn}
+                />
+                <SecondaryButton
+                  title="Return to Inspector Dashboard"
+                  iconName="home-outline"
+                  onPress={() =>
+                    navigation.reset({
+                      index: 0,
+                      routes: [{ name: 'InspectorTabs', params: { screen: 'Home' } }],
+                    })
+                  }
+                  style={{ marginTop: 10, minHeight: 48 }}
+                />
+              </>
+            ) : (
+              <>
+                <PrimaryButton
+                  title="Submit Inspection"
+                  iconName="paper-plane"
+                  onPress={handleSubmit}
+                  loading={submitting}
+                  style={styles.primaryActionBtn}
+                />
+                <SecondaryButton
+                  title="Edit Inspection (Back to Checklist)"
+                  iconName="create-outline"
+                  onPress={() => navigation.navigate('InspectionChecklist', { inspectionId: inspection.id })}
+                  disabled={submitting}
+                  style={{ marginTop: 10, minHeight: 48 }}
+                />
+              </>
+            )}
           </View>
         </Animated.View>
       </ScrollView>
@@ -657,6 +751,29 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
+  reviewGatekeepStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+    marginTop: spacing.xs + 2,
+  },
+  reviewGatekeepTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderColor: colors.neutral.border,
+    borderWidth: 1,
+    borderRadius: borderRadius.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  reviewGatekeepTagText: {
+    fontSize: 10,
+    fontWeight: typography.weights.medium,
+    color: colors.text.primary,
+  },
 
   // Stats Row
   statsRow: {
@@ -812,6 +929,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  evidenceReviewThumb: {
+    width: 42,
+    height: 42,
+    borderRadius: borderRadius.xs,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+  },
+  evidenceHashSnippetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 3,
+  },
+  evidenceHashSnippetText: {
+    fontSize: 10,
+    fontFamily: 'monospace',
+    color: colors.brand.navy,
   },
   evidenceReviewTextCol: {
     flex: 1,

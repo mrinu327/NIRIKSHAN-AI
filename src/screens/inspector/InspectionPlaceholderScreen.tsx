@@ -4,17 +4,36 @@
  * SIH26095 | MoSJE
  */
 
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { InspectorTabNavigationProp } from '../../types/navigation';
 import { AppHeader } from '../../components/common/AppHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
+import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { StatusBadge } from '../../components/common/StatusBadge';
+import { mockInspectionService } from '../../services/mock/mockInspectionService';
+import { InspectionAssignment } from '../../types/inspection';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { SUNRISE_ATTENDANCE } from '../../data/mockData';
 import { spacing, borderRadius, shadows } from '../../theme/spacing';
 
 export const InspectionPlaceholderScreen: React.FC = () => {
+  const navigation = useNavigation<InspectorTabNavigationProp<'Inspection'>>();
+  const [activeInspection, setActiveInspection] = useState<InspectionAssignment | null>(null);
+
+  useEffect(() => {
+    mockInspectionService.getAssignedInspections().then((list) => {
+      const active =
+        list.find((i) => i.status === 'In Progress') ||
+        list.find((i) => i.status === 'Accepted / Acknowledged') ||
+        list[0];
+      setActiveInspection(active || null);
+    });
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.brand.navy} />
@@ -28,10 +47,43 @@ export const InspectionPlaceholderScreen: React.FC = () => {
         <View style={styles.activeBanner}>
           <View style={styles.activeHeader}>
             <View style={styles.liveDot} />
-            <Text style={styles.activeLabel}>TARGET FACILITY</Text>
+            <Text style={styles.activeLabel}>
+              {activeInspection?.type === 'Surprise Inspection'
+                ? 'SURPRISE INSPECTION ORDER'
+                : 'ACTIVE INSPECTION ORDER'}
+            </Text>
+            {activeInspection && (
+              <View style={{ marginLeft: 'auto' }}>
+                <StatusBadge label={activeInspection.status} variant="warning" size="sm" />
+              </View>
+            )}
           </View>
-          <Text style={styles.activeTitle}>Sunrise Rehabilitation Centre</Text>
-          <Text style={styles.activeSub}>Sector 14, Rohini, New Delhi • Surprise Inspection</Text>
+          <Text style={styles.activeTitle}>
+            {activeInspection?.projectName || 'Sunrise Rehabilitation Centre'}
+          </Text>
+          <Text style={styles.activeSub}>
+            {activeInspection?.projectAddress || 'Sector 14, Rohini, New Delhi'} • Order #{activeInspection?.id || 'INSP-2026-881'}
+          </Text>
+
+          {/* Quick Action Button */}
+          {activeInspection && (
+            <View style={styles.actionBtnRow}>
+              <PrimaryButton
+                title={
+                  activeInspection.status === 'In Progress'
+                    ? 'Resume On-Site Inspection'
+                    : activeInspection.status === 'Submitted / Awaiting Review'
+                    ? 'View Submitted Audit Record'
+                    : 'Open Field Inspection Dossier'
+                }
+                iconName={activeInspection.status === 'In Progress' ? 'play-circle' : 'arrow-forward'}
+                onPress={() =>
+                  navigation.navigate('InspectionOverview', { inspectionId: activeInspection.id })
+                }
+                style={styles.launchBtn}
+              />
+            </View>
+          )}
         </View>
 
         <SectionHeader
@@ -86,7 +138,7 @@ export const InspectionPlaceholderScreen: React.FC = () => {
         <View style={styles.noticeBox}>
           <Ionicons name="shield-checkmark-outline" size={18} color={colors.brand.navyLight} />
           <Text style={styles.noticeText}>
-            Interactive checklist and camera capture will be available for field verification.
+            Interactive checklist and camera capture are verified per MoSJE field operating rules.
           </Text>
         </View>
       </ScrollView>
@@ -144,6 +196,12 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
+  },
+  actionBtnRow: {
+    marginTop: spacing.md,
+  },
+  launchBtn: {
+    minHeight: 46,
   },
   checklistContainer: {
     backgroundColor: colors.neutral.surface,

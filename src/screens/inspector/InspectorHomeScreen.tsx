@@ -388,6 +388,85 @@ export const InspectorHomeScreen: React.FC = () => {
                 </Text>
               </View>
 
+              {/* Surprise Dispatch Tag */}
+              {(currentAssignedInspection.type === 'Surprise Inspection' || currentAssignedInspection.isSurprise) && (
+                <View style={styles.surpriseDispatchBadge}>
+                  <Ionicons name="flash" size={12} color={colors.status.highPriority} />
+                  <Text style={styles.surpriseDispatchText}>SURPRISE DISPATCH — CONFIDENTIAL PROTOCOL</Text>
+                </View>
+              )}
+
+              {/* Security Verification Status Strip */}
+              <View style={styles.heroVerificationStrip}>
+                <View style={styles.verificationTag}>
+                  <Ionicons
+                    name={
+                      currentAssignedInspection.isLocationVerified
+                        ? 'checkmark-circle'
+                        : currentAssignedInspection.geofenceStatus === 'OVERRIDDEN'
+                        ? 'shield-checkmark'
+                        : 'location-outline'
+                    }
+                    size={12}
+                    color={
+                      currentAssignedInspection.isLocationVerified
+                        ? colors.status.normal
+                        : currentAssignedInspection.geofenceStatus === 'OVERRIDDEN'
+                        ? colors.brand.primary
+                        : colors.status.warning
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.verificationTagText,
+                      currentAssignedInspection.isLocationVerified && styles.verificationTagSuccess,
+                      currentAssignedInspection.geofenceStatus === 'OVERRIDDEN' && styles.verificationTagInfo,
+                    ]}
+                  >
+                    {currentAssignedInspection.isLocationVerified
+                      ? '100m Geofence Verified'
+                      : currentAssignedInspection.geofenceStatus === 'OVERRIDDEN'
+                      ? 'Exemption Active'
+                      : 'Geofence Check Pending'}
+                  </Text>
+                </View>
+
+                <View style={styles.verificationTag}>
+                  <Ionicons
+                    name={
+                      currentAssignedInspection.isBiometricVerified
+                        ? 'finger-print'
+                        : 'finger-print-outline'
+                    }
+                    size={12}
+                    color={
+                      currentAssignedInspection.isBiometricVerified
+                        ? colors.status.normal
+                        : colors.text.muted
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.verificationTagText,
+                      currentAssignedInspection.isBiometricVerified && styles.verificationTagSuccess,
+                    ]}
+                  >
+                    {currentAssignedInspection.isBiometricVerified
+                      ? 'Biometrics Verified'
+                      : 'Biometrics Required'}
+                  </Text>
+                </View>
+              </View>
+
+              {currentAssignedInspection.triggerReason ? (
+                <View style={styles.heroTriggerBox}>
+                  <Ionicons name="information-circle-outline" size={13} color={colors.brand.navyLight} />
+                  <Text style={styles.heroTriggerText} numberOfLines={2}>
+                    Reason: {currentAssignedInspection.triggerReason}
+                  </Text>
+                </View>
+              ) : null}
+
               <View style={styles.heroActionRow}>
                 <PrimaryButton
                   title={
@@ -449,7 +528,8 @@ export const InspectorHomeScreen: React.FC = () => {
               value={stats.completedThisMonth}
               iconName="checkmark-done-circle"
               variant="normal"
-              subtitle="Submitted audits"
+              subtitle="View audit history"
+              onPress={() => navigation.navigate('InspectionHistory')}
               style={[styles.statGridItem, { width: statItemWidth }]}
             />
           </View>
@@ -752,6 +832,74 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     flex: 1,
     lineHeight: 18,
+  },
+  surpriseDispatchBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: colors.status.highPriorityLight,
+    borderColor: colors.status.highPriorityBorder,
+    borderWidth: 1,
+    borderRadius: borderRadius.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: spacing.xs + 2,
+    alignSelf: 'flex-start',
+  },
+  surpriseDispatchText: {
+    fontSize: 10,
+    fontWeight: typography.weights.bold,
+    color: colors.status.highPriority,
+    letterSpacing: 0.4,
+  },
+  heroVerificationStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+    marginBottom: spacing.xs + 2,
+  },
+  verificationTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderColor: colors.neutral.border,
+    borderWidth: 1,
+    borderRadius: borderRadius.xs,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  verificationTagText: {
+    fontSize: 10,
+    color: colors.text.muted,
+    fontWeight: typography.weights.medium,
+  },
+  verificationTagSuccess: {
+    color: colors.status.normal,
+    fontWeight: typography.weights.bold,
+  },
+  verificationTagInfo: {
+    color: colors.brand.primary,
+    fontWeight: typography.weights.bold,
+  },
+  heroTriggerBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 5,
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.status.infoBorder,
+    borderWidth: 1,
+    borderRadius: borderRadius.xs,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    marginBottom: spacing.xs + 2,
+  },
+  heroTriggerText: {
+    fontSize: 11,
+    color: colors.brand.navyLight,
+    flex: 1,
+    lineHeight: 15,
   },
   heroActionRow: {
     marginTop: 2,

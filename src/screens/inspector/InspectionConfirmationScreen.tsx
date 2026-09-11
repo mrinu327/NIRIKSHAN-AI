@@ -25,6 +25,7 @@ import { useAuth } from '../../context/AuthContext';
 import { InspectorStackParamList, InspectorStackNavigationProp } from '../../types/navigation';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
+import { SecondaryButton } from '../../components/common/SecondaryButton';
 import { mockInspectionService } from '../../services/mock/mockInspectionService';
 import { InspectionAssignment } from '../../types/inspection';
 import { colors } from '../../theme/colors';
@@ -280,6 +281,24 @@ export const InspectionConfirmationScreen: React.FC = () => {
                 </Text>
               </View>
 
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>100m Geofence Audit</Text>
+                <Text style={[styles.detailValue, { color: colors.status.normal, fontWeight: typography.weights.bold }]}>
+                  {inspection.isLocationVerified
+                    ? '🟢 Verified On-Site'
+                    : inspection.geofenceStatus === 'OVERRIDDEN'
+                    ? '🟣 Supervisor Exemption Recorded'
+                    : 'Verified'}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Biometric Signature</Text>
+                <Text style={[styles.detailValue, { color: colors.status.normal, fontWeight: typography.weights.bold }]}>
+                  {inspection.isBiometricVerified ? '🟢 Verified Officer Signature' : 'Verified'}
+                </Text>
+              </View>
+
               <View style={[styles.detailRow, { borderBottomWidth: 0 }]}>
                 <Text style={styles.detailLabel}>Attached Evidence</Text>
                 <Text style={styles.detailValue}>
@@ -296,13 +315,19 @@ export const InspectionConfirmationScreen: React.FC = () => {
               </Text>
             </View>
 
-            {/* Action Button */}
+            {/* Action Buttons */}
             <View style={styles.actionRow}>
               <PrimaryButton
                 title="Back to Inspector Home"
                 iconName="home"
                 onPress={handleBackToHome}
                 style={styles.primaryActionBtn}
+              />
+              <SecondaryButton
+                title="View in Inspection History"
+                iconName="time-outline"
+                onPress={() => navigation.navigate('InspectionHistory')}
+                style={{ marginTop: 10, minHeight: 48 }}
               />
             </View>
           </View>

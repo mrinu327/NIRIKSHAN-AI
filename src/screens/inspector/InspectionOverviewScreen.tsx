@@ -17,12 +17,16 @@ import {
   TouchableOpacity,
   Animated,
   useWindowDimensions,
+  Modal,
+  TextInput,
+  ViewStyle,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { InspectorStackParamList, InspectorStackNavigationProp } from '../../types/navigation';
 import { useAuth } from '../../context/AuthContext';
+import * as Location from 'expo-location';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { PriorityBadge } from '../../components/common/PriorityBadge';
@@ -41,12 +45,35 @@ export const InspectionOverviewScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 900;
-  const { currentRole, switchRole } = useAuth();
+  const { currentRole, switchRole, currentUser } = useAuth();
   const { inspectionId } = route.params;
 
   const [inspection, setInspection] = useState<InspectionAssignment | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Geofence & Location State
+  const [verifyingLocation, setVerifyingLocation] = useState(false);
+  const [locationResult, setLocationResult] = useState<{
+    verified: boolean;
+    distanceMeters: number;
+    radiusMeters: number;
+    status: 'INSIDE' | 'OUTSIDE' | 'OVERRIDDEN';
+    message: string;
+  } | null>(null);
+
+  // Authorized Exemption Modal State
+  const [overrideModalVisible, setOverrideModalVisible] = useState(false);
+  const [authorizingAuthority, setAuthorizingAuthority] = useState('Dr. Rajesh Sharma (Director - Central Monitoring PMU)');
+  const [authorizationCode, setAuthorizationCode] = useState('');
+  const [overrideReason, setOverrideReason] = useState('');
+  const [overrideError, setOverrideError] = useState<string | null>(null);
+
+  // Biometric Verification State
+  const [biometricStatus, setBiometricStatus] = useState<'IDLE' | 'SCANNING' | 'VERIFIED' | 'FAILED'>('IDLE');
+  const [biometricTimestamp, setBiometricTimestamp] = useState<string | null>(null);
+  const [biometricType, setBiometricType] = useState<'FINGERPRINT' | 'FACIAL'>('FINGERPRINT');
 
   // Animations
   const screenFade = useRef(new Animated.Value(0)).current;
@@ -78,6 +105,22 @@ export const InspectionOverviewScreen: React.FC = () => {
   useEffect(() => {
     mockInspectionService.getInspectionById(inspectionId).then((data) => {
       setInspection(data || null);
+      if (data?.isLocationVerified || data?.geofenceStatus) {
+        setLocationResult({
+          verified: Boolean(data.isLocationVerified),
+          distanceMeters: data.distanceMeters || 38,
+          radiusMeters: 100,
+          status: data.geofenceStatus || 'INSIDE',
+          message:
+            data.geofenceStatus === 'OVERRIDDEN'
+              ? `Authorized Geofence Exemption recorded (${data.overrideAuthorizingAuthority})`
+              : `Location Verified: Within ${data.distanceMeters || 38}m of site.`,
+        });
+      }
+      if (data?.isBiometricVerified) {
+        setBiometricStatus('VERIFIED');
+        setBiometricTimestamp(data.biometricTimestamp || 'Verified Today');
+      }
       setLoading(false);
     });
   }, [inspectionId]);
@@ -99,14 +142,109 @@ export const InspectionOverviewScreen: React.FC = () => {
     }
   }, [loading, inspection]);
 
+  const handleVerifyLocation = async () => {
+    if (!inspection) return;
+    setVerifyingLocation(true);
+    setValidationError(null);
+    try {
+      let lat = 28.7182; // Field test coordinates (close to Rohini site)
+      let lon = 77.1238;
+
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          lat = loc.coords.latitude;
+          lon = loc.coords.longitude;
+        }
+      } catch (locErr) {
+        console.warn('GPS hardware access unavailable, using field coordinates:', locErr);
+      }
+
+      const res = await mockInspectionService.verifyInspectionLocation(inspection.id, lat, lon);
+      setLocationResult(res);
+      if (res.assignment) {
+        setInspection(res.assignment);
+      }
+    } catch (err: any) {
+      console.error('Failed to verify location:', err);
+      setValidationError('Location verification failed. Please ensure GPS is enabled.');
+    } finally {
+      setVerifyingLocation(false);
+    }
+  };
+
+  const handleApplyOverride = async () => {
+    if (!inspection) return;
+    if (!authorizingAuthority.trim() || !authorizationCode.trim() || !overrideReason.trim()) {
+      setOverrideError('All authorization fields are mandatory for an official geofence override.');
+      return;
+    }
+
+    try {
+      const res = await mockInspectionService.verifyInspectionLocation(inspection.id, 0, 0, {
+        override: true,
+        authorizingAuthority: authorizingAuthority.trim(),
+        authorizationCode: authorizationCode.trim(),
+        reason: overrideReason.trim(),
+      });
+      setLocationResult(res);
+      if (res.assignment) {
+        setInspection(res.assignment);
+      }
+      setOverrideModalVisible(false);
+      setOverrideError(null);
+    } catch (err: any) {
+      setOverrideError('Failed to record authorized override.');
+    }
+  };
+
+  const handleVerifyBiometrics = async (type: 'FINGERPRINT' | 'FACIAL') => {
+    if (!inspection) return;
+    setBiometricType(type);
+    setBiometricStatus('SCANNING');
+    setValidationError(null);
+
+    setTimeout(async () => {
+      try {
+        const updated = await mockInspectionService.recordBiometricVerification(inspection.id, type);
+        if (updated) {
+          setInspection(updated);
+          setBiometricStatus('VERIFIED');
+          setBiometricTimestamp(updated.biometricTimestamp || 'Verified Today');
+        }
+      } catch (err) {
+        setBiometricStatus('FAILED');
+      }
+    }, 1200);
+  };
+
+  const isGeofenceSatisfied = Boolean(
+    locationResult?.verified ||
+    inspection?.isLocationVerified ||
+    inspection?.geofenceStatus === 'INSIDE' ||
+    inspection?.geofenceStatus === 'OVERRIDDEN'
+  );
+  const isBiometricSatisfied = Boolean(
+    biometricStatus === 'VERIFIED' || inspection?.isBiometricVerified
+  );
+  const canStart = (isGeofenceSatisfied && isBiometricSatisfied) || inspection?.status === 'In Progress';
+
   const handleStartInspection = async () => {
     if (!inspection) return;
+    if (!canStart) {
+      setValidationError(
+        'Mandatory Gatekeeping Check: Must verify location within 100m geofence (or obtain supervisor authorization) and complete officer biometric verification before starting.'
+      );
+      return;
+    }
     setStarting(true);
     try {
       await mockInspectionService.startInspection(inspection.id);
       navigation.navigate('InspectionChecklist', { inspectionId: inspection.id });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to start inspection:', err);
+      setValidationError(err?.message || 'Failed to start inspection.');
     } finally {
       setStarting(false);
     }
@@ -356,6 +494,241 @@ export const InspectionOverviewScreen: React.FC = () => {
             </Text>
           </View>
 
+          {/* On-Site Gatekeeping: Geofence & Biometric Verification */}
+          <SectionHeader
+            title="On-Site Security Gatekeeping"
+            subtitle="Mandatory 100m perimeter validation and officer biometric authentication"
+          />
+
+          {/* 1. GPS Geofence Verification Card */}
+          <View
+            style={[
+              styles.gatekeepCard,
+              locationResult?.status === 'INSIDE' && styles.gatekeepCardSuccess,
+              locationResult?.status === 'OUTSIDE' && styles.gatekeepCardWarning,
+              locationResult?.status === 'OVERRIDDEN' && styles.gatekeepCardOverride,
+            ]}
+          >
+            <View style={styles.gatekeepHeader}>
+              <View
+                style={[
+                  styles.gatekeepIconCircle,
+                  locationResult?.status === 'INSIDE' && styles.gatekeepIconSuccess,
+                  locationResult?.status === 'OUTSIDE' && styles.gatekeepIconWarning,
+                  locationResult?.status === 'OVERRIDDEN' && styles.gatekeepIconOverride,
+                ]}
+              >
+                <Ionicons
+                  name={
+                    locationResult?.status === 'INSIDE'
+                      ? 'navigate-circle'
+                      : locationResult?.status === 'OVERRIDDEN'
+                      ? 'shield-checkmark'
+                      : 'location'
+                  }
+                  size={20}
+                  color={
+                    locationResult?.status === 'INSIDE'
+                      ? colors.status.normal
+                      : locationResult?.status === 'OVERRIDDEN'
+                      ? colors.brand.primary
+                      : locationResult?.status === 'OUTSIDE'
+                      ? colors.status.highPriority
+                      : colors.text.muted
+                  }
+                />
+              </View>
+              <View style={styles.gatekeepHeaderTextCol}>
+                <Text style={styles.gatekeepTitle}>GPS Geofence Perimeter</Text>
+                <Text style={styles.gatekeepSub}>
+                  {locationResult?.status === 'INSIDE'
+                    ? `🟢 Location Verified (Within ${locationResult.distanceMeters}m of site, Limit: 100m)`
+                    : locationResult?.status === 'OVERRIDDEN'
+                    ? `🟣 Authorized Supervisor Exemption Active`
+                    : locationResult?.status === 'OUTSIDE'
+                    ? `🔴 Outside Geofence Perimeter (${locationResult.distanceMeters}m away, Limit: 100m)`
+                    : '⚪ Location Check Required: Must be within 100m perimeter'}
+                </Text>
+              </View>
+              <StatusBadge
+                label={
+                  locationResult?.status === 'INSIDE'
+                    ? 'VERIFIED'
+                    : locationResult?.status === 'OVERRIDDEN'
+                    ? 'EXEMPTED'
+                    : locationResult?.status === 'OUTSIDE'
+                    ? 'OUTSIDE'
+                    : 'PENDING'
+                }
+                variant={
+                  locationResult?.status === 'INSIDE'
+                    ? 'normal'
+                    : locationResult?.status === 'OVERRIDDEN'
+                    ? 'info'
+                    : locationResult?.status === 'OUTSIDE'
+                    ? 'highPriority'
+                    : 'warning'
+                }
+                size="sm"
+              />
+            </View>
+
+            {locationResult?.message ? (
+              <View style={styles.gatekeepMessageRow}>
+                <Text style={styles.gatekeepMessageText}>{locationResult.message}</Text>
+              </View>
+            ) : null}
+
+            {locationResult?.status === 'OVERRIDDEN' && inspection?.overrideAuthorizingAuthority ? (
+              <View style={styles.overrideInfoBox}>
+                <Ionicons name="document-text-outline" size={14} color={colors.brand.navyLight} />
+                <Text style={styles.overrideInfoText}>
+                  Audit Record: Approved by {inspection.overrideAuthorizingAuthority} ({inspection.overrideAuthorizationCode}). Reason: "{inspection.overrideReason}"
+                </Text>
+              </View>
+            ) : null}
+
+            <View style={styles.gatekeepActionRow}>
+              <TouchableOpacity
+                style={[styles.gatekeepActionBtn, verifyingLocation && { opacity: 0.7 }]}
+                onPress={handleVerifyLocation}
+                disabled={verifyingLocation}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="locate" size={16} color={colors.text.inverse} style={{ marginRight: 6 }} />
+                <Text style={styles.gatekeepActionBtnText}>
+                  {verifyingLocation ? 'Acquiring GPS Signal...' : 'Verify Current Location'}
+                </Text>
+              </TouchableOpacity>
+
+              {locationResult?.status === 'OUTSIDE' && (
+                <TouchableOpacity
+                  style={styles.overrideTriggerBtn}
+                  onPress={() => {
+                    setOverrideError(null);
+                    setOverrideModalVisible(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="lock-open-outline" size={15} color={colors.status.highPriority} style={{ marginRight: 5 }} />
+                  <Text style={styles.overrideTriggerBtnText}>Supervisor Exemption</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          {/* 2. Biometric Verification Card */}
+          <View
+            style={[
+              styles.gatekeepCard,
+              biometricStatus === 'VERIFIED' && styles.gatekeepCardSuccess,
+              biometricStatus === 'FAILED' && styles.gatekeepCardWarning,
+            ]}
+          >
+            <View style={styles.gatekeepHeader}>
+              <View
+                style={[
+                  styles.gatekeepIconCircle,
+                  biometricStatus === 'VERIFIED' && styles.gatekeepIconSuccess,
+                  biometricStatus === 'FAILED' && styles.gatekeepIconWarning,
+                ]}
+              >
+                <Ionicons
+                  name={biometricType === 'FACIAL' ? 'scan' : 'finger-print'}
+                  size={20}
+                  color={
+                    biometricStatus === 'VERIFIED'
+                      ? colors.status.normal
+                      : biometricStatus === 'FAILED'
+                      ? colors.status.highPriority
+                      : colors.brand.primary
+                  }
+                />
+              </View>
+              <View style={styles.gatekeepHeaderTextCol}>
+                <Text style={styles.gatekeepTitle}>Inspector Biometric Authentication</Text>
+                <Text style={styles.gatekeepSub}>
+                  {biometricStatus === 'VERIFIED'
+                    ? `🟢 Identity Authenticated: ${currentUser?.name || officerName} (${badgeText || 'PMU-INSP-2026'})`
+                    : biometricStatus === 'SCANNING'
+                    ? '🟡 Sensor Active: Scanning credentials...'
+                    : biometricStatus === 'FAILED'
+                    ? '🔴 Authentication Failed: Biometric mismatch'
+                    : '⚪ Authentication Required before field audit'}
+                </Text>
+              </View>
+              <StatusBadge
+                label={
+                  biometricStatus === 'VERIFIED'
+                    ? 'VERIFIED'
+                    : biometricStatus === 'SCANNING'
+                    ? 'SCANNING'
+                    : biometricStatus === 'FAILED'
+                    ? 'FAILED'
+                    : 'REQUIRED'
+                }
+                variant={
+                  biometricStatus === 'VERIFIED'
+                    ? 'normal'
+                    : biometricStatus === 'SCANNING'
+                    ? 'warning'
+                    : biometricStatus === 'FAILED'
+                    ? 'highPriority'
+                    : 'offline'
+                }
+                size="sm"
+              />
+            </View>
+
+            {biometricTimestamp && (
+              <View style={styles.gatekeepMessageRow}>
+                <Text style={styles.gatekeepMessageText}>
+                  Verified officer signature recorded at {biometricTimestamp}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.gatekeepActionRow}>
+              <TouchableOpacity
+                style={[
+                  styles.gatekeepActionBtn,
+                  styles.biometricBtn,
+                  biometricStatus === 'VERIFIED' && styles.biometricBtnVerified,
+                  biometricStatus === 'SCANNING' && { opacity: 0.7 },
+                ]}
+                onPress={() => handleVerifyBiometrics('FINGERPRINT')}
+                disabled={biometricStatus === 'SCANNING' || biometricStatus === 'VERIFIED'}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name={biometricStatus === 'VERIFIED' ? 'checkmark-circle' : 'finger-print'}
+                  size={16}
+                  color={colors.text.inverse}
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={styles.gatekeepActionBtnText}>
+                  {biometricStatus === 'VERIFIED'
+                    ? 'Officer Biometrics Authenticated'
+                    : biometricStatus === 'SCANNING'
+                    ? 'Scanning Sensor...'
+                    : 'Scan Fingerprint Sensor'}
+                </Text>
+              </TouchableOpacity>
+
+              {biometricStatus !== 'VERIFIED' && (
+                <TouchableOpacity
+                  style={styles.facialTriggerBtn}
+                  onPress={() => handleVerifyBiometrics('FACIAL')}
+                  disabled={biometricStatus === 'SCANNING'}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="scan-outline" size={15} color={colors.brand.primary} style={{ marginRight: 5 }} />
+                  <Text style={styles.facialTriggerBtnText}>Face ID</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
           {/* Workflow Steps Preview */}
           <SectionHeader
             title="Inspection Workflow Steps"
@@ -410,18 +783,121 @@ export const InspectionOverviewScreen: React.FC = () => {
             </View>
           </View>
 
+          {/* Validation Notice if Gatekeeping Incomplete */}
+          {validationError && (
+            <View style={styles.validationNotice}>
+              <Ionicons name="alert-circle" size={16} color={colors.status.highPriority} />
+              <Text style={styles.validationNoticeText}>{validationError}</Text>
+            </View>
+          )}
+
           {/* Primary Action Button */}
           <View style={styles.actionSection}>
             <PrimaryButton
-              title={isInProgress ? 'Resume Inspection' : 'Start Inspection'}
-              iconName="play-circle"
+              title={
+                isInProgress
+                  ? 'Resume Inspection'
+                  : canStart
+                  ? 'Start Inspection'
+                  : 'Start Inspection (Locked — Geofence & Biometrics Required)'
+              }
+              iconName={canStart || isInProgress ? 'play-circle' : 'lock-closed'}
               onPress={handleStartInspection}
               loading={starting}
-              style={styles.primaryActionBtn}
+              style={StyleSheet.flatten([
+                styles.primaryActionBtn,
+                !canStart && !isInProgress && styles.primaryActionBtnDisabled,
+              ]) as ViewStyle}
             />
+            {!canStart && !isInProgress && (
+              <Text style={styles.lockedHintText}>
+                🔒 Security Protocol Enforced: Must be verified within 100m geofence and authenticated biometrically to unlock inspection.
+              </Text>
+            )}
           </View>
         </Animated.View>
       </ScrollView>
+
+      {/* Supervisor Geofence Exemption Modal */}
+      <Modal
+        visible={overrideModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setOverrideModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalIconCircle}>
+                <Ionicons name="shield-outline" size={20} color={colors.status.highPriority} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalTitle}>Official Geofence Exemption</Text>
+                <Text style={styles.modalSubtitle}>Section 4.2 MoSJE Field Inspection Override Protocol</Text>
+              </View>
+            </View>
+
+            <Text style={styles.modalNotice}>
+              An authorized override permanently records your supervisor's approval and mandatory field justification into the central MoSJE audit ledger.
+            </Text>
+
+            {overrideError && (
+              <View style={styles.overrideErrorBox}>
+                <Ionicons name="alert-circle" size={14} color={colors.status.highPriority} />
+                <Text style={styles.overrideErrorText}>{overrideError}</Text>
+              </View>
+            )}
+
+            <Text style={styles.inputLabel}>Authorizing Authority / Officer *</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={authorizingAuthority}
+              onChangeText={setAuthorizingAuthority}
+              placeholder="e.g. Dr. Rajesh Sharma, Director PMU"
+              placeholderTextColor={colors.text.muted}
+            />
+
+            <Text style={styles.inputLabel}>Supervisor Authorization Code / Reference *</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={authorizationCode}
+              onChangeText={setAuthorizationCode}
+              placeholder="e.g. PMU-EXEMPT-2026-881"
+              placeholderTextColor={colors.text.muted}
+            />
+
+            <Text style={styles.inputLabel}>Mandatory Field Reason / Justification *</Text>
+            <TextInput
+              style={[styles.modalInput, styles.modalTextArea]}
+              value={overrideReason}
+              onChangeText={setOverrideReason}
+              placeholder="Detail reasons for external inspection (e.g. perimeter construction, flood hazard, road obstruction)..."
+              placeholderTextColor={colors.text.muted}
+              multiline={true}
+              numberOfLines={3}
+            />
+
+            <View style={styles.modalButtonsRow}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setOverrideModalVisible(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.modalCancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalSubmitBtn}
+                onPress={handleApplyOverride}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="checkmark-done" size={16} color={colors.text.inverse} style={{ marginRight: 6 }} />
+                <Text style={styles.modalSubmitBtnText}>Record Authorization</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -779,6 +1255,300 @@ const styles = StyleSheet.create({
   },
   primaryActionBtn: {
     minHeight: 48,
+  },
+
+  // Security Gatekeeping Cards
+  gatekeepCard: {
+    backgroundColor: colors.neutral.surface,
+    borderColor: colors.neutral.border,
+    borderWidth: 1,
+    borderRadius: borderRadius.lg,
+    padding: spacing.base,
+    marginBottom: spacing.base,
+    ...shadows.xs,
+  },
+  gatekeepCardSuccess: {
+    borderColor: colors.status.normalBorder,
+    backgroundColor: colors.status.normalLight,
+  },
+  gatekeepCardWarning: {
+    borderColor: colors.status.highPriorityBorder,
+    backgroundColor: colors.status.highPriorityLight,
+  },
+  gatekeepCardOverride: {
+    borderColor: colors.status.infoBorder,
+    backgroundColor: colors.status.infoLight,
+  },
+  gatekeepHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  gatekeepIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.brand.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gatekeepIconSuccess: {
+    backgroundColor: colors.status.normalLight,
+  },
+  gatekeepIconWarning: {
+    backgroundColor: colors.status.highPriorityLight,
+  },
+  gatekeepIconOverride: {
+    backgroundColor: colors.status.infoLight,
+  },
+  gatekeepHeaderTextCol: {
+    flex: 1,
+  },
+  gatekeepTitle: {
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.navy,
+  },
+  gatekeepSub: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.secondary,
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  gatekeepMessageRow: {
+    backgroundColor: colors.neutral.surfaceSubtle,
+    padding: spacing.xs + 2,
+    borderRadius: borderRadius.xs,
+    marginBottom: spacing.sm,
+  },
+  gatekeepMessageText: {
+    fontSize: 11,
+    color: colors.text.secondary,
+    lineHeight: 16,
+  },
+  overrideInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.status.infoLight,
+    borderColor: colors.status.infoBorder,
+    borderWidth: 1,
+    borderRadius: borderRadius.xs,
+    padding: spacing.xs + 2,
+    marginBottom: spacing.sm,
+  },
+  overrideInfoText: {
+    fontSize: 11,
+    color: colors.brand.navy,
+    flex: 1,
+    lineHeight: 15,
+  },
+  gatekeepActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  gatekeepActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.brand.primary,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+  },
+  gatekeepActionBtnText: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.bold,
+    color: colors.text.inverse,
+  },
+  overrideTriggerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.status.highPriorityBorder,
+    backgroundColor: colors.status.highPriorityLight,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm + 2,
+    borderRadius: borderRadius.md,
+  },
+  overrideTriggerBtnText: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
+    color: colors.status.highPriority,
+  },
+  biometricBtn: {
+    backgroundColor: colors.brand.primary,
+  },
+  biometricBtnVerified: {
+    backgroundColor: colors.status.normal,
+  },
+  facialTriggerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.brand.primary,
+    backgroundColor: colors.brand.primaryLight,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm + 2,
+    borderRadius: borderRadius.md,
+  },
+  facialTriggerBtnText: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.primary,
+  },
+
+  // Validation Notice
+  validationNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.status.highPriorityLight,
+    borderColor: colors.status.highPriorityBorder,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  validationNoticeText: {
+    fontSize: typography.sizes.xs,
+    color: colors.status.highPriority,
+    fontWeight: typography.weights.medium,
+    flex: 1,
+  },
+  primaryActionBtnDisabled: {
+    opacity: 0.65,
+  },
+  lockedHintText: {
+    fontSize: 11,
+    color: colors.text.muted,
+    textAlign: 'center',
+    marginTop: spacing.xs + 2,
+    lineHeight: 16,
+  },
+
+  // Supervisor Override Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.base,
+  },
+  modalContent: {
+    backgroundColor: colors.neutral.surface,
+    width: '100%',
+    maxWidth: 460,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    ...shadows.md,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  modalIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.status.highPriorityLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalTitle: {
+    fontSize: typography.sizes.md,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.navy,
+  },
+  modalSubtitle: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.muted,
+    marginTop: 1,
+  },
+  modalNotice: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.secondary,
+    backgroundColor: colors.neutral.surfaceSubtle,
+    padding: spacing.sm,
+    borderRadius: borderRadius.xs,
+    marginBottom: spacing.md,
+    lineHeight: 16,
+  },
+  overrideErrorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.status.highPriorityLight,
+    padding: spacing.xs + 2,
+    borderRadius: borderRadius.xs,
+    marginBottom: spacing.sm,
+  },
+  overrideErrorText: {
+    fontSize: 11,
+    color: colors.status.highPriority,
+    fontWeight: typography.weights.medium,
+  },
+  inputLabel: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+    marginBottom: 4,
+    marginTop: spacing.xs,
+  },
+  modalInput: {
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderColor: colors.neutral.border,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.sm,
+    fontSize: typography.sizes.sm,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  modalTextArea: {
+    minHeight: 64,
+    textAlignVertical: 'top',
+  },
+  modalButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
+    marginTop: spacing.base,
+  },
+  modalCancelBtn: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.base,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCancelBtnText: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.semibold,
+    color: colors.text.secondary,
+  },
+  modalSubmitBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.status.highPriority,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.base,
+    borderRadius: borderRadius.md,
+  },
+  modalSubmitBtnText: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.bold,
+    color: colors.text.inverse,
   },
 
   // Skeleton Styles

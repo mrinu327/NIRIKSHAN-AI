@@ -149,11 +149,16 @@ export class MockInspectionService {
         )
       : this.inspections;
 
+    const completedInspections = officerInspections.filter(
+      (i) => i.status === 'Completed' || i.status === 'Submitted / Awaiting Review'
+    );
+    const dynamicCompletedCount = completedInspections.length;
+
     return {
       assignedInspections: officerInspections.length,
       todaysTasks: officerInspections.filter((i) => i.dueDate.toLowerCase().includes('today')).length,
       highPriority: officerInspections.filter((i) => i.priority === 'HIGH').length,
-      completedThisMonth: MOCK_INSPECTOR_STATS.completedThisMonth,
+      completedThisMonth: dynamicCompletedCount > 0 ? dynamicCompletedCount : MOCK_INSPECTOR_STATS.completedThisMonth,
     };
   }
 
@@ -236,6 +241,137 @@ export class MockInspectionService {
     return this.inspections[index];
   }
 
+  async verifyInspectionLocation(
+    id: string,
+    currentLat: number,
+    currentLon: number,
+    options?: {
+      override?: boolean;
+      authorizingAuthority?: string;
+      authorizationCode?: string;
+      reason?: string;
+    }
+  ): Promise<{
+    verified: boolean;
+    distanceMeters: number;
+    radiusMeters: number;
+    status: 'INSIDE' | 'OUTSIDE' | 'OVERRIDDEN';
+    message: string;
+    assignment?: InspectionAssignment;
+  }> {
+    const index = this.inspections.findIndex((i) => i.id === id);
+    const radiusMeters = 100;
+
+    // Target coordinates: default to Rohini Delhi for demo or Coimbatore
+    // (Sector 14 Rohini New Delhi: 28.7180, 77.1240)
+    const targetLat = 28.7180;
+    const targetLon = 77.1240;
+
+    const R = 6371e3; // metres
+    const phi1 = (currentLat * Math.PI) / 180;
+    const phi2 = (targetLat * Math.PI) / 180;
+    const deltaPhi = ((targetLat - currentLat) * Math.PI) / 180;
+    const deltaLambda = ((targetLon - currentLon) * Math.PI) / 180;
+    const a =
+      Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+      Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+    const distanceMeters = Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+
+    const isInside = distanceMeters <= radiusMeters;
+    const isOverridden = Boolean(
+      options?.override &&
+      options.authorizingAuthority?.trim() &&
+      options.authorizationCode?.trim() &&
+      options.reason?.trim()
+    );
+
+    const verified = isInside || isOverridden;
+    const status: 'INSIDE' | 'OUTSIDE' | 'OVERRIDDEN' = isOverridden
+      ? 'OVERRIDDEN'
+      : isInside
+      ? 'INSIDE'
+      : 'OUTSIDE';
+
+    const timeStr =
+      new Date().toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }) + ' Today';
+
+    if (index !== -1) {
+      this.inspections[index] = {
+        ...this.inspections[index],
+        isLocationVerified: verified,
+        distanceMeters,
+        geofenceStatus: status,
+        geofenceVerifiedAt: timeStr,
+        ...(isOverridden
+          ? {
+              overrideReason: options?.reason,
+              overrideAuthorizingAuthority: options?.authorizingAuthority,
+              overrideAuthorizationCode: options?.authorizationCode,
+              overrideTimestamp: new Date().toISOString(),
+            }
+          : {}),
+      };
+    }
+
+    const message = isOverridden
+      ? `Authorized Geofence Exemption recorded. Approved by: ${options?.authorizingAuthority} (${options?.authorizationCode}).`
+      : isInside
+      ? `Location Verified: Within ${distanceMeters}m of target facility (Limit: ${radiusMeters}m).`
+      : `Outside Geofence Perimeter: ${distanceMeters}m from site. Must be within ${radiusMeters}m to proceed.`;
+
+    return {
+      verified,
+      distanceMeters,
+      radiusMeters,
+      status,
+      message,
+      assignment: index !== -1 ? this.inspections[index] : undefined,
+    };
+  }
+
+  async recordBiometricVerification(
+    id: string,
+    biometricType: 'FINGERPRINT' | 'FACIAL' | 'OFFICER_KEY'
+  ): Promise<InspectionAssignment | undefined> {
+    const index = this.inspections.findIndex((i) => i.id === id);
+    if (index === -1) return undefined;
+
+    const timeStr =
+      new Date().toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }) + ' Today';
+
+    this.inspections[index] = {
+      ...this.inspections[index],
+      isBiometricVerified: true,
+      biometricType,
+      biometricTimestamp: timeStr,
+    };
+
+    return this.inspections[index];
+  }
+
+  async getCompletedInspections(officerId?: string): Promise<InspectionAssignment[]> {
+    if (!officerId) {
+      return this.inspections.filter(
+        (i) => i.status === 'Completed' || i.status === 'Submitted / Awaiting Review'
+      );
+    }
+    return this.inspections.filter(
+      (i) =>
+        (i.status === 'Completed' || i.status === 'Submitted / Awaiting Review') &&
+        (i.assignedOfficerId === officerId ||
+          i.assignedOfficerDemoId === officerId ||
+          (i.submittedBy && i.submittedBy.toLowerCase().includes(officerId.toLowerCase())))
+    );
+  }
+
   async getChecklistTemplate(inspectionId: string): Promise<ChecklistItem[]> {
     const inspection = await this.getInspectionById(inspectionId);
     if (inspection?.checklistResponses) {
@@ -247,6 +383,19 @@ export class MockInspectionService {
   async startInspection(id: string): Promise<InspectionAssignment | undefined> {
     const index = this.inspections.findIndex((i) => i.id === id);
     if (index === -1) return undefined;
+
+    const inspection = this.inspections[index];
+    if (!inspection.isLocationVerified && !inspection.geofenceStatus) {
+      throw new Error(
+        'Mandatory Geofence Check Required: Field inspector must verify on-site location within 100m perimeter (or obtain authorized override) before starting.'
+      );
+    }
+
+    if (!inspection.isBiometricVerified) {
+      throw new Error(
+        'Mandatory Biometric Verification Required: Field officer identity must be authenticated before starting inspection.'
+      );
+    }
 
     const startedAt =
       new Date().toLocaleTimeString('en-IN', {
