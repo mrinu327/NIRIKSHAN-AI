@@ -31,6 +31,7 @@ import { StatusBadge } from '../../components/common/StatusBadge';
 import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { SecondaryButton } from '../../components/common/SecondaryButton';
 import { mockAlertService } from '../../services/mock/mockAlertService';
+import { mockOfficialService } from '../../services/mock/mockOfficialService';
 import { mockProjectService } from '../../services/mock/mockProjectService';
 import { useAuth } from '../../context/AuthContext';
 import { AnomalyAlert } from '../../types/alert';
@@ -125,6 +126,10 @@ export const AlertReviewScreen: React.FC = () => {
 
   useEffect(() => {
     loadAlertData();
+    const unsub = mockOfficialService.subscribe(() => {
+      loadAlertData();
+    });
+    return unsub;
   }, [alertId]);
 
   useEffect(() => {
@@ -162,21 +167,45 @@ export const AlertReviewScreen: React.FC = () => {
   const feedEstimate = isSunrise ? 25 : alert?.metricComparison?.headcountEstimate ?? 25;
   const varianceCount = isSunrise ? 17 : alert?.metricComparison?.difference ?? 17;
 
+  const handleAcknowledge = async () => {
+    if (!alert) return;
+    const success = await mockOfficialService.acknowledgeAlert(alert.id, 'Dr. Rajesh Kumar, IAS (Central Desk)');
+    if (success) {
+      await loadAlertData();
+      setActionFeedback('Alert acknowledged by Official Desk. Recorded in Central Audit Log.');
+    }
+  };
+
   const handleMarkFollowUp = async () => {
     if (!alert) return;
-    const updated = await mockAlertService.markForFollowUp(alert.id);
+    const updated = await mockOfficialService.markUnderInvestigation(alert.id, 'Dr. Rajesh Kumar, IAS');
     if (updated) {
-      setAlert({ ...updated });
-      setActionFeedback('Alert marked for follow-up verification. Field monitoring team alerted.');
+      setAlert(updated);
+      setActionFeedback('Alert marked for active follow-up verification. Field monitoring team alerted.');
     }
   };
 
   const handleDismiss = async () => {
     if (!alert) return;
-    const updated = await mockAlertService.dismissAlert(alert.id);
+    const updated = await mockOfficialService.dismissAlert(
+      alert.id,
+      'Discrepancy verified within acceptable variance tolerance by Dr. Rajesh Kumar, IAS'
+    );
     if (updated) {
-      setAlert({ ...updated });
-      setActionFeedback('Alert marked as reviewed. Discrepancy acknowledged by official.');
+      setAlert(updated);
+      setActionFeedback('Alert dismissed after official review. Recorded in audit ledger.');
+    }
+  };
+
+  const handleEscalate = async () => {
+    if (!alert) return;
+    const updated = await mockOfficialService.escalateAlert(
+      alert.id,
+      'Escalated to MoSJE Zonal Directorate for expedited scrutiny by Dr. Rajesh Kumar, IAS'
+    );
+    if (updated) {
+      setAlert(updated);
+      setActionFeedback('Alert escalated to Zonal Directorate. High-priority tag appended.');
     }
   };
 
@@ -486,14 +515,29 @@ export const AlertReviewScreen: React.FC = () => {
 
             <View style={styles.secondaryActionsRow}>
               <SecondaryButton
+                title="Acknowledge Alert"
+                iconName="checkmark-circle-outline"
+                onPress={handleAcknowledge}
+                style={[styles.secondaryActionBtn, isDesktop && { flex: 1 }]}
+              />
+              <SecondaryButton
                 title="Mark for Follow-up"
                 iconName="time-outline"
                 onPress={handleMarkFollowUp}
                 style={[styles.secondaryActionBtn, isDesktop && { flex: 1 }]}
               />
+            </View>
+
+            <View style={[styles.secondaryActionsRow, { marginTop: spacing.sm }]}>
+              <SecondaryButton
+                title="Escalate Discrepancy"
+                iconName="alert-circle-outline"
+                onPress={handleEscalate}
+                style={[styles.secondaryActionBtn, isDesktop && { flex: 1 }]}
+              />
               <SecondaryButton
                 title="Dismiss / Mark Reviewed"
-                iconName="checkmark-done"
+                iconName="close-circle-outline"
                 onPress={handleDismiss}
                 style={[styles.secondaryActionBtn, isDesktop && { flex: 1 }]}
               />

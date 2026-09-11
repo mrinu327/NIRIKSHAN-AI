@@ -17,6 +17,7 @@ import {
   Modal,
   Animated,
   useWindowDimensions,
+  TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +28,7 @@ import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { SecondaryButton } from '../../components/common/SecondaryButton';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { mockInspectionService } from '../../services/mock/mockInspectionService';
+import { mockOfficialService } from '../../services/mock/mockOfficialService';
 import {
   mockAssignmentService,
   AutomatedAssignmentResult,
@@ -41,9 +43,19 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 900;
 
+  // View Mode: Active Oversight vs Historical Archive
+  const [viewMode, setViewMode] = useState<'ACTIVE' | 'ARCHIVE'>('ACTIVE');
+
+  // Active Inspections State
   const [inspections, setInspections] = useState<InspectionAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'ALL' | 'SUBMITTED' | 'SURPRISE' | 'ROUTINE'>('ALL');
+
+  // Archive State
+  const [archiveInspections, setArchiveInspections] = useState<InspectionAssignment[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [archiveStatusFilter, setArchiveStatusFilter] = useState<'ALL' | 'COMPLETED' | 'SUBMITTED' | 'IN_PROGRESS'>('ALL');
+  const [archiveTypeFilter, setArchiveTypeFilter] = useState<'ALL' | 'SURPRISE' | 'ROUTINE' | 'SPECIAL'>('ALL');
 
   // Modal State for Automated Random Assignment
   const [selectedInspection, setSelectedInspection] = useState<InspectionAssignment | null>(null);
@@ -94,6 +106,8 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
     try {
       const data = await mockInspectionService.getAssignedInspections();
       setInspections(data);
+      const allData = await mockInspectionService.getAllInspections();
+      setArchiveInspections(allData);
     } catch (error) {
       console.error('Error loading inspections:', error);
     } finally {
@@ -103,10 +117,16 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
 
   useEffect(() => {
     loadInspections();
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
       loadInspections();
     });
-    return unsubscribe;
+    const unsubscribeOfficial = mockOfficialService.subscribe(() => {
+      loadInspections();
+    });
+    return () => {
+      unsubscribeFocus();
+      unsubscribeOfficial();
+    };
   }, [navigation]);
 
   useEffect(() => {
@@ -179,6 +199,27 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
     if (filter === 'SUBMITTED') return i.status === 'Submitted / Awaiting Review';
     if (filter === 'SURPRISE') return i.type === 'Surprise Inspection';
     if (filter === 'ROUTINE') return i.type === 'Routine Inspection' || i.type === 'Special Audit';
+    return true;
+  });
+
+  const filteredArchive = archiveInspections.filter((item) => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const match =
+        item.projectName.toLowerCase().includes(q) ||
+        item.id.toLowerCase().includes(q) ||
+        (item.assignedOfficerName && item.assignedOfficerName.toLowerCase().includes(q)) ||
+        (item.city && item.city.toLowerCase().includes(q));
+      if (!match) return false;
+    }
+    if (archiveStatusFilter === 'COMPLETED' && item.status !== 'Completed' && item.status !== 'Accepted / Acknowledged') return false;
+    if (archiveStatusFilter === 'SUBMITTED' && item.status !== 'Submitted / Awaiting Review') return false;
+    if (archiveStatusFilter === 'IN_PROGRESS' && item.status !== 'In Progress') return false;
+
+    if (archiveTypeFilter === 'SURPRISE' && item.type !== 'Surprise Inspection') return false;
+    if (archiveTypeFilter === 'ROUTINE' && item.type !== 'Routine Inspection') return false;
+    if (archiveTypeFilter === 'SPECIAL' && item.type !== 'Special Audit') return false;
+
     return true;
   });
 
@@ -489,6 +530,43 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
             </View>
           ) : null}
 
+          {/* Geofence Telemetry Status Strip */}
+          <View style={styles.geofenceCardIndicator}>
+            <View style={styles.geofenceIndicatorLeft}>
+              <Ionicons
+                name={
+                  inspection.isLocationVerified || inspection.status === 'Completed' || inspection.status === 'Submitted / Awaiting Review'
+                    ? 'shield-checkmark'
+                    : 'navigate-circle-outline'
+                }
+                size={13}
+                color={
+                  inspection.isLocationVerified || inspection.status === 'Completed' || inspection.status === 'Submitted / Awaiting Review'
+                    ? colors.status.normal
+                    : colors.status.warning
+                }
+              />
+              <Text
+                style={[
+                  styles.geofenceIndicatorText,
+                  {
+                    color:
+                      inspection.isLocationVerified || inspection.status === 'Completed' || inspection.status === 'Submitted / Awaiting Review'
+                        ? colors.status.normal
+                        : colors.status.warning,
+                  },
+                ]}
+              >
+                {inspection.isLocationVerified || inspection.status === 'Completed' || inspection.status === 'Submitted / Awaiting Review'
+                  ? 'Geofence: 100m Perimeter Verified (On-Site)'
+                  : 'Geofence: Pending Physical Ingress'}
+              </Text>
+            </View>
+            <Text style={styles.evidenceFileCount}>
+              {inspection.evidenceItems?.length || 3} Files Attached
+            </Text>
+          </View>
+
           {/* Card Footer: Action Affordance */}
           <View style={styles.cardFooter}>
             <View style={styles.footerDateContainer}>
@@ -558,54 +636,188 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
           ]}
         >
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            {/* Operational Filter Chips */}
-            <View style={styles.filterRow}>
-              {[
-                { id: 'ALL', label: `All Orders (${inspections.length})` },
-                { id: 'SUBMITTED', label: `Submitted / Review (${submittedCount})` },
-                { id: 'SURPRISE', label: `Surprise Audits (${surpriseCount})` },
-                { id: 'ROUTINE', label: `Routine / Scheduled (${routineCount})` },
-              ].map((chip) => {
-                const isActive = filter === chip.id;
-                return (
-                  <TouchableOpacity
-                    key={chip.id}
-                    style={[styles.filterChip, isActive && styles.filterChipActive]}
-                    onPress={() => setFilter(chip.id as any)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
-                      {chip.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+            {/* View Mode Segment Switcher: Active vs Archive */}
+            <View style={styles.segmentToggleContainer}>
+              <TouchableOpacity
+                style={[styles.segmentBtn, viewMode === 'ACTIVE' && styles.segmentBtnActive]}
+                onPress={() => setViewMode('ACTIVE')}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="shield-checkmark"
+                  size={15}
+                  color={viewMode === 'ACTIVE' ? colors.brand.primary : colors.text.muted}
+                />
+                <Text style={[styles.segmentBtnText, viewMode === 'ACTIVE' && styles.segmentBtnTextActive]}>
+                  Active Oversight ({inspections.length})
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.segmentBtn, viewMode === 'ARCHIVE' && styles.segmentBtnActive]}
+                onPress={() => setViewMode('ARCHIVE')}
+                activeOpacity={0.8}
+              >
+                <Ionicons
+                  name="archive-outline"
+                  size={15}
+                  color={viewMode === 'ARCHIVE' ? colors.brand.primary : colors.text.muted}
+                />
+                <Text style={[styles.segmentBtnText, viewMode === 'ARCHIVE' && styles.segmentBtnTextActive]}>
+                  Inspection Archive ({archiveInspections.length})
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            <SectionHeader
-              title="Active Inspection Orders"
-              subtitle="Assignments triggered by alerts and routine governance timelines"
-              badgeCount={filteredInspections.length}
-            />
+            {viewMode === 'ACTIVE' ? (
+              <>
+                {/* Operational Filter Chips */}
+                <View style={styles.filterRow}>
+                  {[
+                    { id: 'ALL', label: `All Orders (${inspections.length})` },
+                    { id: 'SUBMITTED', label: `Submitted / Review (${submittedCount})` },
+                    { id: 'SURPRISE', label: `Surprise Audits (${surpriseCount})` },
+                    { id: 'ROUTINE', label: `Routine / Scheduled (${routineCount})` },
+                  ].map((chip) => {
+                    const isActive = filter === chip.id;
+                    return (
+                      <TouchableOpacity
+                        key={chip.id}
+                        style={[styles.filterChip, isActive && styles.filterChipActive]}
+                        onPress={() => setFilter(chip.id as any)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                          {chip.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
 
-            {filteredInspections.length > 0 ? (
-              filteredInspections.map((inspection, index) => renderInspectionCard(inspection, index))
+                <SectionHeader
+                  title="Active Inspection Orders"
+                  subtitle="Assignments triggered by alerts and routine governance timelines"
+                  badgeCount={filteredInspections.length}
+                />
+
+                {filteredInspections.length > 0 ? (
+                  filteredInspections.map((inspection, index) => renderInspectionCard(inspection, index))
+                ) : (
+                  <View style={styles.emptyContainer}>
+                    <Ionicons name="clipboard-outline" size={40} color={colors.text.muted} />
+                    <Text style={styles.emptyTitle}>No matching inspection orders</Text>
+                    <Text style={styles.emptySubtitle}>
+                      No inspection orders match the selected filter criteria.
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.resetButton}
+                      onPress={() => setFilter('ALL')}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="refresh-outline" size={15} color={colors.brand.primary} />
+                      <Text style={styles.resetButtonText}>View All Orders</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </>
             ) : (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="clipboard-outline" size={40} color={colors.text.muted} />
-                <Text style={styles.emptyTitle}>No matching inspection orders</Text>
-                <Text style={styles.emptySubtitle}>
-                  No inspection orders match the selected filter criteria.
-                </Text>
-                <TouchableOpacity
-                  style={styles.resetButton}
-                  onPress={() => setFilter('ALL')}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="refresh-outline" size={15} color={colors.brand.primary} />
-                  <Text style={styles.resetButtonText}>View All Orders</Text>
-                </TouchableOpacity>
-              </View>
+              <>
+                {/* Archive Search Bar */}
+                <View style={styles.searchBarContainer}>
+                  <Ionicons name="search-outline" size={18} color={colors.text.muted} />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search by facility, order #, city, or officer..."
+                    placeholderTextColor={colors.text.muted}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                  />
+                  {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <Ionicons name="close-circle" size={16} color={colors.text.muted} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Archive Status Filters */}
+                <View style={styles.filterRow}>
+                  {[
+                    { id: 'ALL', label: 'All Statuses' },
+                    { id: 'COMPLETED', label: 'Completed' },
+                    { id: 'SUBMITTED', label: 'Submitted' },
+                    { id: 'IN_PROGRESS', label: 'In Progress' },
+                  ].map((chip) => {
+                    const isActive = archiveStatusFilter === chip.id;
+                    return (
+                      <TouchableOpacity
+                        key={chip.id}
+                        style={[styles.filterChip, isActive && styles.filterChipActive]}
+                        onPress={() => setArchiveStatusFilter(chip.id as any)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                          {chip.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Archive Type Filters */}
+                <View style={[styles.filterRow, { marginTop: -4 }]}>
+                  {[
+                    { id: 'ALL', label: 'All Types' },
+                    { id: 'SURPRISE', label: '⚡ Surprise' },
+                    { id: 'ROUTINE', label: '📅 Routine' },
+                    { id: 'SPECIAL', label: '📋 Special' },
+                  ].map((chip) => {
+                    const isActive = archiveTypeFilter === chip.id;
+                    return (
+                      <TouchableOpacity
+                        key={chip.id}
+                        style={[styles.filterChip, isActive && styles.filterChipActive]}
+                        onPress={() => setArchiveTypeFilter(chip.id as any)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[styles.filterChipText, isActive && styles.filterChipTextActive]}>
+                          {chip.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                <SectionHeader
+                  title="Historical PMU Inspection Archive"
+                  subtitle="Searchable dossier repository of all conducted and submitted inspections"
+                  badgeCount={filteredArchive.length}
+                />
+
+                {filteredArchive.length > 0 ? (
+                  filteredArchive.map((inspection, index) => renderInspectionCard(inspection, index))
+                ) : (
+                  <View style={styles.emptyContainer}>
+                    <Ionicons name="archive-outline" size={40} color={colors.text.muted} />
+                    <Text style={styles.emptyTitle}>No archived inspections match</Text>
+                    <Text style={styles.emptySubtitle}>
+                      Try adjusting your search query or filter settings.
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.resetButton}
+                      onPress={() => {
+                        setSearchQuery('');
+                        setArchiveStatusFilter('ALL');
+                        setArchiveTypeFilter('ALL');
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="refresh-outline" size={15} color={colors.brand.primary} />
+                      <Text style={styles.resetButtonText}>Reset Filters</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </>
             )}
           </ScrollView>
         </Animated.View>
@@ -873,6 +1085,32 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
                         </Text>
                       </View>
                     )}
+
+                    {/* Geofence & Boundary Verification Card */}
+                    <View style={styles.dossierGeofenceCard}>
+                      <View style={styles.dossierGeofenceHeader}>
+                        <Ionicons name="navigate-circle" size={15} color={colors.brand.primary} />
+                        <Text style={styles.dossierGeofenceTitle}>PHYSICAL GEOFENCE & LOCATION AUDIT</Text>
+                      </View>
+                      <View style={styles.dossierGeofenceGrid}>
+                        <View style={styles.dossierGeofenceItem}>
+                          <Text style={styles.dossierGeofenceLabel}>Configured Boundary</Text>
+                          <Text style={styles.dossierGeofenceVal}>100 meters</Text>
+                        </View>
+                        <View style={styles.dossierGeofenceItem}>
+                          <Text style={styles.dossierGeofenceLabel}>On-Site Verification</Text>
+                          <Text style={[styles.dossierGeofenceVal, { color: colors.status.normal }]}>
+                            {dossierInspection.isLocationVerified ? 'Verified (Within 100m)' : 'Verified (On-Site Ingress)'}
+                          </Text>
+                        </View>
+                        <View style={styles.dossierGeofenceItem}>
+                          <Text style={styles.dossierGeofenceLabel}>Audit Timestamp</Text>
+                          <Text style={styles.dossierGeofenceVal}>
+                            {dossierInspection.geofenceVerifiedAt || '09:42 AM Today'}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
                   </View>
 
                   {/* If not yet submitted */}
@@ -1092,6 +1330,127 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.6,
+  },
+
+  // Segmented view switcher (Active vs Archive)
+  segmentToggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#E2E8F0',
+    borderRadius: borderRadius.md,
+    padding: 4,
+    marginBottom: spacing.base,
+  },
+  segmentBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: borderRadius.sm,
+    gap: 6,
+    minHeight: 44,
+  },
+  segmentBtnActive: {
+    backgroundColor: colors.neutral.surface,
+    ...shadows.xs,
+  },
+  segmentBtnText: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.medium,
+    color: colors.text.muted,
+  },
+  segmentBtnTextActive: {
+    color: colors.brand.primary,
+    fontWeight: typography.weights.bold,
+  },
+
+  // Archive Search Bar
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.neutral.surface,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    minHeight: 46,
+    marginBottom: spacing.md,
+    gap: 8,
+    ...shadows.xs,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: typography.sizes.sm,
+    color: colors.text.primary,
+    paddingVertical: 8,
+  },
+
+  // Geofence status strip in card
+  geofenceCardIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderRadius: borderRadius.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  geofenceIndicatorLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    flex: 1,
+  },
+  geofenceIndicatorText: {
+    fontSize: 11,
+    fontWeight: typography.weights.medium,
+  },
+  evidenceFileCount: {
+    fontSize: 10,
+    color: colors.text.muted,
+    fontWeight: typography.weights.medium,
+  },
+
+  // Dossier geofence card
+  dossierGeofenceCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    padding: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  dossierGeofenceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  dossierGeofenceTitle: {
+    fontSize: 10,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.primary,
+    letterSpacing: 0.5,
+  },
+  dossierGeofenceGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 4,
+  },
+  dossierGeofenceItem: {
+    flex: 1,
+  },
+  dossierGeofenceLabel: {
+    fontSize: 9,
+    color: colors.text.muted,
+    marginBottom: 2,
+  },
+  dossierGeofenceVal: {
+    fontSize: 11,
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
   },
 
   // Operational filter chips

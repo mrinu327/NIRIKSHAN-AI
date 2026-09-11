@@ -24,6 +24,7 @@ import { OfficialTabNavigationProp } from '../../types/navigation';
 import { AppHeader } from '../../components/common/AppHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { mockProjectService } from '../../services/mock/mockProjectService';
+import { mockOfficialService } from '../../services/mock/mockOfficialService';
 import { Project } from '../../types/project';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -86,10 +87,16 @@ export const MonitoringPlaceholderScreen: React.FC = () => {
 
   useEffect(() => {
     loadProjects();
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsubFocus = navigation.addListener('focus', () => {
       loadProjects();
     });
-    return unsubscribe;
+    const unsubService = mockOfficialService.subscribe(() => {
+      loadProjects();
+    });
+    return () => {
+      unsubFocus();
+      unsubService();
+    };
   }, [navigation]);
 
   useEffect(() => {

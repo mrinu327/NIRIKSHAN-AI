@@ -23,6 +23,7 @@ import { OfficialTabNavigationProp } from '../../types/navigation';
 import { AppHeader } from '../../components/common/AppHeader';
 import { SectionHeader } from '../../components/common/SectionHeader';
 import { mockAlertService } from '../../services/mock/mockAlertService';
+import { mockOfficialService } from '../../services/mock/mockOfficialService';
 import { AnomalyAlert } from '../../types/alert';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -84,10 +85,16 @@ export const AlertsPlaceholderScreen: React.FC = () => {
 
   useEffect(() => {
     loadAlerts();
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
       loadAlerts();
     });
-    return unsubscribe;
+    const unsubscribeOfficial = mockOfficialService.subscribe(() => {
+      loadAlerts();
+    });
+    return () => {
+      unsubscribeFocus();
+      unsubscribeOfficial();
+    };
   }, [navigation]);
 
   useEffect(() => {

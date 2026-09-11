@@ -35,12 +35,14 @@ import { mockAlertService } from '../../services/mock/mockAlertService';
 import { mockInspectionService } from '../../services/mock/mockInspectionService';
 import { mockAnalyticsService } from '../../services/mock/mockAnalyticsService';
 import { mockAnomalyService } from '../../services/mock/mockAnomalyService';
+import { mockOfficialService } from '../../services/mock/mockOfficialService';
 import { useAuth } from '../../context/AuthContext';
 import { Project } from '../../types/project';
 import { AnomalyAlert } from '../../types/alert';
 import { InspectionAssignment } from '../../types/inspection';
 import { AttendanceAnalytics } from '../../types/attendance';
 import { AnomalyAssessment } from '../../types/anomaly';
+import { OfficialProjectDetail } from '../../types/official';
 import { SUNRISE_ATTENDANCE } from '../../data/mockData';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
@@ -59,6 +61,7 @@ export const ProjectDetailsScreen: React.FC = () => {
   const isDesktop = width >= 900;
 
   const [loading, setLoading] = useState(true);
+  const [officialDetail, setOfficialDetail] = useState<OfficialProjectDetail | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [alerts, setAlerts] = useState<AnomalyAlert[]>([]);
   const [inspections, setInspections] = useState<InspectionAssignment[]>([]);
@@ -96,12 +99,13 @@ export const ProjectDetailsScreen: React.FC = () => {
   const loadData = async () => {
     try {
       const [projData, alertsData, inspData, analyticsData, assessData] = await Promise.all([
-        mockProjectService.getProjectById(projectId),
+        mockOfficialService.getOfficialProjectDetail(projectId),
         mockAlertService.getAlertsByProjectId(projectId),
         mockInspectionService.getInspectionsByProjectId(projectId),
         mockAnalyticsService.getProjectAttendanceAnalytics(projectId),
         mockAnomalyService.getAssessmentForProject(projectId),
       ]);
+      setOfficialDetail(projData || null);
       setProject(projData || null);
       setAlerts(alertsData);
       setInspections(inspData);
@@ -116,10 +120,16 @@ export const ProjectDetailsScreen: React.FC = () => {
 
   useEffect(() => {
     loadData();
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsubFocus = navigation.addListener('focus', () => {
       loadData();
     });
-    return unsubscribe;
+    const unsubService = mockOfficialService.subscribe(() => {
+      loadData();
+    });
+    return () => {
+      unsubFocus();
+      unsubService();
+    };
   }, [navigation, projectId]);
 
   useEffect(() => {
@@ -336,6 +346,51 @@ export const ProjectDetailsScreen: React.FC = () => {
             <View style={styles.badgeRow}>
               <PriorityBadge priority={project.priority} />
               <StatusBadge label={project.status} variant={getStatusVariant()} size="sm" />
+              {officialDetail && (
+                <View
+                  style={[
+                    styles.riskBadge,
+                    officialDetail.riskLevel === 'CRITICAL'
+                      ? styles.riskCritical
+                      : officialDetail.riskLevel === 'ATTENTION_REQUIRED'
+                      ? styles.riskAttention
+                      : styles.riskHealthy,
+                  ]}
+                >
+                  <Ionicons
+                    name={
+                      officialDetail.riskLevel === 'CRITICAL'
+                        ? 'alert-circle'
+                        : officialDetail.riskLevel === 'ATTENTION_REQUIRED'
+                        ? 'warning-outline'
+                        : 'shield-checkmark'
+                    }
+                    size={11}
+                    color={
+                      officialDetail.riskLevel === 'CRITICAL'
+                        ? colors.status.highPriority
+                        : officialDetail.riskLevel === 'ATTENTION_REQUIRED'
+                        ? colors.status.warning
+                        : colors.status.normal
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.riskBadgeText,
+                      {
+                        color:
+                          officialDetail.riskLevel === 'CRITICAL'
+                            ? colors.status.highPriority
+                            : officialDetail.riskLevel === 'ATTENTION_REQUIRED'
+                            ? colors.status.warning
+                            : colors.status.normal,
+                      },
+                    ]}
+                  >
+                    {officialDetail.riskLevel.replace('_', ' ')}
+                  </Text>
+                </View>
+              )}
             </View>
 
             <Text style={styles.projectName}>{project.name}</Text>
@@ -451,6 +506,57 @@ export const ProjectDetailsScreen: React.FC = () => {
             </View>
           </View>
 
+          {/* SECTION D2: Geofence & Boundary Telemetry */}
+          <SectionHeader
+            title="Geofence & Boundary Oversight"
+            subtitle="Configured 100m perimeter and active edge gateway position"
+          />
+
+          <View style={styles.geofenceCard}>
+            <View style={styles.geofenceHeader}>
+              <View style={styles.geofenceBadge}>
+                <Ionicons name="location" size={13} color={colors.status.normal} />
+                <Text style={styles.geofenceBadgeText}>
+                  {officialDetail?.geofence.status ?? 'Inside Perimeter'}
+                </Text>
+              </View>
+              <Text style={styles.geofenceLastUpdate}>
+                Edge GPS: {officialDetail?.geofence.lastUpdated ?? '09:30 AM Today'}
+              </Text>
+            </View>
+
+            <View style={styles.geofenceGrid}>
+              <View style={styles.geofenceItem}>
+                <Text style={styles.geofenceLabel}>Configured Radius</Text>
+                <Text style={styles.geofenceValue}>100m</Text>
+                <Text style={styles.geofenceSub}>Standard perimeter</Text>
+              </View>
+              <View style={styles.dividerVertical} />
+              <View style={styles.geofenceItem}>
+                <Text style={styles.geofenceLabel}>Offset from Center</Text>
+                <Text style={styles.geofenceValue}>
+                  {officialDetail?.geofence.distanceFromCenterMeters ?? 24}m
+                </Text>
+                <Text style={styles.geofenceSub}>From registered plot</Text>
+              </View>
+              <View style={styles.dividerVertical} />
+              <View style={styles.geofenceItem}>
+                <Text style={styles.geofenceLabel}>Boundary Margin</Text>
+                <Text style={[styles.geofenceValue, { color: colors.status.normal }]}>
+                  {officialDetail?.geofence.distanceFromBoundaryMeters ?? 76}m Inside
+                </Text>
+                <Text style={styles.geofenceSub}>Safe operational zone</Text>
+              </View>
+            </View>
+
+            <View style={styles.geofenceNotice}>
+              <Ionicons name="shield-checkmark-outline" size={15} color={colors.brand.primary} />
+              <Text style={styles.geofenceNoticeText}>
+                Remote oversight telemetry only. Field inspections mandate on-site physical GPS verification within 100m before checklist unlock.
+              </Text>
+            </View>
+          </View>
+
           {/* SECTION E: Facility Anomaly Alerts */}
           <SectionHeader
             title="Facility Anomaly Alerts"
@@ -514,6 +620,55 @@ export const ProjectDetailsScreen: React.FC = () => {
                 <Text style={styles.noActiveInspectionText}>No pending field audit currently scheduled.</Text>
               </View>
             )}
+          </View>
+
+          {/* SECTION F2: Recent Institutional Activity */}
+          <SectionHeader
+            title="Institutional Activity Ledger"
+            subtitle="Audit log of inspections, telemetry alerts & roll-call submissions"
+            badgeCount={officialDetail?.recentActivity.length ?? 0}
+          />
+
+          <View style={styles.activityCard}>
+            {(officialDetail?.recentActivity ?? []).map((act, index) => (
+              <View
+                key={act.id}
+                style={[
+                  styles.activityRow,
+                  index !== (officialDetail?.recentActivity.length ?? 0) - 1 && styles.activityRowBorder,
+                ]}
+              >
+                <View style={styles.activityIconBox}>
+                  <Ionicons
+                    name={
+                      act.type === 'ALERT'
+                        ? 'alert-circle'
+                        : act.type === 'INSPECTION'
+                        ? 'clipboard'
+                        : act.type === 'ATTENDANCE_SUBMISSION'
+                        ? 'people'
+                        : 'document-text'
+                    }
+                    size={16}
+                    color={
+                      act.type === 'ALERT'
+                        ? colors.status.warning
+                        : act.type === 'INSPECTION'
+                        ? colors.brand.primary
+                        : colors.status.normal
+                    }
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.activityHeaderRow}>
+                    <Text style={styles.activityTitle}>{act.title}</Text>
+                    <Text style={styles.activityTime}>{act.timestamp}</Text>
+                  </View>
+                  {act.notes ? <Text style={styles.activityNotes}>{act.notes}</Text> : null}
+                  <Text style={styles.activityStatusTag}>Status: {act.status}</Text>
+                </View>
+              </View>
+            ))}
           </View>
 
           {/* SECTION G: Governance Actions */}
@@ -918,6 +1073,172 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginLeft: 6,
+  },
+
+  /* Risk Badge */
+  riskBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: borderRadius.xs,
+    borderWidth: 1,
+    gap: 4,
+  },
+  riskHealthy: {
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normal + '40',
+  },
+  riskAttention: {
+    backgroundColor: colors.status.warningLight,
+    borderColor: colors.status.warning + '40',
+  },
+  riskCritical: {
+    backgroundColor: colors.status.highPriorityLight,
+    borderColor: colors.status.highPriority + '40',
+  },
+  riskBadgeText: {
+    fontSize: 10,
+    fontWeight: typography.weights.bold,
+    letterSpacing: 0.3,
+  },
+
+  /* Geofence Card */
+  geofenceCard: {
+    backgroundColor: colors.neutral.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.base,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    marginBottom: spacing.md,
+    ...shadows.xs,
+  },
+  geofenceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  geofenceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.status.normalLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: borderRadius.xs,
+    gap: 4,
+  },
+  geofenceBadgeText: {
+    fontSize: 11,
+    fontWeight: typography.weights.bold,
+    color: colors.status.normal,
+  },
+  geofenceLastUpdate: {
+    fontSize: 10,
+    color: colors.text.muted,
+  },
+  geofenceGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: colors.neutral.surfaceSubtle,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.sm,
+  },
+  geofenceItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  geofenceLabel: {
+    fontSize: 10,
+    color: colors.text.muted,
+    marginBottom: 2,
+  },
+  geofenceValue: {
+    fontSize: typography.sizes.sm + 1,
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+  },
+  geofenceSub: {
+    fontSize: 9,
+    color: colors.text.muted,
+    marginTop: 2,
+  },
+  geofenceNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(42, 92, 224, 0.06)',
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+    gap: 6,
+    marginTop: 4,
+  },
+  geofenceNoticeText: {
+    fontSize: 11,
+    color: colors.brand.navyLight,
+    flex: 1,
+    lineHeight: 16,
+  },
+
+  /* Activity Card */
+  activityCard: {
+    backgroundColor: colors.neutral.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    padding: spacing.base,
+    marginBottom: spacing.md,
+    ...shadows.xs,
+  },
+  activityRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  activityRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.neutral.divider,
+  },
+  activityIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.neutral.surfaceSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  activityHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  activityTitle: {
+    fontSize: typography.sizes.xs + 1,
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+    flex: 1,
+  },
+  activityTime: {
+    fontSize: 10,
+    color: colors.text.muted,
+    marginLeft: 6,
+  },
+  activityNotes: {
+    fontSize: 11,
+    color: colors.text.secondary,
+    lineHeight: 16,
+    marginTop: 2,
+  },
+  activityStatusTag: {
+    fontSize: 10,
+    fontWeight: typography.weights.semibold,
+    color: colors.brand.primary,
+    marginTop: 4,
   },
 
   /* Section G: Action Buttons */

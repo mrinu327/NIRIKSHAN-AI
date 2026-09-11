@@ -24,6 +24,7 @@ import { AppHeader } from '../../components/common/AppHeader';
 import { LoadingState } from '../../components/common/LoadingState';
 import { mockProjectService } from '../../services/mock/mockProjectService';
 import { mockAlertService } from '../../services/mock/mockAlertService';
+import { mockOfficialService } from '../../services/mock/mockOfficialService';
 import { Project, ProjectStatsSummary } from '../../types/project';
 import { AnomalyAlert } from '../../types/alert';
 import { colors } from '../../theme/colors';
@@ -106,14 +107,23 @@ export const OfficialHomeScreen: React.FC = () => {
 
   const loadDashboardData = async () => {
     try {
-      const [statsData, projectsData, alertsData] = await Promise.all([
-        mockProjectService.getOfficialStats(),
+      const [metricsData, projectsData, alertsData] = await Promise.all([
+        mockOfficialService.getDashboardMetrics(),
         mockProjectService.getPriorityProjects(),
         mockAlertService.getPendingAlerts(),
       ]);
-      setStats(statsData);
+      setStats({
+        totalProjects: metricsData.totalProjects,
+        highPriorityCount: metricsData.activeAlertsCount,
+        pendingInspectionsCount: metricsData.pendingInspectionsCount,
+        activeCCTVCount: metricsData.cctvOnlineCount,
+        totalAlertsCount: metricsData.activeAlertsCount,
+        criticalComplianceCount: metricsData.criticalProjectsCount,
+        totalBeneficiariesCount: 4820,
+        averageAttendanceRate: metricsData.overallComplianceAverage,
+      });
       setPriorityProjects(projectsData.slice(0, 3));
-      setCriticalAlerts(alertsData.slice(0, 1));
+      setCriticalAlerts(alertsData.filter((a) => a.status === 'Pending Review'));
     } catch (error) {
       console.error('Error loading official dashboard:', error);
     } finally {
@@ -124,10 +134,16 @@ export const OfficialHomeScreen: React.FC = () => {
 
   useEffect(() => {
     loadDashboardData();
-    const unsubscribe = navigation.addListener('focus', () => {
+    const unsubFocus = navigation.addListener('focus', () => {
       loadDashboardData();
     });
-    return unsubscribe;
+    const unsubService = mockOfficialService.subscribe(() => {
+      loadDashboardData();
+    });
+    return () => {
+      unsubFocus();
+      unsubService();
+    };
   }, [navigation]);
 
   useEffect(() => {
@@ -303,6 +319,47 @@ export const OfficialHomeScreen: React.FC = () => {
                 </View>
               </View>
             </Animated.View>
+
+            {/* QUICK ACTIONS STRIP */}
+            <View style={styles.quickActionStrip}>
+              <TouchableOpacity
+                style={styles.quickActionPill}
+                onPress={() => navigation.navigate('InitiateInspection', { projectId: 'PRJ-101' })}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="add-circle-outline" size={14} color={colors.brand.primary} />
+                <Text style={styles.quickActionText}>Initiate Inspection</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.quickActionPill}
+                onPress={() => navigation.navigate('Alerts')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="alert-circle-outline" size={14} color={colors.status.warning} />
+                <Text style={[styles.quickActionText, { color: colors.status.warning }]}>
+                  Review Alerts ({stats?.highPriorityCount ?? 0})
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.quickActionPill}
+                onPress={() => navigation.navigate('Inspections')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="clipboard-outline" size={14} color={colors.brand.primary} />
+                <Text style={styles.quickActionText}>Monitor Inspections</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.quickActionPill}
+                onPress={() => navigation.navigate('Monitoring')}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="business-outline" size={14} color={colors.brand.primary} />
+                <Text style={styles.quickActionText}>View Projects ({stats?.totalProjects ?? 148})</Text>
+              </TouchableOpacity>
+            </View>
 
             {/* SECTION 2: ASYMMETRIC 2-COLUMN SPLIT ROW (DESKTOP) / STACKED (MOBILE) */}
             <Animated.View style={{ opacity: splitRowAnim, marginTop: spacing.md }}>
@@ -773,6 +830,32 @@ const styles = StyleSheet.create({
   telemetryLinkText: {
     fontSize: 10,
     fontWeight: typography.weights.semibold,
+    color: colors.brand.primary,
+  },
+
+  // QUICK ACTIONS STRIP
+  quickActionStrip: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  quickActionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.neutral.surface,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    gap: 4,
+    ...shadows.xs,
+  },
+  quickActionText: {
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
     color: colors.brand.primary,
   },
 
