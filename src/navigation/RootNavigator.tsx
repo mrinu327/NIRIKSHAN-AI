@@ -8,26 +8,29 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
-import { RoleSelectionScreen } from '../screens/auth/RoleSelectionScreen';
+import { AuthStackNavigator } from './AuthStackNavigator';
 import { OfficialStackNavigator } from './OfficialStackNavigator';
 import { InspectorStackNavigator } from './InspectorStackNavigator';
 import { NgoTabNavigator } from './NgoTabNavigator';
 import { colors } from '../theme/colors';
 
 export const RootNavigator: React.FC = () => {
-  const { currentRole } = useAuth();
+  const { currentRole, isAuthenticated } = useAuth();
 
   const renderContent = () => {
+    if (!isAuthenticated || !currentRole) {
+      return <AuthStackNavigator key="auth-stack" />;
+    }
+
     switch (currentRole) {
       case 'official':
-        return <OfficialStackNavigator />;
+        return <OfficialStackNavigator key="official-stack" />;
       case 'inspector':
-        return <InspectorStackNavigator />;
+        return <InspectorStackNavigator key="inspector-stack" />;
       case 'ngo':
-        return <NgoTabNavigator />;
-      case null:
+        return <NgoTabNavigator key="ngo-stack" />;
       default:
-        return <RoleSelectionScreen />;
+        return <AuthStackNavigator key="auth-stack-fallback" />;
     }
   };
 
@@ -37,6 +40,7 @@ export const RootNavigator: React.FC = () => {
     </NavigationContainer>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

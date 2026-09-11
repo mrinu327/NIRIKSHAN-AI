@@ -55,7 +55,7 @@ export default function LoginScreen() {
         router.replace('/(official)/dashboard');
         break;
       case Role.INSPECTOR:
-        router.replace('/(inspector)/assignments');
+        router.replace('/(inspector)/dashboard' as any);
         break;
       case Role.NGO:
         router.replace('/(ngo)/home');
