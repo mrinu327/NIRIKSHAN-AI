@@ -1,0 +1,48 @@
+import { MasterNotification } from '../../types/master';
+
+export const MASTER_NOTIFICATIONS: MasterNotification[] = [
+  {
+    notificationId: 'NOTIF-001',
+    role: 'OFFICIAL',
+    type: 'ANOMALY_DETECTED',
+    title: 'High Severity Anomaly: ALT-2601',
+    message: 'Headcount mismatch detected at Sunrise Special Education Centre (PRJ-101). Register: 42, CCTV: 25.',
+    read: false,
+    referenceEntityType: 'ANOMALY',
+    referenceEntityId: 'ALT-2601',
+    createdAt: '2026-03-01T14:30:00Z',
+  },
+  {
+    notificationId: 'NOTIF-002',
+    role: 'OFFICIAL',
+    type: 'AI_RECOMMENDATION',
+    title: 'Surprise Inspection Recommended',
+    message: 'Nirikshan AI recommends triggering surprise physical inspection for PRJ-101 within 48 hours.',
+    read: false,
+    referenceEntityType: 'RECOMMENDATION',
+    referenceEntityId: 'REC-PRJ-101-01',
+    createdAt: '2026-03-01T14:35:00Z',
+  },
+  {
+    notificationId: 'NOTIF-003',
+    role: 'INSPECTOR',
+    type: 'INSPECTION_ASSIGNMENT',
+    title: 'New Inspection Assigned: INSP-1092',
+    message: 'You have been assigned surprise inspection for Sunrise Special Education Centre (PRJ-101).',
+    read: true,
+    referenceEntityType: 'INSPECTION',
+    referenceEntityId: 'INSP-1092',
+    createdAt: '2026-03-01T08:00:00Z',
+  },
+  {
+    notificationId: 'NOTIF-004',
+    role: 'NGO',
+    type: 'COMPLIANCE_ALERT',
+    title: 'Documentation Update Required',
+    message: 'Monthly beneficiary attendance certification is due for PRJ-101.',
+    read: false,
+    referenceEntityType: 'PROJECT',
+    referenceEntityId: 'PRJ-101',
+    createdAt: '2026-03-01T09:00:00Z',
+  },
+];

@@ -16,6 +16,7 @@ import { InspectionChecklistScreen } from '../screens/inspector/InspectionCheckl
 import { InspectionFindingsScreen } from '../screens/inspector/InspectionFindingsScreen';
 import { InspectionReviewScreen } from '../screens/inspector/InspectionReviewScreen';
 import { InspectionConfirmationScreen } from '../screens/inspector/InspectionConfirmationScreen';
+import { InspectionHistoryScreen } from '../screens/inspector/InspectionHistoryScreen';
 
 const Stack = createNativeStackNavigator<InspectorStackParamList>();
 
@@ -33,6 +34,7 @@ export const InspectorStackNavigator: React.FC = () => {
       <Stack.Screen name="InspectionFindings" component={InspectionFindingsScreen} />
       <Stack.Screen name="InspectionReview" component={InspectionReviewScreen} />
       <Stack.Screen name="InspectionConfirmation" component={InspectionConfirmationScreen} />
+      <Stack.Screen name="InspectionHistory" component={InspectionHistoryScreen} />
     </Stack.Navigator>
   );
 };

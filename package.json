@@ -3,18 +3,53 @@
   "version": "1.0.0",
   "private": true,
   "description": "DoSJE Centralized Monitoring & Surprise Inspection Mobile App",
+  "main": "index.ts",
   "workspaces": [
     "packages/*",
-    "backend",
-    "mobile"
+    "backend"
   ],
   "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
     "build:types": "npm --prefix packages/shared-types run build",
     "backend:dev": "npm --prefix backend run dev",
     "backend:build": "npm --prefix backend run build",
     "backend:seed": "npm --prefix backend run prisma:seed",
-    "mobile:start": "npm --prefix mobile run start",
-    "mobile:web": "npm --prefix mobile run web",
-    "type-check": "npm --prefix packages/shared-types run type-check && npm --prefix backend run type-check && npm --prefix mobile run type-check"
+    "type-check": "npm --prefix packages/shared-types run type-check && npm --prefix backend run type-check && tsc --noEmit"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^14.0.4",
+    "@nirikshan/shared-types": "file:./packages/shared-types",
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "@react-navigation/bottom-tabs": "^7.18.18",
+    "@react-navigation/native": "^7.3.18",
+    "@react-navigation/native-stack": "^7.18.10",
+    "axios": "^1.7.7",
+    "expo": "~52.0.11",
+    "expo-av": "~15.0.1",
+    "expo-camera": "~16.0.7",
+    "expo-constants": "~17.0.3",
+    "expo-crypto": "~14.0.1",
+    "expo-font": "~13.0.2",
+    "expo-image-picker": "~16.0.3",
+    "expo-linking": "~7.0.3",
+    "expo-location": "~18.0.2",
+    "expo-status-bar": "~2.0.0",
+    "lucide-react-native": "^0.460.0",
+    "react": "18.3.1",
+    "react-dom": "^18.3.1",
+    "react-native": "0.76.3",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-svg": "15.8.0",
+    "react-native-web": "^0.19.13",
+    "zustand": "^5.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~18.3.12",
+    "typescript": "^5.3.3"
   }
 }

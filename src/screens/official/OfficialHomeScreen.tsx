@@ -27,9 +27,24 @@ import { mockAlertService } from '../../services/mock/mockAlertService';
 import { mockOfficialService } from '../../services/mock/mockOfficialService';
 import { Project, ProjectStatsSummary } from '../../types/project';
 import { AnomalyAlert } from '../../types/alert';
+import { Division, Scheme, Organization, MasterProject } from '../../types/master';
+import { divisionService } from '../../services/master/divisionService';
+import { schemeService } from '../../services/master/schemeService';
+import { organizationService } from '../../services/master/organizationService';
+import { projectService } from '../../services/master/projectService';
+import { anomalyService } from '../../services/master/anomalyService';
+import { organizationRiskEngine } from '../../services/analytics/organizationRiskEngine';
+import { masterLookup } from '../../data/master';
+import { MonitoringPriorityBadge } from '../../components/organization/MonitoringPriorityBadge';
+import { ProjectStatusBadge } from '../../components/project/ProjectStatusBadge';
+import { DataSourceBadge } from '../../components/common/DataSourceBadge';
+import { AnomalySeverityBadge } from '../../components/anomaly/AnomalySeverityBadge';
+import { AnomalyConfidenceBadge } from '../../components/anomaly/AnomalyConfidenceBadge';
+import { MasterAnomaly, AnomalySummary } from '../../types/master';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, borderRadius, shadows } from '../../theme/spacing';
+
 
 /**
  * Animated counter hook that smoothly counts up to target over duration.
@@ -66,6 +81,19 @@ export const OfficialHomeScreen: React.FC = () => {
   const [stats, setStats] = useState<ProjectStatsSummary | null>(null);
   const [priorityProjects, setPriorityProjects] = useState<Project[]>([]);
   const [criticalAlerts, setCriticalAlerts] = useState<AnomalyAlert[]>([]);
+  const [topDivisions, setTopDivisions] = useState<Division[]>([]);
+  const [topSchemes, setTopSchemes] = useState<Scheme[]>([]);
+  const [topOrganizations, setTopOrganizations] = useState<Organization[]>([]);
+  const [topProjects, setTopProjects] = useState<MasterProject[]>([]);
+  const [topAnomalies, setTopAnomalies] = useState<MasterAnomaly[]>([]);
+  const [anomalySummary, setAnomalySummary] = useState<AnomalySummary | null>(null);
+  const [orgKpis, setOrgKpis] = useState({
+    total: 4,
+    avgScore: 78,
+    highPriority: 1,
+    openFindings: 3,
+    anomalies: 2,
+  });
 
   // Entrance animations
   const screenFade = useRef(new Animated.Value(0)).current;
@@ -103,14 +131,30 @@ export const OfficialHomeScreen: React.FC = () => {
     );
     pulseLoop.start();
     return () => pulseLoop.stop();
-  }, [livePulse]);
+  }, []);
 
   const loadDashboardData = async () => {
     try {
-      const [metricsData, projectsData, alertsData] = await Promise.all([
+      const [
+        metricsData,
+        projectsData,
+        alertsData,
+        divisionsList,
+        schemesList,
+        orgsList,
+        masterProjectsList,
+        anomList,
+        anomSummary,
+      ] = await Promise.all([
         mockOfficialService.getDashboardMetrics(),
         mockProjectService.getPriorityProjects(),
         mockAlertService.getPendingAlerts(),
+        divisionService.getAllDivisions(),
+        schemeService.getAllSchemes(),
+        organizationService.getOrganizations(),
+        projectService.getProjects(),
+        anomalyService.getAnomalies(),
+        anomalyService.getAnomalySummary(),
       ]);
       setStats({
         totalProjects: metricsData.totalProjects,
@@ -124,6 +168,35 @@ export const OfficialHomeScreen: React.FC = () => {
       });
       setPriorityProjects(projectsData.slice(0, 3));
       setCriticalAlerts(alertsData.filter((a) => a.status === 'Pending Review'));
+      setTopDivisions(divisionsList.slice(0, 3));
+      setTopSchemes(schemesList.slice(0, 3));
+      setTopOrganizations(orgsList.slice(0, 3));
+      setTopProjects(masterProjectsList.slice(0, 3));
+      setTopAnomalies(anomList.slice(0, 3));
+      setAnomalySummary(anomSummary);
+
+      const totalOrgs = orgsList.length;
+      let sumScore = 0;
+      let hpCount = 0;
+      let openFnd = 0;
+      let totalAnom = 0;
+      for (const org of orgsList) {
+        const prof = organizationRiskEngine.calculateOrganizationRiskProfile(org.organizationId);
+        sumScore += (prof?.score ?? 75);
+        const p = organizationRiskEngine.calculateMonitoringPriority(org.organizationId).priority;
+        if (p === 'HIGH' || p === 'CRITICAL') hpCount++;
+        const fnds = masterLookup.getOrganizationFindings(org.organizationId);
+        openFnd += fnds.filter(f => f.status === 'OPEN' || f.status === 'IN_REVIEW').length;
+        totalAnom += masterLookup.getOrganizationAnomalies(org.organizationId).length;
+      }
+      setOrgKpis({
+        total: totalOrgs,
+        avgScore: totalOrgs > 0 ? Math.round(sumScore / totalOrgs) : 0,
+        highPriority: hpCount,
+        openFindings: openFnd,
+        anomalies: totalAnom,
+      });
+
     } catch (error) {
       console.error('Error loading official dashboard:', error);
     } finally {
@@ -622,7 +695,538 @@ export const OfficialHomeScreen: React.FC = () => {
                 </View>
               </View>
             </Animated.View>
+
+            {/* SECTION 4: DIVISION & SCHEME INTELLIGENCE */}
+            <View style={styles.intelligenceSectionContainer}>
+              <View style={styles.intelHeaderRow}>
+                <View style={styles.intelHeaderTitles}>
+                  <View style={styles.intelBadgeRow}>
+                    <Ionicons name="layers" size={13} color={colors.brand.primary} />
+                    <Text style={styles.intelBadgeText}>ADMINISTRATIVE INTELLIGENCE</Text>
+                  </View>
+                  <Text style={styles.intelSectionTitle}>Division & Scheme Intelligence</Text>
+                  <Text style={styles.intelSectionSub}>
+                    Administrative governance, national welfare schemes, and oversight signals
+                  </Text>
+                </View>
+
+                {/* Quick actions buttons */}
+                <View style={styles.intelActionButtonsRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.intelActionBtn}
+                    onPress={() => navigation.navigate('DivisionExplorer')}
+                  >
+                    <Ionicons name="business" size={14} color={colors.brand.primary} />
+                    <Text style={styles.intelActionBtnText}>Explore Divisions</Text>
+                    <Ionicons name="chevron-forward" size={12} color={colors.brand.primary} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.intelActionBtn}
+                    onPress={() => navigation.navigate('SchemeExplorer')}
+                  >
+                    <Ionicons name="layers-outline" size={14} color={colors.brand.primary} />
+                    <Text style={styles.intelActionBtnText}>Explore Schemes</Text>
+                    <Ionicons name="chevron-forward" size={12} color={colors.brand.primary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* SCHEME MONITORING ATTENTION (SCHEME -> PROJECT -> ANOMALY TRACE) */}
+              <View style={styles.schemeAttentionCard}>
+                <View style={styles.attentionHeader}>
+                  <View style={styles.attentionBadge}>
+                    <Ionicons name="warning" size={13} color={colors.status.highPriority} />
+                    <Text style={styles.attentionBadgeText}>SCHEME MONITORING ATTENTION</Text>
+                  </View>
+                  <Text style={styles.attentionPriorityText}>HIGH PRIORITY</Text>
+                </View>
+
+                <View style={styles.attentionTraceBox}>
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>SCHEME</Text>
+                    <Text style={styles.traceNodeVal}>DDRS</Text>
+                    <Text style={styles.traceNodeSub}>Disability Rehab</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={14} color={colors.text.muted} />
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>PROJECT</Text>
+                    <Text style={styles.traceNodeVal}>PRJ-101</Text>
+                    <Text style={styles.traceNodeSub}>Sunrise Rehab</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={14} color={colors.text.muted} />
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>ANOMALY</Text>
+                    <Text style={[styles.traceNodeVal, { color: colors.status.highPriority }]}>ALT-2601</Text>
+                    <Text style={styles.traceNodeSub}>Attendance 42 vs 25</Text>
+                  </View>
+                </View>
+
+                <View style={styles.attentionActionRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.attentionActionBtn}
+                    onPress={() => navigation.navigate('SchemeDetails', { schemeId: 'SCH-DDRS' })}
+                  >
+                    <Text style={styles.attentionActionBtnText}>View DDRS Scheme Dossier</Text>
+                    <Ionicons name="arrow-forward" size={13} color={colors.brand.primary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* PREVIEW CARDS: TOP DIVISIONS & TOP SCHEMES */}
+              <View style={[styles.intelPreviewsRow, isDesktop && styles.desktopIntelPreviewsRow]}>
+                {/* Left: Top Divisions */}
+                <View style={styles.previewCol}>
+                  <View style={styles.previewColHeader}>
+                    <Text style={styles.previewColTitle}>Administrative Divisions</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('DivisionExplorer')}>
+                      <Text style={styles.seeAllText}>View All ({topDivisions.length})</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.previewCardsList}>
+                    {topDivisions.map(div => (
+                      <TouchableOpacity
+                        key={div.divisionId}
+                        activeOpacity={0.8}
+                        style={styles.previewCardItem}
+                        onPress={() => navigation.navigate('DivisionDetails', { divisionId: div.divisionId })}
+                      >
+                        <View style={styles.previewCardTop}>
+                          <Text style={styles.previewCodeText}>{div.code || div.divisionId}</Text>
+                          <DataSourceBadge dataSource={div.dataSource} size="sm" />
+                        </View>
+                        <Text style={styles.previewCardTitle} numberOfLines={1}>{div.name}</Text>
+                        <View style={styles.previewMetricsRow}>
+                          <Text style={styles.previewMetricItem}>
+                            Schemes: <Text style={styles.previewBold}>{div.schemeIds.length}</Text>
+                          </Text>
+                          <Text style={styles.previewMetricItem}>
+                            Projects: <Text style={styles.previewBold}>{div.projectIds.length}</Text>
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Right: Top Schemes */}
+                <View style={styles.previewCol}>
+                  <View style={styles.previewColHeader}>
+                    <Text style={styles.previewColTitle}>National Welfare Schemes</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('SchemeExplorer')}>
+                      <Text style={styles.seeAllText}>View All ({topSchemes.length})</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.previewCardsList}>
+                    {topSchemes.map(sch => (
+                      <TouchableOpacity
+                        key={sch.schemeId}
+                        activeOpacity={0.8}
+                        style={styles.previewCardItem}
+                        onPress={() => navigation.navigate('SchemeDetails', { schemeId: sch.schemeId })}
+                      >
+                        <View style={styles.previewCardTop}>
+                          <Text style={styles.previewCodeText}>{sch.shortName || sch.schemeId}</Text>
+                          <DataSourceBadge dataSource={sch.dataSource} size="sm" />
+                        </View>
+                        <Text style={styles.previewCardTitle} numberOfLines={1}>{sch.name}</Text>
+                        <View style={styles.previewMetricsRow}>
+                          <Text style={styles.previewMetricItem}>
+                            Projects: <Text style={styles.previewBold}>{sch.projectIds.length}</Text>
+                          </Text>
+                          <Text style={styles.previewMetricItem}>
+                            Released: <Text style={styles.previewBold}>₹{((sch.financialSummary?.releasedAmount ?? 0) / 100000).toFixed(0)}L</Text>
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* SECTION 5: ORGANIZATION INTELLIGENCE */}
+            <View style={styles.intelligenceSectionContainer}>
+              <View style={styles.intelHeaderRow}>
+                <View style={styles.intelHeaderTitles}>
+                  <View style={styles.intelBadgeRow}>
+                    <Ionicons name="business" size={13} color={colors.brand.primary} />
+                    <Text style={styles.intelBadgeText}>ORGANIZATION INTELLIGENCE</Text>
+                  </View>
+                  <Text style={styles.intelSectionTitle}>Implementing Agency Oversight</Text>
+                  <Text style={styles.intelSectionSub}>
+                    Statutory compliance profiles, multi-factor performance scores, and risk telemetry
+                  </Text>
+                </View>
+
+                {/* Quick actions buttons */}
+                <View style={styles.intelActionButtonsRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.intelActionBtn}
+                    onPress={() => navigation.navigate('OrganizationExplorer')}
+                  >
+                    <Ionicons name="business-outline" size={14} color={colors.brand.primary} />
+                    <Text style={styles.intelActionBtnText}>Explore Organizations</Text>
+                    <Ionicons name="chevron-forward" size={12} color={colors.brand.primary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* ORGANIZATION KPI SUMMARY ROW */}
+              <View style={{ flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.md, flexWrap: 'wrap' }}>
+                <View style={{ flex: 1, minWidth: 90, backgroundColor: colors.neutral.background, borderRadius: borderRadius.sm, padding: spacing.sm, borderWidth: 1, borderColor: colors.neutral.border }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>{orgKpis.total}</Text>
+                  <Text style={{ fontSize: 11, color: colors.text.secondary, marginTop: 2 }}>Registered</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 90, backgroundColor: colors.neutral.background, borderRadius: borderRadius.sm, padding: spacing.sm, borderWidth: 1, borderColor: colors.neutral.border }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: colors.brand.primary }}>{orgKpis.avgScore}/100</Text>
+                  <Text style={{ fontSize: 11, color: colors.text.secondary, marginTop: 2 }}>Avg Score</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 90, backgroundColor: colors.neutral.background, borderRadius: borderRadius.sm, padding: spacing.sm, borderWidth: 1, borderColor: colors.neutral.border }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.highPriority }}>{orgKpis.highPriority}</Text>
+                  <Text style={{ fontSize: 11, color: colors.text.secondary, marginTop: 2 }}>Higher Priority</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 90, backgroundColor: colors.neutral.background, borderRadius: borderRadius.sm, padding: spacing.sm, borderWidth: 1, borderColor: colors.neutral.border }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.warning }}>{orgKpis.openFindings}</Text>
+                  <Text style={{ fontSize: 11, color: colors.text.secondary, marginTop: 2 }}>Open Findings</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 90, backgroundColor: colors.neutral.background, borderRadius: borderRadius.sm, padding: spacing.sm, borderWidth: 1, borderColor: colors.neutral.border }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.highPriority }}>{orgKpis.anomalies}</Text>
+                  <Text style={{ fontSize: 11, color: colors.text.secondary, marginTop: 2 }}>Anomalies</Text>
+                </View>
+              </View>
+
+              {/* HIGH MONITORING PRIORITY FOCUS CARD */}
+              <View style={styles.schemeAttentionCard}>
+                <View style={styles.attentionHeader}>
+                  <View style={styles.attentionBadge}>
+                    <Ionicons name="warning" size={13} color={colors.status.highPriority} />
+                    <Text style={styles.attentionBadgeText}>MONITORING PRIORITY FOCUS</Text>
+                  </View>
+                  <Text style={styles.attentionPriorityText}>HIGH MONITORING PRIORITY</Text>
+                </View>
+
+                <View style={styles.attentionTraceBox}>
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>ORGANIZATION</Text>
+                    <Text style={styles.traceNodeVal}>ORG-SUNRISE</Text>
+                    <Text style={styles.traceNodeSub}>Sunrise Rehab</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={14} color={colors.text.muted} />
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>PROJECT</Text>
+                    <Text style={styles.traceNodeVal}>PRJ-101</Text>
+                    <Text style={styles.traceNodeSub}>DDRS Centre</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={14} color={colors.text.muted} />
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>ANOMALY</Text>
+                    <Text style={[styles.traceNodeVal, { color: colors.status.highPriority }]}>ALT-2601</Text>
+                    <Text style={styles.traceNodeSub}>Headcount 25 vs 42</Text>
+                  </View>
+                </View>
+
+                <View style={styles.attentionActionRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.attentionActionBtn}
+                    onPress={() => navigation.navigate('OrganizationDetails', { organizationId: 'ORG-SUNRISE' })}
+                  >
+                    <Text style={styles.attentionActionBtnText}>View Full Intelligence Dossier</Text>
+                    <Ionicons name="arrow-forward" size={13} color={colors.brand.primary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* TOP ORGANIZATIONS PREVIEWS */}
+              <View style={{ marginTop: spacing.base }}>
+                <View style={styles.previewColHeader}>
+                  <Text style={styles.previewColTitle}>Registered Implementing Agencies</Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('OrganizationExplorer')}>
+                    <Text style={styles.seeAllText}>View All ({topOrganizations.length})</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.previewCardsList}>
+                  {topOrganizations.map(org => (
+                    <TouchableOpacity
+                      key={org.organizationId}
+                      activeOpacity={0.8}
+                      style={styles.previewCardItem}
+                      onPress={() => navigation.navigate('OrganizationDetails', { organizationId: org.organizationId })}
+                    >
+                      <View style={styles.previewCardTop}>
+                        <Text style={styles.previewCodeText}>{org.organizationType || org.type || 'NGO'}</Text>
+                        {org.monitoringPriority && (
+                          <MonitoringPriorityBadge priority={org.monitoringPriority} compact />
+                        )}
+                      </View>
+                      <Text style={styles.previewCardTitle} numberOfLines={1}>{org.name}</Text>
+                      <View style={styles.previewMetricsRow}>
+                        <Text style={styles.previewMetricItem}>
+                          Projects: <Text style={styles.previewBold}>{org.projectIds?.length ?? 0}</Text>
+                        </Text>
+                        <Text style={styles.previewMetricItem}>
+                          Compliance: <Text style={styles.previewBold}>{org.complianceScore ?? org.complianceSummary?.complianceScore ?? 80}/100</Text>
+                        </Text>
+                        <Text style={styles.previewMetricItem}>
+                          Sanctioned: <Text style={styles.previewBold}>₹{((org.totalSanctionedAmount || 0) / 100000).toFixed(0)}L</Text>
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+
+            {/* SECTION 6: PROJECT INTELLIGENCE */}
+            <View style={styles.intelligenceSectionContainer}>
+              <View style={styles.intelHeaderRow}>
+                <View style={styles.intelHeaderTitles}>
+                  <View style={styles.intelBadgeRow}>
+                    <Ionicons name="layers" size={13} color={colors.brand.primary} />
+                    <Text style={styles.intelBadgeText}>PROJECT INTELLIGENCE</Text>
+                  </View>
+                  <Text style={styles.intelSectionTitle}>Operational Project & Funding Oversight</Text>
+                  <Text style={styles.intelSectionSub}>
+                    Multi-factor explainable profiles, grant disbursement tranches, and optical beneficiary roll-calls
+                  </Text>
+                </View>
+
+                {/* Quick actions buttons */}
+                <View style={styles.intelActionButtonsRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.intelActionBtn}
+                    onPress={() => navigation.navigate('ProjectExplorer')}
+                  >
+                    <Ionicons name="folder-open-outline" size={14} color={colors.brand.primary} />
+                    <Text style={styles.intelActionBtnText}>Explore Projects</Text>
+                    <Ionicons name="chevron-forward" size={12} color={colors.brand.primary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* HIGH MONITORING PRIORITY FOCUS CARD */}
+              <View style={styles.schemeAttentionCard}>
+                <View style={styles.attentionHeader}>
+                  <View style={styles.attentionBadge}>
+                    <Ionicons name="warning" size={13} color={colors.status.highPriority} />
+                    <Text style={styles.attentionBadgeText}>MONITORING PRIORITY FOCUS</Text>
+                  </View>
+                  <Text style={styles.attentionPriorityText}>HIGH MONITORING PRIORITY</Text>
+                </View>
+
+                <View style={styles.attentionTraceBox}>
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>PROJECT</Text>
+                    <Text style={styles.traceNodeVal}>PRJ-101</Text>
+                    <Text style={styles.traceNodeSub}>Sunrise Rehab</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={14} color={colors.text.muted} />
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>LOCATION</Text>
+                    <Text style={styles.traceNodeVal}>New Delhi</Text>
+                    <Text style={styles.traceNodeSub}>Central Delhi</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={14} color={colors.text.muted} />
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>VARIANCE</Text>
+                    <Text style={[styles.traceNodeVal, { color: colors.status.highPriority }]}>ALT-2601</Text>
+                    <Text style={styles.traceNodeSub}>Headcount 25 vs 42</Text>
+                  </View>
+                </View>
+
+                <View style={styles.attentionActionRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.attentionActionBtn}
+                    onPress={() => navigation.navigate('ProjectDetails', { projectId: 'PRJ-101' })}
+                  >
+                    <Text style={styles.attentionActionBtnText}>View Project Intelligence Dossier</Text>
+                    <Ionicons name="arrow-forward" size={13} color={colors.brand.primary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* TOP PROJECTS PREVIEWS */}
+              <View style={{ marginTop: spacing.base }}>
+                <View style={styles.previewColHeader}>
+                  <Text style={styles.previewColTitle}>Sanctioned Central Projects</Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('ProjectExplorer')}>
+                    <Text style={styles.seeAllText}>View All ({topProjects.length})</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.previewCardsList}>
+                  {topProjects.map(proj => (
+                    <TouchableOpacity
+                      key={proj.projectId}
+                      activeOpacity={0.8}
+                      style={styles.previewCardItem}
+                      onPress={() => navigation.navigate('ProjectDetails', { projectId: proj.projectId })}
+                    >
+                      <View style={styles.previewCardTop}>
+                        <Text style={styles.previewCodeText}>{proj.projectCode}</Text>
+                        <ProjectStatusBadge status={(proj.status as any) || 'ACTIVE'} />
+                      </View>
+                      <Text style={styles.previewCardTitle} numberOfLines={1}>{proj.name}</Text>
+                      <View style={styles.previewMetricsRow}>
+                        <Text style={styles.previewMetricItem}>
+                          Progress: <Text style={styles.previewBold}>{proj.progressPercentage ?? 75}%</Text>
+                        </Text>
+                        <Text style={styles.previewMetricItem}>
+                          Sanctioned: <Text style={styles.previewBold}>₹{(proj.sanctionedAmount / 100000).toFixed(0)}L</Text>
+                        </Text>
+                        <Text style={styles.previewMetricItem}>
+                          Reach: <Text style={styles.previewBold}>{proj.beneficiaryReported ?? proj.beneficiaryTarget}/{proj.beneficiaryTarget}</Text>
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+
+            {/* SECTION 7: ANOMALY INTELLIGENCE & EVIDENCE SIGNALS */}
+            <View style={styles.intelligenceSectionContainer}>
+              <View style={styles.intelHeaderRow}>
+                <View style={styles.intelHeaderTitles}>
+                  <View style={styles.intelBadgeRow}>
+                    <Ionicons name="analytics" size={13} color={colors.brand.primary} />
+                    <Text style={styles.intelBadgeText}>AI-ASSISTED MONITORING & DIAGNOSTICS</Text>
+                  </View>
+                  <Text style={styles.intelSectionTitle}>Anomaly Intelligence & Evidence Signals</Text>
+                  <Text style={styles.intelSectionSub}>
+                    Cross-source observable telemetry variances, attendance disparities, and audit gaps
+                  </Text>
+                </View>
+                <View style={styles.intelActionButtonsRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.intelActionBtn}
+                    onPress={() => navigation.navigate('AnomalyExplorer')}
+                  >
+                    <Ionicons name="analytics" size={14} color={colors.brand.primary} />
+                    <Text style={styles.intelActionBtnText}>Explore All Anomalies</Text>
+                    <Ionicons name="chevron-forward" size={12} color={colors.brand.primary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* ANOMALY KPI SUMMARY ROW */}
+              <View style={{ flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.md, flexWrap: 'wrap' }}>
+                <View style={{ flex: 1, minWidth: 100, backgroundColor: colors.neutral.background, borderRadius: borderRadius.sm, padding: spacing.sm, borderWidth: 1, borderColor: colors.neutral.border }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text.primary }}>{anomalySummary?.total ?? topAnomalies.length}</Text>
+                  <Text style={{ fontSize: 11, color: colors.text.secondary, marginTop: 2 }}>Observed Signals</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 100, backgroundColor: colors.neutral.background, borderRadius: borderRadius.sm, padding: spacing.sm, borderWidth: 1, borderColor: colors.neutral.border }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#991B1B' }}>{anomalySummary?.critical ?? 0}</Text>
+                  <Text style={{ fontSize: 11, color: colors.text.secondary, marginTop: 2 }}>Critical Review</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 100, backgroundColor: colors.neutral.background, borderRadius: borderRadius.sm, padding: spacing.sm, borderWidth: 1, borderColor: colors.neutral.border }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.highPriority }}>{anomalySummary?.high ?? 1}</Text>
+                  <Text style={{ fontSize: 11, color: colors.text.secondary, marginTop: 2 }}>High Severity</Text>
+                </View>
+                <View style={{ flex: 1, minWidth: 100, backgroundColor: colors.neutral.background, borderRadius: borderRadius.sm, padding: spacing.sm, borderWidth: 1, borderColor: colors.neutral.border }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: colors.status.warning }}>{anomalySummary?.requiresReview ?? 1}</Text>
+                  <Text style={{ fontSize: 11, color: colors.text.secondary, marginTop: 2 }}>Requires Review</Text>
+                </View>
+              </View>
+
+              {/* PRIORITY MONITORING SIGNAL SPOTLIGHT: ALT-2601 */}
+              <View style={styles.schemeAttentionCard}>
+                <View style={styles.attentionHeader}>
+                  <View style={styles.attentionBadge}>
+                    <Ionicons name="warning" size={13} color={colors.status.highPriority} />
+                    <Text style={styles.attentionBadgeText}>PRIORITY MONITORING SIGNAL: ALT-2601</Text>
+                  </View>
+                  <AnomalyConfidenceBadge confidence={85} level="HIGH" />
+                </View>
+
+                <Text style={{ fontSize: 13, fontWeight: '700', color: colors.text.primary, marginBottom: 4 }}>
+                  Observed Attendance / CCTV Discrepancy • Sunrise Rehabilitation Centre
+                </Text>
+                <Text style={{ fontSize: 12, color: colors.text.secondary, marginBottom: spacing.sm, lineHeight: 18 }}>
+                  Reported roll-call (42 present) exceeds optical CCTV headcount estimate (25 persons) by 17 participants (40.48% variance). Supported by 4 independent corroborating signals.
+                </Text>
+
+                {/* Evidence hierarchy trace */}
+                <View style={styles.attentionTraceBox}>
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>ORGANIZATION</Text>
+                    <Text style={styles.traceNodeVal}>ORG-SUNRISE</Text>
+                    <Text style={styles.traceNodeSub}>Sunrise Rehab</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={14} color={colors.text.muted} />
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>PROJECT</Text>
+                    <Text style={styles.traceNodeVal}>PRJ-101</Text>
+                    <Text style={styles.traceNodeSub}>Deendayal DDRS</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={14} color={colors.text.muted} />
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>TELEMETRY</Text>
+                    <Text style={[styles.traceNodeVal, { color: colors.status.highPriority }]}>42 vs 25</Text>
+                    <Text style={styles.traceNodeSub}>17 Persons Gap</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={14} color={colors.text.muted} />
+                  <View style={styles.traceNode}>
+                    <Text style={styles.traceNodeLabel}>SIGNAL ID</Text>
+                    <Text style={[styles.traceNodeVal, { color: colors.brand.primary }]}>ALT-2601</Text>
+                    <Text style={styles.traceNodeSub}>High Severity</Text>
+                  </View>
+                </View>
+
+                <View style={styles.attentionActionRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.attentionActionBtn}
+                    onPress={() => navigation.navigate('AnomalyDetails', { anomalyId: 'ALT-2601' })}
+                  >
+                    <Text style={styles.attentionActionBtnText}>Review ALT-2601 Diagnostic Dossier</Text>
+                    <Ionicons name="arrow-forward" size={13} color={colors.brand.primary} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* TOP ANOMALY PREVIEW CARDS */}
+              <View style={styles.previewCardsList}>
+                {topAnomalies.map(anom => (
+                  <TouchableOpacity
+                    key={anom.anomalyId || anom.id}
+                    activeOpacity={0.8}
+                    style={styles.previewCardItem}
+                    onPress={() => navigation.navigate('AnomalyDetails', { anomalyId: anom.anomalyId || anom.id })}
+                  >
+                    <View style={styles.previewCardTop}>
+                      <Text style={styles.previewCodeText}>{anom.anomalyId || anom.id}</Text>
+                      <AnomalySeverityBadge severity={anom.severity} compact />
+                    </View>
+                    <Text style={styles.previewCardTitle} numberOfLines={1}>{anom.title || anom.type}</Text>
+                    <View style={styles.previewMetricsRow}>
+                      <Text style={styles.previewMetricItem}>
+                        Status: <Text style={styles.previewBold}>{anom.status}</Text>
+                      </Text>
+                      <Text style={styles.previewMetricItem}>
+                        Confidence: <Text style={styles.previewBold}>{anom.confidence ?? 80}%</Text>
+                      </Text>
+                      <Text style={styles.previewMetricItem}>
+                        Signals: <Text style={styles.previewBold}>{anom.sourceSignals?.length ?? 2}</Text>
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
           </ScrollView>
+
         </Animated.View>
       )}
     </View>
@@ -1404,6 +2008,213 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
+  },
+
+  // SECTION 4: DIVISION & SCHEME INTELLIGENCE STYLES
+  intelligenceSectionContainer: {
+    marginTop: spacing.xl,
+    backgroundColor: colors.neutral.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.base,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    ...shadows.sm,
+  },
+  intelHeaderRow: {
+    flexDirection: 'column',
+    gap: spacing.sm,
+    marginBottom: spacing.base,
+  },
+  intelHeaderTitles: {
+    flex: 1,
+  },
+  intelBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 4,
+  },
+  intelBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.brand.primary,
+    letterSpacing: 0.5,
+  },
+  intelSectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.text.primary,
+  },
+  intelSectionSub: {
+    fontSize: 12,
+    color: colors.text.secondary,
+    marginTop: 2,
+  },
+  intelActionButtonsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: 4,
+  },
+  intelActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: borderRadius.sm,
+    backgroundColor: 'rgba(42, 92, 224, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(42, 92, 224, 0.2)',
+  },
+  intelActionBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.brand.primary,
+  },
+  schemeAttentionCard: {
+    backgroundColor: 'rgba(217, 140, 30, 0.04)',
+    borderRadius: borderRadius.sm,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(217, 140, 30, 0.25)',
+    marginBottom: spacing.base,
+  },
+  attentionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  attentionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  attentionBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.status.highPriority,
+    letterSpacing: 0.5,
+  },
+  attentionPriorityText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.status.highPriority,
+    backgroundColor: 'rgba(196, 64, 44, 0.1)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+  },
+  attentionTraceBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.neutral.surface,
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+  },
+  traceNode: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  traceNodeLabel: {
+    fontSize: 10,
+    color: colors.text.muted,
+  },
+  traceNodeVal: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.text.primary,
+    marginTop: 2,
+  },
+  traceNodeSub: {
+    fontSize: 10,
+    color: colors.text.secondary,
+    marginTop: 1,
+    textAlign: 'center',
+  },
+  attentionActionRow: {
+    marginTop: spacing.sm,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  attentionActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  attentionActionBtnText: {
+    fontSize: 12,
+    color: colors.brand.primary,
+    fontWeight: '600',
+  },
+  intelPreviewsRow: {
+    flexDirection: 'column',
+    gap: spacing.base,
+  },
+  desktopIntelPreviewsRow: {
+    flexDirection: 'row',
+  },
+  previewCol: {
+    flex: 1,
+  },
+  previewColHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  previewColTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  seeAllText: {
+    fontSize: 12,
+    color: colors.brand.primary,
+    fontWeight: '600',
+  },
+  previewCardsList: {
+    gap: spacing.xs,
+  },
+  previewCardItem: {
+    backgroundColor: colors.neutral.background,
+    borderRadius: borderRadius.sm,
+    padding: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+  },
+  previewCardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  previewCodeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.brand.primary,
+  },
+  previewCardTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  previewMetricsRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: 4,
+  },
+  previewMetricItem: {
+    fontSize: 11,
+    color: colors.text.secondary,
+  },
+  previewBold: {
+    fontWeight: '700',
+    color: colors.text.primary,
   },
 });
 

@@ -11,7 +11,11 @@ import { AnomalyAlert } from '../../types/alert';
 import { MOCK_ALERTS } from '../../data/mockData';
 
 export class MockAlertService {
-  private alerts: AnomalyAlert[] = [...MOCK_ALERTS];
+  private alerts: AnomalyAlert[] = MOCK_ALERTS.map((a) => ({
+    ...a,
+    metricComparison: a.metricComparison ? { ...a.metricComparison } : undefined,
+  }));
+
 
   async getPendingAlerts(): Promise<AnomalyAlert[]> {
     return [...this.alerts];
@@ -71,8 +75,12 @@ export class MockAlertService {
   }
 
   async reset(): Promise<void> {
-    this.alerts = [...MOCK_ALERTS];
+    this.alerts = MOCK_ALERTS.map((a) => ({
+      ...a,
+      metricComparison: a.metricComparison ? { ...a.metricComparison } : undefined,
+    }));
   }
 }
+
 
 export const mockAlertService = new MockAlertService();

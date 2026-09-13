@@ -15,6 +15,17 @@ export type RootStackParamList = {
   NgoApp: undefined;
 };
 
+// Stakeholder Authentication Stack Parameter List (Two-Screen Flow)
+export type AuthStackParamList = {
+  StakeholderSelection: undefined;
+  StakeholderLogin: { role: UserRole };
+  OfficialLogin: undefined;
+  InspectorLogin: undefined;
+  NgoLogin: undefined;
+};
+
+export type AuthStackNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
+
 // MoSJE Official Tab Parameter List
 export type OfficialTabParamList = {
   Dashboard: undefined;
@@ -32,6 +43,15 @@ export type OfficialStackParamList = {
   InitiateInspection: { projectId: string; alertId?: string };
   AttendanceAnalytics: { projectId: string };
   AnomalyDetail: { projectId: string; assessmentId?: string };
+  DivisionExplorer: undefined;
+  DivisionDetails: { divisionId: string };
+  SchemeExplorer: { divisionId?: string; category?: string } | undefined;
+  SchemeDetails: { schemeId: string };
+  OrganizationExplorer: undefined;
+  OrganizationDetails: { organizationId: string };
+  ProjectExplorer: undefined;
+  AnomalyExplorer: undefined;
+  AnomalyDetails: { anomalyId: string };
 };
 
 // Type-safe navigation props for Official workflow
@@ -58,6 +78,7 @@ export type InspectorStackParamList = {
   InspectionFindings: { inspectionId: string };
   InspectionReview: { inspectionId: string };
   InspectionConfirmation: { inspectionId: string };
+  InspectionHistory: undefined;
 };
 
 // Type-safe navigation props for Inspector workflow
@@ -75,3 +96,8 @@ export type NgoTabParamList = {
   Requests: undefined;
   Profile: undefined;
 };
+
+export type NgoTabNavigationProp<T extends keyof NgoTabParamList> = BottomTabNavigationProp<
+  NgoTabParamList,
+  T
+>;

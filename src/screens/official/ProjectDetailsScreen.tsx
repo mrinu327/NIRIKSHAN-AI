@@ -30,12 +30,24 @@ import { PrimaryButton } from '../../components/common/PrimaryButton';
 import { SecondaryButton } from '../../components/common/SecondaryButton';
 import { AttendanceAnalyticsSection } from '../../components/analytics/AttendanceAnalyticsSection';
 import { AnomalyAssessmentCard } from '../../components/analytics/AnomalyAssessmentCard';
+import { ProjectMonitoringCard } from '../../components/project/ProjectMonitoringCard';
+import { ProjectFundingCard } from '../../components/project/ProjectFundingCard';
+import { BeneficiarySummaryCard } from '../../components/project/BeneficiarySummaryCard';
+import { ProjectStatusBadge } from '../../components/project/ProjectStatusBadge';
 import { mockProjectService } from '../../services/mock/mockProjectService';
 import { mockAlertService } from '../../services/mock/mockAlertService';
 import { mockInspectionService } from '../../services/mock/mockInspectionService';
 import { mockAnalyticsService } from '../../services/mock/mockAnalyticsService';
 import { mockAnomalyService } from '../../services/mock/mockAnomalyService';
 import { mockOfficialService } from '../../services/mock/mockOfficialService';
+import { projectService } from '../../services/master/projectService';
+import { anomalyService } from '../../services/master/anomalyService';
+import { fundingIntelligenceService } from '../../services/analytics/fundingIntelligenceService';
+import { beneficiaryIntelligenceService } from '../../services/analytics/beneficiaryIntelligenceService';
+import { projectMonitoringEngine } from '../../services/analytics/projectMonitoringEngine';
+import { AnomalySeverityBadge } from '../../components/anomaly/AnomalySeverityBadge';
+import { AnomalyConfidenceBadge } from '../../components/anomaly/AnomalyConfidenceBadge';
+import { masterLookup } from '../../data/master';
 import { useAuth } from '../../context/AuthContext';
 import { Project } from '../../types/project';
 import { AnomalyAlert } from '../../types/alert';
@@ -43,10 +55,21 @@ import { InspectionAssignment } from '../../types/inspection';
 import { AttendanceAnalytics } from '../../types/attendance';
 import { AnomalyAssessment } from '../../types/anomaly';
 import { OfficialProjectDetail } from '../../types/official';
+import {
+  MasterProject,
+  MasterScheme,
+  MasterDivision,
+  Organization,
+  ProjectFundingIntelligence,
+  ProjectBeneficiaryIntelligence,
+  ProjectMonitoringProfile,
+  MasterAnomaly,
+} from '../../types/master';
 import { SUNRISE_ATTENDANCE } from '../../data/mockData';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, borderRadius, shadows } from '../../theme/spacing';
+
 
 type ProjectDetailsRouteProp = RouteProp<OfficialStackParamList, 'ProjectDetails'>;
 
@@ -63,10 +86,18 @@ export const ProjectDetailsScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [officialDetail, setOfficialDetail] = useState<OfficialProjectDetail | null>(null);
   const [project, setProject] = useState<Project | null>(null);
+  const [masterProject, setMasterProject] = useState<MasterProject | null>(null);
+  const [scheme, setScheme] = useState<MasterScheme | null>(null);
+  const [division, setDivision] = useState<MasterDivision | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [funding, setFunding] = useState<ProjectFundingIntelligence | null>(null);
+  const [beneficiary, setBeneficiary] = useState<ProjectBeneficiaryIntelligence | null>(null);
+  const [monitoringProfile, setMonitoringProfile] = useState<ProjectMonitoringProfile | null>(null);
   const [alerts, setAlerts] = useState<AnomalyAlert[]>([]);
   const [inspections, setInspections] = useState<InspectionAssignment[]>([]);
   const [analytics, setAnalytics] = useState<AttendanceAnalytics | null>(null);
   const [assessment, setAssessment] = useState<AnomalyAssessment | null>(null);
+  const [projectAnomalies, setProjectAnomalies] = useState<MasterAnomaly[]>([]);
 
   // Entrance animation
   const screenFade = useRef(new Animated.Value(0)).current;
@@ -98,12 +129,13 @@ export const ProjectDetailsScreen: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [projData, alertsData, inspData, analyticsData, assessData] = await Promise.all([
+      const [projData, alertsData, inspData, analyticsData, assessData, anomData] = await Promise.all([
         mockOfficialService.getOfficialProjectDetail(projectId),
         mockAlertService.getAlertsByProjectId(projectId),
         mockInspectionService.getInspectionsByProjectId(projectId),
         mockAnalyticsService.getProjectAttendanceAnalytics(projectId),
         mockAnomalyService.getAssessmentForProject(projectId),
+        anomalyService.getAnomaliesByProject(projectId),
       ]);
       setOfficialDetail(projData || null);
       setProject(projData || null);
@@ -111,12 +143,29 @@ export const ProjectDetailsScreen: React.FC = () => {
       setInspections(inspData);
       setAnalytics(analyticsData);
       setAssessment(assessData);
+      setProjectAnomalies(anomData);
+
+      // Load Master Data & Intelligence
+      const mProject = masterLookup.getProjectById(projectId);
+      if (mProject) {
+        setMasterProject(mProject);
+        setScheme(mProject.schemeId ? masterLookup.getSchemeById(mProject.schemeId) || null : null);
+        setDivision(mProject.divisionId ? masterLookup.getDivisionById(mProject.divisionId) || null : null);
+        setOrganization(masterLookup.getOrganizationById(mProject.organizationId) || null);
+        const f = await fundingIntelligenceService.getProjectFunding(projectId);
+        if (f) setFunding(f);
+        const b = await beneficiaryIntelligenceService.getProjectBeneficiarySummary(projectId);
+        if (b) setBeneficiary(b);
+        const mp = projectMonitoringEngine.calculateProjectMonitoringProfile(projectId);
+        if (mp) setMonitoringProfile(mp);
+      }
     } catch (error) {
       console.error('Error loading project details:', error);
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     loadData();
@@ -403,6 +452,56 @@ export const ProjectDetailsScreen: React.FC = () => {
               </Text>
             </View>
 
+            {/* Administrative Hierarchy Traversal */}
+            {(organization || scheme || division) && (
+              <View style={styles.hierarchyRow}>
+                {organization && (
+                  <TouchableOpacity
+                    style={styles.hierarchyTag}
+                    onPress={() =>
+                      navigation.navigate('OrganizationDetails', {
+                        organizationId: organization.organizationId,
+                      })
+                    }
+                  >
+                    <Ionicons name="business-outline" size={12} color={colors.brand.primary} />
+                    <Text style={styles.hierarchyTagText} numberOfLines={1}>
+                      Org: {organization.name}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={12} color={colors.text.muted} />
+                  </TouchableOpacity>
+                )}
+                {scheme && (
+                  <TouchableOpacity
+                    style={styles.hierarchyTag}
+                    onPress={() =>
+                      navigation.navigate('SchemeDetails', { schemeId: scheme.schemeId })
+                    }
+                  >
+                    <Ionicons name="ribbon-outline" size={12} color={colors.brand.primary} />
+                    <Text style={styles.hierarchyTagText} numberOfLines={1}>
+                      Scheme: {scheme.code}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={12} color={colors.text.muted} />
+                  </TouchableOpacity>
+                )}
+                {division && (
+                  <TouchableOpacity
+                    style={styles.hierarchyTag}
+                    onPress={() =>
+                      navigation.navigate('DivisionDetails', { divisionId: division.divisionId })
+                    }
+                  >
+                    <Ionicons name="library-outline" size={12} color={colors.brand.primary} />
+                    <Text style={styles.hierarchyTagText} numberOfLines={1}>
+                      Div: {division.code}
+                    </Text>
+                    <Ionicons name="chevron-forward" size={12} color={colors.text.muted} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+
             <View style={styles.complianceRow}>
               <Text style={styles.complianceLabel}>Compliance Health Index:</Text>
               <Text
@@ -416,11 +515,33 @@ export const ProjectDetailsScreen: React.FC = () => {
             </View>
           </View>
 
+          {/* SECTION A1: NIRIKSHAN AI Project Monitoring Profile */}
+          {monitoringProfile && (
+            <View style={{ marginBottom: spacing.md }}>
+              <ProjectMonitoringCard profile={monitoringProfile} />
+            </View>
+          )}
+
+          {/* SECTION A2: Grant & Financial Intelligence */}
+          {funding && (
+            <View style={{ marginBottom: spacing.md }}>
+              <ProjectFundingCard funding={funding} />
+            </View>
+          )}
+
+          {/* SECTION A3: Beneficiary Roll-Call & Optical Verification */}
+          {beneficiary && (
+            <View style={{ marginBottom: spacing.md }}>
+              <BeneficiarySummaryCard beneficiary={beneficiary} />
+            </View>
+          )}
+
           {/* SECTION B: Attendance Analytics Layer */}
           <SectionHeader
             title="Attendance Analytics"
             subtitle="Roll-call turnout, CCTV estimated occupancy & historical variance"
           />
+
 
           {analytics && (
             <AttendanceAnalyticsSection
@@ -431,11 +552,50 @@ export const ProjectDetailsScreen: React.FC = () => {
             />
           )}
 
-          {/* SECTION C: AI Anomaly Assessment Layer */}
+          {/* SECTION C: AI Anomaly Assessment & Active Telemetry Signals */}
           <SectionHeader
-            title="AI Anomaly Assessment"
-            subtitle="Multi-signal explainable decision support & score"
+            title="AI Anomaly Assessment & Signals"
+            subtitle="Multi-signal explainable decision support & observable variances"
           />
+
+          {projectAnomalies.length > 0 && (
+            <View style={{ marginBottom: spacing.sm }}>
+              {projectAnomalies.map(anom => (
+                <TouchableOpacity
+                  key={anom.anomalyId || anom.id}
+                  activeOpacity={0.8}
+                  style={styles.activeAnomalyCard}
+                  onPress={() =>
+                    navigation.navigate('AnomalyDetails', {
+                      anomalyId: anom.anomalyId || anom.id,
+                    })
+                  }
+                >
+                  <View style={styles.activeAnomalyTop}>
+                    <View style={styles.activeAnomalyCodeRow}>
+                      <Ionicons name="warning" size={14} color={colors.status.highPriority} />
+                      <Text style={styles.activeAnomalyId}>{anom.anomalyId || anom.id}</Text>
+                    </View>
+                    <AnomalySeverityBadge severity={anom.severity} compact />
+                  </View>
+                  <Text style={styles.activeAnomalyTitle}>{anom.title || anom.type}</Text>
+                  <Text style={styles.activeAnomalyDesc} numberOfLines={2}>
+                    {anom.explanation || anom.description}
+                  </Text>
+                  <View style={styles.activeAnomalyFooter}>
+                    <AnomalyConfidenceBadge
+                      confidence={anom.confidence ?? 85}
+                      level={anom.confidenceLevel}
+                    />
+                    <View style={styles.viewDossierLink}>
+                      <Text style={styles.viewDossierText}>View Diagnostic Dossier</Text>
+                      <Ionicons name="arrow-forward" size={12} color={colors.brand.primary} />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {assessment && (
             <AnomalyAssessmentCard
@@ -1272,4 +1432,87 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral.border,
   },
+  hierarchyRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: spacing.sm,
+    paddingTop: spacing.xs,
+  },
+  hierarchyTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: borderRadius.xs,
+    gap: 4,
+    maxWidth: '100%',
+  },
+  hierarchyTagText: {
+    fontSize: 11,
+    fontWeight: typography.weights.semibold,
+    color: colors.brand.primary,
+    maxWidth: 220,
+  },
+  activeAnomalyCard: {
+    backgroundColor: colors.neutral.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.base,
+    borderWidth: 1,
+    borderColor: colors.status.highPriorityBorder,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.status.highPriority,
+    marginBottom: spacing.xs,
+    ...shadows.xs,
+  },
+  activeAnomalyTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  activeAnomalyCodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  activeAnomalyId: {
+    fontSize: 12,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.primary,
+  },
+  activeAnomalyTitle: {
+    fontSize: 14,
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+    marginBottom: 3,
+  },
+  activeAnomalyDesc: {
+    fontSize: 12,
+    color: colors.text.secondary,
+    lineHeight: 16,
+    marginBottom: spacing.sm,
+  },
+  activeAnomalyFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.neutral.surfaceSubtle,
+  },
+  viewDossierLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  viewDossierText: {
+    fontSize: 11,
+    fontWeight: typography.weights.bold,
+    color: colors.brand.primary,
+  },
 });
+

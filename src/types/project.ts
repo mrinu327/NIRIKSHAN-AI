@@ -42,4 +42,7 @@ export interface ProjectStatsSummary {
   pendingInspectionsCount: number;
   activeCCTVCount: number;
   totalAlertsCount: number;
+  criticalComplianceCount?: number;
+  totalBeneficiariesCount?: number;
+  averageAttendanceRate?: number;
 }

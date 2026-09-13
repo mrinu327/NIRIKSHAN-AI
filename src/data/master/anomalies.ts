@@ -1,0 +1,236 @@
+/**
+ * Master Anomalies Dataset
+ * SIH26095 | MoSJE Nirikshan AI
+ *
+ * SAFETY & POLICY COMPLIANCE:
+ * Uses neutral diagnostic terminology ('Discrepancy detected', 'Potential anomaly',
+ * 'Requires verification'). Strictly avoids labeling entities as fraudulent.
+ * PRESERVATION RULE: ALT-2601 is preserved as the core initial demo discrepancy.
+ * Explicitly designated as DEMO / SIMULATED for prototype evaluation.
+ */
+
+import { MasterAnomaly } from '../../types/master';
+
+export const MASTER_ANOMALIES: MasterAnomaly[] = [
+  {
+    anomalyId: 'ALT-2601',
+    id: 'ALT-2601',
+    title: 'Observed Attendance / CCTV Discrepancy',
+    projectId: 'PRJ-101',
+    organizationId: 'ORG-SUNRISE',
+    schemeId: 'SCH-DDRS',
+    divisionId: 'DIV-DEPWD',
+    type: 'ATTENDANCE_CCTV_MISMATCH',
+    category: 'Discrepancy detected',
+    severity: 'HIGH',
+    confidence: 85,
+    confidenceLevel: 'HIGH',
+    riskScore: 78,
+    scoreBreakdown: [
+      { factor: 'Optical Attendance Variance (17 persons)', points: 45 },
+      { factor: 'Repeat Flagging in Current Quarter', points: 20 },
+      { factor: 'Inspection Overdue Window', points: 13 },
+    ],
+    sourceSignals: [
+      {
+        name: 'Daily Attendance Register',
+        type: 'ATTENDANCE_REGISTER',
+        status: 'CORROBORATING',
+        details: 'Submitted roll-call reports 42 present out of 50 enrolled capacity',
+      },
+      {
+        name: 'Optical CCTV Telemetry',
+        type: 'CCTV_FEED',
+        status: 'CORROBORATING',
+        details: 'Optical stream estimates 25 persons at facility during session',
+      },
+      {
+        name: 'Field Inspection Record',
+        type: 'INSPECTION_RECORD',
+        status: 'CORROBORATING',
+        details: 'Inspection INSP-1092 logged physical headcount observation',
+      },
+      {
+        name: 'Tamper-Sealed Evidence Record',
+        type: 'EVIDENCE_RECORD',
+        status: 'CORROBORATING',
+        details: 'Evidence EVD-101-01 cryptographically sealed on-site',
+      },
+    ],
+    evidenceIds: ['EVD-101-01'],
+    observedValues: {
+      reportedAttendance: 42,
+      opticalHeadcount: 25,
+      cctvHeadcountEstimate: 25,
+      enrolledRoster: 50,
+    },
+    expectedValues: {
+      reportedAttendance: 42,
+      expectedOpticalRange: '38-46',
+    },
+    variance: {
+      absolute: 17,
+      percentage: 40.48,
+      description: '40.48% variance between roll-call (42) and optical estimate (25)',
+    },
+    threshold: 'Variance >= 20% (Data Discrepancy Severity: HIGH)',
+    explanation: 'Submitted attendance (42) differs from estimated feed traffic (25). Requires verification.',
+    recommendedActions: [
+      'Review daily physical roll-call register entries with centre superintendent',
+      'Validate CCTV camera placement, field of view, and timestamp synchronization',
+      'Review latest physical inspection finding notes from INSP-1092',
+      'Schedule impartial on-site physical verification if variance persists',
+    ],
+    recommendedAction: 'Dispatch surprise physical inspection to verify physical beneficiary presence.',
+    relatedAnomalyIds: [],
+    status: 'OPEN',
+    createdAt: 'Today, 10:14 AM',
+    detectedAt: '2026-09-10T10:14:00Z',
+    timestamp: 'Today, 10:14 AM',
+    description: 'Submitted attendance (42) differs from estimated feed traffic (25). Requires verification.',
+    dataSource: {
+      type: 'DEMO',
+      sourceName: 'AI Diagnostic Telemetry Engine',
+      verificationStatus: 'DEMO',
+      lastUpdated: '2026-09-10T10:14:00Z',
+      notes: 'Initial core demo anomaly flagged for human official review.',
+    },
+  },
+  {
+    anomalyId: 'ALT-2602',
+    id: 'ALT-2602',
+    title: 'Workshop Camera Telemetry Interruption',
+    projectId: 'PRJ-104',
+    organizationId: 'ORG-SAMARPAN',
+    schemeId: 'SCH-PM-DAKSH',
+    divisionId: 'DIV-SCD',
+    type: 'CCTV_OFFLINE_DURING_EXPECTED_HOURS',
+    category: 'CCTV telemetry offline',
+    severity: 'MEDIUM',
+    confidence: 75,
+    confidenceLevel: 'MEDIUM',
+    riskScore: 45,
+    scoreBreakdown: [
+      { factor: 'Camera Offline During Training Hours (4.5 hrs)', points: 30 },
+      { factor: 'No Advance Power Outage Notice', points: 15 },
+    ],
+    sourceSignals: [
+      {
+        name: 'Camera Heartbeat Gateway',
+        type: 'CCTV_HEARTBEAT',
+        status: 'CORROBORATING',
+        details: 'Workshop Camera 01 heartbeat missed during training hours',
+      },
+      {
+        name: 'Power Outage Notification',
+        type: 'UTILITY_NOTICE',
+        status: 'MISSING',
+        details: 'No advance power disruption logged by institute',
+      },
+      {
+        name: 'Training Class Schedule',
+        type: 'TIMETABLE_LOG',
+        status: 'AVAILABLE',
+        details: 'Session scheduled from 08:00 AM to 12:30 PM',
+      },
+    ],
+    evidenceIds: [],
+    observedValues: {
+      outageDurationHours: 4.5,
+      cameraOnlineStatus: 'OFFLINE',
+    },
+    expectedValues: {
+      cameraOnlineStatus: 'ONLINE',
+      acceptableDowntimeMins: 15,
+    },
+    variance: {
+      absolute: 4.5,
+      percentage: 100,
+      description: '4.5 hours offline during scheduled training session',
+    },
+    threshold: 'Downtime > 60 mins during operational hours',
+    explanation: 'Workshop Camera 01 signal lost during scheduled skill session.',
+    recommendedActions: [
+      'Issue inquiry notice to institute technical administrator regarding stream continuity',
+      'Verify power and network availability logs for the recorded period',
+      'Inspect physical edge hardware during next quarterly PMU visit',
+    ],
+    recommendedAction: 'Issue automated inquiry notice to institute technical administrator.',
+    relatedAnomalyIds: [],
+    status: 'PENDING_REVIEW',
+    createdAt: 'Today, 08:30 AM',
+    detectedAt: '2026-09-10T08:30:00Z',
+    timestamp: 'Today, 08:30 AM',
+    description: 'Workshop Camera 01 signal lost during scheduled skill session.',
+    dataSource: {
+      type: 'DEMO',
+      sourceName: 'Camera Heartbeat Gateway',
+      verificationStatus: 'DEMO',
+      lastUpdated: '2026-09-10T08:30:00Z',
+      notes: 'Synthetic camera telemetry offline alert.',
+    },
+  },
+  {
+    anomalyId: 'ALT-2603',
+    id: 'ALT-2603',
+    title: 'Mandatory Field Inspection Calendar Window Overdue',
+    projectId: 'PRJ-102',
+    organizationId: 'ORG-NAVJEEVAN',
+    schemeId: 'SCH-NAPDDR',
+    divisionId: 'DIV-SD',
+    type: 'INSPECTION_OVERDUE',
+    category: 'Inspection overdue',
+    severity: 'LOW',
+    confidence: 90,
+    confidenceLevel: 'HIGH',
+    riskScore: 25,
+    scoreBreakdown: [{ factor: 'Days Past Bi-annual Audit Window', points: 25 }],
+    sourceSignals: [
+      {
+        name: 'PMU Audit Calendar Ledger',
+        type: 'CALENDAR_REGISTRY',
+        status: 'CORROBORATING',
+        details: 'Mandatory bi-annual physical inspection due within 14 calendar days',
+      },
+      {
+        name: 'Previous Inspection Log',
+        type: 'INSPECTION_LOG',
+        status: 'AVAILABLE',
+        details: 'Last physical inspection was 180 days ago',
+      },
+    ],
+    evidenceIds: [],
+    observedValues: {
+      daysSinceLastAudit: 180,
+      auditCycleDays: 180,
+    },
+    expectedValues: {
+      maxAuditIntervalDays: 180,
+    },
+    variance: {
+      absolute: 14,
+      percentage: 7.78,
+      description: '14 calendar days remaining in mandatory window',
+    },
+    threshold: 'Inspection due within 14 calendar days',
+    explanation: 'Mandatory bi-annual physical inspection due within 14 calendar days.',
+    recommendedActions: [
+      'Assign available regional PMU inspector to schedule routine physical verification',
+      'Review pending compliance self-certifications submitted by the centre',
+    ],
+    recommendedAction: 'Assign available regional PMU inspector for routine physical verification.',
+    relatedAnomalyIds: [],
+    status: 'REVIEWED',
+    createdAt: 'Yesterday, 04:00 PM',
+    detectedAt: '2026-09-09T16:00:00Z',
+    timestamp: 'Yesterday, 04:00 PM',
+    description: 'Mandatory bi-annual physical inspection due within 14 calendar days.',
+    dataSource: {
+      type: 'DEMO',
+      sourceName: 'PMU Audit Calendar Monitor',
+      verificationStatus: 'DEMO',
+      lastUpdated: '2026-09-09T16:00:00Z',
+      notes: 'Routine calendar advisory alert.',
+    },
+  },
+];

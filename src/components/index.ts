@@ -19,3 +19,20 @@ export * from './cards/ProjectCard';
 export * from './cards/AlertCard';
 export * from './cards/InspectionCard';
 export * from './cards/AttendanceCard';
+
+// Organization intelligence components
+export * from './organization';
+
+// Project intelligence components
+export {
+  ProjectStatusBadge,
+  ProjectFundingCard,
+  BeneficiarySummaryCard,
+  ProjectIndicatorRow,
+  ProjectMonitoringCard,
+  ProjectCard as MasterProjectCard,
+} from './project';
+
+// Anomaly intelligence components
+export * from './anomaly';
+
