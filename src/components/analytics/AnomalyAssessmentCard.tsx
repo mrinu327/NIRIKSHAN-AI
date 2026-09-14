@@ -30,14 +30,14 @@ export const AnomalyAssessmentCard: React.FC<AnomalyAssessmentCardProps> = ({
   const getSeverityColors = (sev: AnomalySeverity) => {
     switch (sev) {
       case 'Critical':
-        return { bg: '#FEF2F2', border: '#FECACA', text: '#991B1B' };
+        return { bg: colors.status.highPriorityLight, border: colors.status.highPriorityBorder, text: colors.status.highPriority };
       case 'High':
-        return { bg: '#FEF2F2', border: '#FECACA', text: colors.status.highPriority };
+        return { bg: colors.status.highPriorityLight, border: colors.status.highPriorityBorder, text: colors.status.highPriority };
       case 'Moderate':
-        return { bg: '#FFFBEB', border: '#FDE68A', text: colors.status.warning };
+        return { bg: colors.status.warningLight, border: colors.status.warningBorder, text: colors.status.warning };
       case 'Low':
       default:
-        return { bg: '#F0FDF4', border: '#BBF7D0', text: colors.status.normal };
+        return { bg: colors.status.normalLight, border: colors.status.normalBorder, text: colors.status.normal };
     }
   };
 
@@ -132,6 +132,8 @@ export const AnomalyAssessmentCard: React.FC<AnomalyAssessmentCardProps> = ({
         style={styles.reviewBtn}
         onPress={onReview}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="Review Full AI Assessment & Reasons"
       >
         <Text style={styles.reviewBtnText}>Review Full AI Assessment & Reasons</Text>
         <Ionicons name="arrow-forward" size={16} color={colors.brand.primary} />
@@ -167,12 +169,14 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   decisionSupportTagText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
     letterSpacing: 0.8,
   },
   title: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
@@ -195,16 +199,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scoreValue: {
+    fontFamily: typography.fontFamily,
     fontSize: 26,
     fontWeight: typography.weights.bold,
     lineHeight: 28,
   },
   scoreScale: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     fontWeight: typography.weights.medium,
     color: colors.text.muted,
   },
   scoreSeverityLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.5,
@@ -223,23 +230,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.status.infoLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: borderRadius.xs,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: colors.status.infoBorder,
   },
   confidencePillText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.semibold,
-    color: colors.brand.navyLight,
+    color: colors.status.info,
   },
   timeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
   },
   summaryText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.secondary,
     lineHeight: 16,
@@ -248,6 +258,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   reasonsHeader: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     textTransform: 'uppercase',
     color: colors.text.muted,
@@ -259,9 +270,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 6,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.neutral.surfaceSubtle,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.neutral.border,
     borderRadius: borderRadius.sm,
     padding: spacing.xs + 2,
     marginBottom: 6,
@@ -270,16 +281,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   reasonTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   reasonContrib: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.brand.primary,
     fontWeight: typography.weights.semibold,
   },
   reasonDesc: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
     marginTop: 1,
@@ -288,16 +302,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.status.infoLight,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: colors.status.infoBorder,
     borderRadius: borderRadius.xs,
     padding: spacing.xs + 2,
     marginBottom: spacing.xs,
   },
   advisoryText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
-    color: colors.brand.navyLight,
+    color: colors.status.info,
     flex: 1,
   },
   reviewBtn: {
@@ -306,11 +321,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: spacing.sm,
+    minHeight: 44,
     borderTopWidth: 1,
     borderTopColor: colors.neutral.border,
     marginTop: spacing.xs,
   },
   reviewBtnText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,

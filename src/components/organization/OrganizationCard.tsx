@@ -11,7 +11,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-nativ
 import { Organization } from '../../types/master';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
-import { borderRadius, spacing } from '../../theme/spacing';
+import { borderRadius, spacing, shadows } from '../../theme/spacing';
 import { MonitoringPriorityBadge } from './MonitoringPriorityBadge';
 import { OrganizationStatusBadge } from './OrganizationStatusBadge';
 

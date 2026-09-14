@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   cardCritical: {
     borderLeftWidth: 3.5,
-    borderLeftColor: '#991B1B',
+    borderLeftColor: colors.status.highPriority,
   },
   cardHigh: {
     borderLeftWidth: 3.5,
@@ -127,6 +127,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   idText: {
+    fontFamily: typography.fontFamily,
     fontSize: 12,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
@@ -138,11 +139,13 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xs,
   },
   statusText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.semibold,
     color: colors.text.secondary,
   },
   titleText: {
+    fontFamily: typography.fontFamily,
     fontSize: 14,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -150,6 +153,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   descText: {
+    fontFamily: typography.fontFamily,
     fontSize: 12,
     color: colors.text.secondary,
     lineHeight: 16,
@@ -168,10 +172,12 @@ const styles = StyleSheet.create({
     maxWidth: '45%',
   },
   entityText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.muted,
   },
   entitySep: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.neutral.border,
   },
@@ -186,12 +192,13 @@ const styles = StyleSheet.create({
   signalsBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EEF3FD',
+    backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: borderRadius.xs,
   },
   signalsText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,

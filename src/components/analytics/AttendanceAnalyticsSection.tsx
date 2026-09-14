@@ -173,6 +173,8 @@ export const AttendanceAnalyticsSection: React.FC<AttendanceAnalyticsSectionProp
         style={styles.detailBtn}
         onPress={onViewDetails}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="View In-Depth Analytics & Explainability"
       >
         <Text style={styles.detailBtnText}>View In-Depth Analytics & Explainability</Text>
         <Ionicons name="arrow-forward" size={16} color={colors.brand.primary} />
@@ -208,12 +210,14 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   demoTagText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
     letterSpacing: 0.8,
   },
   title: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
@@ -238,6 +242,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.border,
   },
   metricLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.medium,
     color: colors.text.muted,
@@ -245,20 +250,22 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   metricValue: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   metricSub: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     color: colors.text.muted,
     marginTop: 1,
   },
   varianceBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.neutral.surfaceSubtle,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.neutral.border,
     padding: spacing.sm,
     marginBottom: spacing.sm,
   },
@@ -274,23 +281,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cctvLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
   },
   cctvDisclaimer: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     color: colors.text.muted,
     marginTop: 1,
   },
   cctvCount: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
   },
   varianceDivider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.neutral.border,
     marginVertical: spacing.xs,
   },
   varianceResultRow: {
@@ -299,19 +309,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   varianceResultLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
     color: colors.text.secondary,
   },
   variancePill: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.status.highPriorityLight,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: borderRadius.xs,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: colors.status.highPriorityBorder,
   },
   variancePillText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
   },
@@ -333,6 +345,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.border,
   },
   historicalLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     textTransform: 'uppercase',
     color: colors.text.muted,
@@ -340,6 +353,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   historicalValue: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
@@ -350,6 +364,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   trendText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     color: colors.brand.navy,
@@ -358,16 +373,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 6,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.status.highPriorityLight,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: colors.status.highPriorityBorder,
     borderRadius: borderRadius.sm,
     padding: spacing.xs + 2,
     marginBottom: spacing.sm,
   },
   signalBannerText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
-    color: '#991B1B',
+    color: colors.status.highPriority,
     lineHeight: 16,
     flex: 1,
   },
@@ -377,11 +393,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: spacing.sm,
+    minHeight: 44,
     borderTopWidth: 1,
     borderTopColor: colors.neutral.border,
     marginTop: spacing.xs,
   },
   detailBtnText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
