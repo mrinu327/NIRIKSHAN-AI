@@ -4,7 +4,7 @@
  * Operational public-sector monitoring console with asymmetric telemetry decks,
  * high-impact discrepancy incident focal panel, and prioritized operational action queue.
  */
-
+import MobileCommandCenter from '../../components/official/mobile/MobileCommandCenter';
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
@@ -272,6 +272,22 @@ export const OfficialHomeScreen: React.FC = () => {
 
       {loading ? (
         <LoadingState message="Connecting to MoSJE telemetry stream..." />
+      ) : isMobile ? (
+        <MobileCommandCenter
+          stats={stats}
+          priorityProjects={priorityProjects}
+          criticalAlerts={criticalAlerts}
+          topDivisions={topDivisions}
+          topSchemes={topSchemes}
+          topOrganizations={topOrganizations}
+          topProjects={topProjects}
+          topAnomalies={topAnomalies}
+          anomalySummary={anomalySummary}
+          orgKpis={orgKpis}
+          navigation={navigation}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
       ) : (
         <Animated.View
           style={[
@@ -292,7 +308,9 @@ export const OfficialHomeScreen: React.FC = () => {
                 colors={[colors.brand.primary]}
               />
             }
-          >            {/* 1. PAGE CONTEXT & SYSTEM STATUS HEADER */}
+          >
+            {/* 1. PAGE CONTEXT & SYSTEM STATUS HEADER */}
+            {!isMobile && (
             <View style={[styles.pageContextBar, isDesktop && styles.pageContextBarDesktop]}>
               <View style={styles.contextLeft}>
                 <Text style={styles.pageContextPre}>CENTRAL COMMAND CONSOLE</Text>
@@ -306,9 +324,10 @@ export const OfficialHomeScreen: React.FC = () => {
                 <Text style={[styles.contextRightBadgeText, isMobile && { fontSize: 9 }]} numberOfLines={2}>SYSTEM OPERATIONAL • 148 INSTITUTES</Text>
               </View>
             </View>
+            )}
 
             {/* 2. ONE IMPORTANT ALERT / ACTION ROW */}
-            {topAlert && (
+            {topAlert && !isMobile && (
               <Animated.View style={{ opacity: heroAnim }}>
                 <View style={styles.primaryAlertBanner}>
                   <View style={styles.primaryAlertLeft}>
@@ -358,6 +377,7 @@ export const OfficialHomeScreen: React.FC = () => {
             )}
 
             {/* 3. MAIN CONTENT GRID (LEFT: Operational Dossiers & Lists, RIGHT: Compact Actions & Telemetry Rail) */}
+            {!isMobile && (
             <Animated.View style={[{ opacity: splitRowAnim }, { marginTop: spacing.md }]}>
               <View style={isDesktop ? styles.mainGridDesktop : styles.mainGridMobile}>
 
@@ -365,7 +385,7 @@ export const OfficialHomeScreen: React.FC = () => {
                 <View style={styles.mainLeftCol}>
 
                   {/* SUBSECTION A: VERIFICATION TELEMETRY DOSSIER */}
-                  {topAlert && (
+                  {topAlert && !isMobile && (
                     <View style={[styles.surfacePanel, isMobile && styles.surfacePanelMobile]}>
                       <View style={[styles.panelHeaderRow, isMobile && styles.panelHeaderRowMobile]}>
                         <View style={styles.panelTitleGroup}>
@@ -425,6 +445,7 @@ export const OfficialHomeScreen: React.FC = () => {
                   )}
 
                   {/* SUBSECTION B: PRIORITY OPERATIONS (INSTITUTIONAL QUEUE) */}
+                  {!isMobile && (
                   <View style={[styles.surfacePanel, isMobile && styles.surfacePanelMobile]}>
                     <View style={[styles.panelHeaderRow, isMobile && styles.panelHeaderRowMobile]}>
                       <View style={styles.panelTitleGroup}>
@@ -527,8 +548,10 @@ export const OfficialHomeScreen: React.FC = () => {
                       </TouchableOpacity>
                     </View>
                   </View>
+                  )}
 
                   {/* SUBSECTION C: ADMINISTRATIVE INTELLIGENCE (DIVISIONS & SCHEMES) */}
+                  {!isMobile && (
                   <View style={[styles.surfacePanel, isMobile && styles.surfacePanelMobile]}>
                     <View style={[styles.panelHeaderRow, isMobile && styles.panelHeaderRowMobile]}>
                       <View style={styles.panelTitleGroup}>
@@ -652,8 +675,10 @@ export const OfficialHomeScreen: React.FC = () => {
                       </View>
                     </View>
                   </View>
+                  )}
 
                   {/* SUBSECTION D: IMPLEMENTING AGENCY & PROJECT OVERSIGHT */}
+                  {!isMobile && (
                   <View style={[styles.surfacePanel, isMobile && styles.surfacePanelMobile]}>
                     <View style={[styles.panelHeaderRow, isMobile && styles.panelHeaderRowMobile]}>
                       <View style={styles.panelTitleGroup}>
@@ -779,8 +804,10 @@ export const OfficialHomeScreen: React.FC = () => {
                       </View>
                     </View>
                   </View>
+                  )}
 
                   {/* SUBSECTION E: ANOMALY INTELLIGENCE & EVIDENCE SIGNALS */}
+                  {!isMobile && (
                   <View style={[styles.surfacePanel, isMobile && styles.surfacePanelMobile]}>
                     <View style={[styles.panelHeaderRow, isMobile && styles.panelHeaderRowMobile]}>
                       <View style={styles.panelTitleGroup}>
@@ -853,10 +880,12 @@ export const OfficialHomeScreen: React.FC = () => {
                       ))}
                     </View>
                   </View>
+                  )}
 
                 </View>
 
                 {/* RIGHT SECONDARY RAIL (340px on desktop, 100% on mobile) */}
+                {!isMobile && (
                 <View style={isDesktop ? styles.mainRightCol : styles.mainRightColMobile}>
 
                   {/* RAIL CARD 1: COHERENT ACTION GROUP */}
@@ -1051,9 +1080,11 @@ export const OfficialHomeScreen: React.FC = () => {
                   </View>
 
                 </View>
+                )}
 
               </View>
             </Animated.View>
+            )}
           </ScrollView>
 
         </Animated.View>
@@ -2646,6 +2677,109 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     marginTop: 2,
     fontWeight: '500',
+  },
+
+  // ============ MOBILE COMMAND CENTER MODULE LAUNCHER ============
+  mobileModuleLauncher: {
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.base,
+  },
+  mobileLauncherIntro: {
+    marginBottom: spacing.base,
+    paddingHorizontal: 2,
+  },
+  mobileLauncherEyebrow: {
+    fontFamily: typography.fontFamily,
+    fontSize: 10,
+    fontWeight: typography.weights.bold,
+    letterSpacing: 1,
+    color: colors.brand.primary,
+    marginBottom: 4,
+  },
+  mobileLauncherTitle: {
+    fontFamily: typography.fontFamily,
+    fontSize: 21,
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+  },
+  mobileLauncherSubtitle: {
+    fontFamily: typography.fontFamily,
+    fontSize: 12,
+    lineHeight: 17,
+    color: colors.text.secondary,
+    marginTop: 4,
+    maxWidth: 340,
+  },
+  mobileModuleList: {
+    gap: spacing.sm,
+  },
+  mobileModuleButton: {
+    minHeight: 78,
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.neutral.surface,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.sm + 2,
+    ...shadows.xs,
+  },
+  mobileModuleIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+    borderWidth: 1,
+  },
+  mobileModuleIconPrimary: {
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.brand.accent,
+  },
+  mobileModuleIconWarning: {
+    backgroundColor: colors.status.highPriorityLight,
+    borderColor: colors.status.highPriorityBorder,
+  },
+  mobileModuleIconNeutral: {
+    backgroundColor: colors.neutral.background,
+    borderColor: colors.neutral.border,
+  },
+  mobileModuleContent: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: spacing.xs,
+  },
+  mobileModuleTitle: {
+    fontFamily: typography.fontFamily,
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: typography.weights.bold,
+    color: colors.text.primary,
+  },
+  mobileModuleDescription: {
+    fontFamily: typography.fontFamily,
+    fontSize: 11,
+    lineHeight: 15,
+    color: colors.text.muted,
+    marginTop: 2,
+  },
+  mobileModuleBack: {
+    minHeight: 44,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.xs,
+  },
+  mobileModuleBackText: {
+    fontFamily: typography.fontFamily,
+    fontSize: 12,
+    fontWeight: typography.weights.semibold,
+    color: colors.brand.primary,
   },
 
   // ============ MOBILE RESPONSIVE OVERRIDES (360-430px) ============
