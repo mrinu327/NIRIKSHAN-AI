@@ -36,6 +36,7 @@ import { masterLookup } from '../../data/master';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { spacing, borderRadius, shadows } from '../../theme/spacing';
+import AppSurface from '../../components/ui/AppSurface';
 
 type AnomalyDetailsRouteProp = RouteProp<OfficialStackParamList, 'AnomalyDetails'>;
 
@@ -114,7 +115,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
 
   return (
     <View style={styles.screen}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.brand.navyDark} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.palette.olivewoodDark} />
       <AppHeader
         title="ANOMALY INTELLIGENCE DOSSIER"
         subtitle={anomaly ? `${anomaly.anomalyId} • ${anomaly.type}` : 'Diagnostic Evaluation'}
@@ -122,7 +123,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.brand.primary} />
+          <ActivityIndicator size="large" color={colors.palette.olivewoodDark} />
           <Text style={styles.loadingText}>Synthesizing diagnostic dossier...</Text>
         </View>
       ) : !anomaly ? (
@@ -146,7 +147,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
           </View>
 
           {/* SECTION A: Anomaly Identity Card */}
-          <View style={styles.identityCard}>
+          <AppSurface style={styles.identityCard}>
             <View style={styles.topBadgeRow}>
               <View style={styles.idGroup}>
                 <Text style={styles.anomalyIdText}>{anomaly.anomalyId}</Text>
@@ -169,7 +170,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
                 level={anomaly.confidenceLevel}
               />
             </View>
-          </View>
+          </AppSurface>
 
           {/* SECTION B & C: Observed Discrepancy & Reasoning */}
           <AnomalyExplanationCard anomaly={anomaly} />
@@ -178,9 +179,9 @@ export const AnomalyDetailsScreen: React.FC = () => {
           <EvidenceSignalList signals={anomaly.sourceSignals || []} style={{ marginVertical: spacing.xs }} />
 
           {/* SECTION E: Linked Hierarchy Entities */}
-          <View style={styles.entitiesCard}>
+          <AppSurface style={styles.entitiesCard}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="git-branch-outline" size={16} color={colors.brand.primary} style={{ marginRight: 6 }} />
+              <Ionicons name="git-branch-outline" size={16} color={colors.palette.olivewoodDark} style={{ marginRight: 6 }} />
               <Text style={styles.sectionTitle}>ADMINISTRATIVE & PROJECT HIERARCHY</Text>
             </View>
 
@@ -192,7 +193,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
                 onPress={() => project && navigation.navigate('ProjectDetails', { projectId: project.projectId })}
               >
                 <View style={styles.entityIconBox}>
-                  <Ionicons name="business" size={16} color={colors.brand.primary} />
+                  <Ionicons name="business" size={16} color={colors.palette.olivewoodDark} />
                 </View>
                 <View style={styles.entityTextBox}>
                   <Text style={styles.entityCategory}>MONITORED PROJECT</Text>
@@ -209,7 +210,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
                 onPress={() => organization && navigation.navigate('OrganizationDetails', { organizationId: organization.organizationId })}
               >
                 <View style={styles.entityIconBox}>
-                  <Ionicons name="home" size={16} color="#7E22CE" />
+                  <Ionicons name="home" size={16} color={colors.palette.olive} />
                 </View>
                 <View style={styles.entityTextBox}>
                   <Text style={styles.entityCategory}>IMPLEMENTING AGENCY</Text>
@@ -227,7 +228,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
                   onPress={() => navigation.navigate('SchemeDetails', { schemeId: scheme.schemeId })}
                 >
                   <View style={styles.entityIconBox}>
-                    <Ionicons name="ribbon" size={16} color="#0D9488" />
+                    <Ionicons name="ribbon" size={16} color={colors.palette.olivewood} />
                   </View>
                   <View style={styles.entityTextBox}>
                     <Text style={styles.entityCategory}>NATIONAL WELFARE SCHEME</Text>
@@ -246,7 +247,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
                   onPress={() => navigation.navigate('DivisionDetails', { divisionId: division.divisionId })}
                 >
                   <View style={styles.entityIconBox}>
-                    <Ionicons name="globe-outline" size={16} color="#2563EB" />
+                    <Ionicons name="globe-outline" size={16} color={colors.palette.olivewoodDark} />
                   </View>
                   <View style={styles.entityTextBox}>
                     <Text style={styles.entityCategory}>ADMINISTRATIVE DIVISION</Text>
@@ -257,7 +258,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
                 </TouchableOpacity>
               )}
             </View>
-          </View>
+          </AppSurface>
 
           {/* SECTION F: Correlated Monitoring Signals */}
           <CorrelationSignalCard
@@ -274,7 +275,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
           />
 
           {/* SECTION H: False Positive Safety Disclaimer */}
-          <View style={styles.safetyCard}>
+          <AppSurface style={styles.safetyCard}>
             <View style={styles.safetyHeader}>
               <Ionicons name="shield-checkmark" size={16} color={colors.status.normal} style={{ marginRight: 6 }} />
               <Text style={styles.safetyTitle}>EVALUATION SAFETY & LIMITATIONS POLICY</Text>
@@ -284,7 +285,7 @@ export const AnomalyDetailsScreen: React.FC = () => {
               {'\n'}• High discrepancy severity indicates observable variance magnitude, NOT confirmed non-compliance or fraud.
               {'\n'}• All decisions, inquiries, and inspections must be independently authorized by a designated Government Officer.
             </Text>
-          </View>
+          </AppSurface>
         </ScrollView>
       )}
     </View>
@@ -304,8 +305,9 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: spacing.md,
-    fontSize: 13,
-    color: colors.text.muted,
+    fontSize: typography.sizes.sm,
+    color: colors.text.secondary,
+    textAlign: 'center',
   },
   errorContainer: {
     flex: 1,
@@ -320,16 +322,21 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   errorSubtitle: {
-    fontSize: 12,
+    fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 4,
     marginBottom: spacing.md,
+    textAlign: 'center',
   },
   backBtn: {
-    backgroundColor: colors.brand.primary,
+    backgroundColor: colors.palette.olivewoodDark,
+    minHeight: 44,
+    minWidth: 44,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   backBtnText: {
     color: colors.text.inverse,
@@ -337,18 +344,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   scrollContent: {
+    width: '100%',
+    maxWidth: 1200,
+    alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 96,
   },
   breadcrumbRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    minHeight: 44,
     marginBottom: spacing.sm,
   },
   breadcrumbLink: {
     fontSize: 11,
-    color: colors.brand.primary,
+    color: colors.palette.olivewoodDark,
     fontWeight: typography.weights.semibold,
+    paddingVertical: 12,
   },
   breadcrumbCurrent: {
     fontSize: 11,
@@ -356,18 +369,14 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.medium,
   },
   identityCard: {
-    backgroundColor: colors.neutral.surface,
-    borderRadius: borderRadius.md,
-    padding: spacing.base,
-    borderWidth: 1,
-    borderColor: colors.neutral.border,
-    marginBottom: spacing.xs,
-    ...shadows.xs,
+    marginBottom: spacing.sm,
   },
   topBadgeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
     marginBottom: spacing.xs,
   },
   idGroup: {
@@ -378,7 +387,7 @@ const styles = StyleSheet.create({
   anomalyIdText: {
     fontSize: 15,
     fontWeight: typography.weights.bold,
-    color: colors.brand.primary,
+    color: colors.palette.olivewoodDark,
   },
   statusPill: {
     backgroundColor: colors.neutral.surfaceSubtle,
@@ -411,11 +420,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   entitiesCard: {
-    backgroundColor: colors.neutral.surface,
-    borderRadius: borderRadius.md,
-    padding: spacing.base,
-    borderWidth: 1,
-    borderColor: colors.neutral.border,
     marginVertical: spacing.xs,
   },
   sectionHeader: {
@@ -426,7 +430,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 11,
     fontWeight: typography.weights.bold,
-    color: colors.brand.primary,
+    color: colors.palette.olivewoodDark,
     letterSpacing: 0.5,
   },
   entityGrid: {
@@ -435,22 +439,23 @@ const styles = StyleSheet.create({
   entityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.neutral.surfaceSubtle,
+    backgroundColor: colors.palette.parchmentSubtle,
     borderRadius: borderRadius.sm,
     padding: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.neutral.border,
+    borderColor: colors.palette.sandBorder,
+    minHeight: 64,
   },
   entityIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: borderRadius.xs,
-    backgroundColor: colors.neutral.surface,
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.palette.sageLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
     borderWidth: 1,
-    borderColor: colors.neutral.border,
+    borderColor: colors.palette.sageBorder,
   },
   entityTextBox: {
     flex: 1,
@@ -469,16 +474,13 @@ const styles = StyleSheet.create({
   },
   entitySub: {
     fontSize: 10,
-    color: colors.brand.primary,
+    color: colors.palette.olivewoodDark,
     marginTop: 1,
   },
   safetyCard: {
-    backgroundColor: colors.status.normalLight,
-    borderRadius: borderRadius.md,
-    padding: spacing.base,
-    borderWidth: 1,
-    borderColor: colors.status.normalBorder,
     marginTop: spacing.sm,
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
   },
   safetyHeader: {
     flexDirection: 'row',
