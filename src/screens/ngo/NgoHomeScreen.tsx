@@ -245,6 +245,8 @@ export const NgoHomeScreen: React.FC = () => {
                 style={styles.vcAlertBanner}
                 onPress={() => setVcModalVisible(true)}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Open Surprise Video Verification Request"
               >
                 <View style={styles.vcAlertIcon}>
                   <Ionicons name="videocam" size={20} color={colors.text.inverse} />
@@ -443,6 +445,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.xs,
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
   headerBranding: {
     flexDirection: 'row',
@@ -458,6 +462,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   headerMinistry: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
@@ -468,6 +473,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    flexWrap: 'wrap',
   },
   roleBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
@@ -478,6 +484,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   roleBadgeText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -488,12 +495,14 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
+    minHeight: 32,
   },
   switchText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
@@ -509,12 +518,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
     letterSpacing: -0.2,
   },
   headerSubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
@@ -526,7 +537,7 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: 90,
+    paddingBottom: 100,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -565,12 +576,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   complianceTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginLeft: spacing.xs,
   },
   complianceDesc: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     lineHeight: 18,
@@ -587,6 +600,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
     gap: spacing.sm,
+    minHeight: 52,
     ...shadows.xs,
   },
   vcAlertIcon: {
@@ -598,14 +612,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   vcAlertTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.status.highPriority,
   },
   vcAlertSub: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs - 1,
     color: colors.text.secondary,
     marginTop: 2,
+    lineHeight: 15,
   },
 
   // Action Strip
@@ -628,6 +645,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   actionPillText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
     color: colors.brand.primary,

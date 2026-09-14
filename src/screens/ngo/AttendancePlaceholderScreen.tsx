@@ -712,6 +712,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.xs,
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
   headerBranding: {
     flexDirection: 'row',
@@ -727,6 +729,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   headerMinistry: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
@@ -737,6 +740,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    flexWrap: 'wrap',
   },
   roleBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
@@ -747,6 +751,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   roleBadgeText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -757,12 +762,14 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
+    minHeight: 32,
   },
   switchText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
@@ -779,12 +786,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
     letterSpacing: -0.2,
   },
   headerSubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
@@ -793,17 +802,20 @@ const styles = StyleSheet.create({
   // Sub-navigation Tabs
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: colors.brand.navyDark,
     borderRadius: borderRadius.md,
     padding: 3,
     gap: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
   tabButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
+    minHeight: 44,
     borderRadius: borderRadius.sm,
     gap: 6,
   },
@@ -811,6 +823,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.surface,
   },
   tabText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
     color: 'rgba(255,255,255,0.7)',
@@ -826,7 +839,7 @@ const styles = StyleSheet.create({
     maxWidth: 1000,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 100,
   },
 
   // Variance & Aligned Telemetry Banners
@@ -835,7 +848,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.status.warning + '40',
+    borderColor: colors.status.warningBorder,
     borderLeftWidth: 4,
     borderLeftColor: colors.status.warning,
     marginBottom: spacing.md,
@@ -855,11 +868,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   varianceTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   varianceSub: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
@@ -875,6 +890,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.neutral.divider,
   },
   varianceFooterText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.muted,
   },
@@ -885,12 +901,13 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.status.normal + '30',
+    borderColor: colors.status.normalBorder,
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
   alignedText: {
     flex: 1,
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
     color: colors.text.primary,
@@ -907,14 +924,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral.border,
     marginBottom: spacing.md,
+    gap: spacing.sm,
+    flexWrap: 'wrap',
     ...shadows.xs,
   },
   actionBarTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   actionBarSub: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 2,
@@ -931,6 +952,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   actionSubmitBtnText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     color: colors.text.inverse,
@@ -965,6 +987,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   histDate: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -984,16 +1007,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand.primaryLight,
   },
   verifiedText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
   histCount: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm + 1,
     fontWeight: typography.weights.semibold,
     color: colors.brand.navyLight,
     marginTop: 2,
   },
   histNotes: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     fontStyle: 'italic',
@@ -1006,6 +1032,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   histSubmitted: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
   },
@@ -1027,11 +1054,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rosterOverviewNum: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   rosterOverviewLbl: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 2,
@@ -1056,9 +1085,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 8,
     gap: spacing.xs,
+    minHeight: 44,
   },
   searchInput: {
     flex: 1,
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     color: colors.text.primary,
     padding: 0,
@@ -1070,17 +1101,20 @@ const styles = StyleSheet.create({
   },
   filterChip: {
     paddingHorizontal: spacing.md,
-    paddingVertical: 5,
+    paddingVertical: 8,
     borderRadius: borderRadius.full,
     backgroundColor: colors.neutral.surface,
     borderWidth: 1,
     borderColor: colors.neutral.border,
+    minHeight: 38,
+    justifyContent: 'center',
   },
   filterChipActive: {
     backgroundColor: colors.brand.primaryLight,
     borderColor: colors.brand.primary,
   },
   filterChipText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     fontWeight: typography.weights.medium,
@@ -1115,8 +1149,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
     marginBottom: 2,
+    flexWrap: 'wrap',
   },
   benId: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
@@ -1136,20 +1172,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.surfaceSubtle,
   },
   verifBadgeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.medium,
   },
   benName: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   benMeta: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
   },
   benLastVerified: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
     marginTop: 2,
@@ -1165,17 +1205,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 4,
     minHeight: 44,
-    minWidth: 84,
+    minWidth: 88,
   },
   toggleBtnPresent: {
     backgroundColor: colors.status.normalLight,
-    borderColor: colors.status.normal + '50',
+    borderColor: colors.status.normalBorder,
   },
   toggleBtnAbsent: {
     backgroundColor: colors.neutral.surfaceSubtle,
     borderColor: colors.neutral.border,
   },
   attendanceToggleText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
   },
@@ -1183,7 +1224,7 @@ const styles = StyleSheet.create({
   // Modal Styles
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.ui.backdrop,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.base,
@@ -1204,11 +1245,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   modalTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   modalSub: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 2,
@@ -1219,12 +1262,14 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   modalSuccessText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     color: colors.status.normal,
     marginTop: spacing.xs,
   },
   modalSuccessSub: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
   },
@@ -1236,12 +1281,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   inputLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
     marginBottom: 4,
   },
   modalInput: {
+    fontFamily: typography.fontFamily,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     borderRadius: borderRadius.sm,
@@ -1250,6 +1297,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.text.primary,
     backgroundColor: colors.neutral.surfaceSubtle,
+    minHeight: 44,
   },
   modalTextArea: {
     height: 72,
@@ -1272,6 +1320,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   modalCancelText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     fontWeight: typography.weights.medium,
@@ -1288,6 +1337,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   modalConfirmText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.inverse,
     fontWeight: typography.weights.semibold,

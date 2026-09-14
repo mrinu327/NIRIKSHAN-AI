@@ -222,6 +222,8 @@ export const InitiateInspectionScreen: React.FC = () => {
                 onPress={switchRole}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 style={styles.switchButton}
+                accessibilityRole="button"
+                accessibilityLabel="Switch Role"
               >
                 <Ionicons name="swap-horizontal-outline" size={14} color={colors.text.inverse} />
                 <Text style={styles.switchText}>Switch Role</Text>
@@ -295,6 +297,8 @@ export const InitiateInspectionScreen: React.FC = () => {
                 onPress={switchRole}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 style={styles.switchButton}
+                accessibilityRole="button"
+                accessibilityLabel="Switch Role"
               >
                 <Ionicons name="swap-horizontal-outline" size={14} color={colors.text.inverse} />
                 <Text style={styles.switchText}>Switch Role</Text>
@@ -619,6 +623,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.xs,
+    flexWrap: 'wrap',
+    gap: 8,
   },
   headerBranding: {
     flexDirection: 'row',
@@ -634,9 +640,10 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   headerMinistry: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
-    color: '#D0D5DD',
+    color: colors.brand.primaryLight,
     letterSpacing: 0.5,
   },
   headerActionsRight: {
@@ -653,6 +660,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   roleBadgeText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -661,15 +669,18 @@ const styles = StyleSheet.create({
   switchButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 4,
+    paddingHorizontal: spacing.sm + 4,
+    paddingVertical: 8,
     borderRadius: borderRadius.sm,
-    minHeight: 28,
+    minHeight: 44,
+    minWidth: 44,
   },
   switchText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -696,14 +707,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
     letterSpacing: -0.2,
   },
   headerSubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
-    color: '#CBD5E1',
+    color: colors.palette.sandLight,
     marginTop: 2,
   },
 
@@ -734,6 +747,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   targetHeading: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
@@ -741,22 +755,26 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   targetName: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginTop: 2,
   },
   targetLocation: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     color: colors.text.secondary,
     marginTop: 4,
   },
   targetCode: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 3,
   },
   targetCodeBold: {
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
   },
@@ -772,6 +790,7 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   fieldLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -802,6 +821,7 @@ const styles = StyleSheet.create({
     borderColor: colors.status.highPriority,
   },
   pillText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
@@ -822,6 +842,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   typeNoticeTextSurprise: {
+    fontFamily: typography.fontFamily,
     flex: 1,
     fontSize: typography.sizes.xs,
     color: colors.status.highPriority,
@@ -839,6 +860,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   typeNoticeTextRoutine: {
+    fontFamily: typography.fontFamily,
     flex: 1,
     fontSize: typography.sizes.xs,
     color: colors.brand.primary,
@@ -856,6 +878,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   typeNoticeTextSpecial: {
+    fontFamily: typography.fontFamily,
     flex: 1,
     fontSize: typography.sizes.xs,
     color: colors.status.warning,
@@ -870,6 +893,7 @@ const styles = StyleSheet.create({
     borderColor: colors.neutral.border,
   },
   inspectorPickerLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.text.secondary,
@@ -893,6 +917,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand.primaryLight,
   },
   inspectorChipName: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -901,6 +926,7 @@ const styles = StyleSheet.create({
     color: colors.brand.primary,
   },
   inspectorChipZone: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
     marginTop: 2,
@@ -920,6 +946,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   authorizingTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
@@ -929,21 +956,25 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   authorizingName: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   authorizingDesignation: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 1,
   },
   authorizingBadge: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.brand.navyLight,
     marginTop: 2,
   },
   authorizingDisclaimer: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
     fontStyle: 'italic',
@@ -958,12 +989,14 @@ const styles = StyleSheet.create({
     borderColor: colors.neutral.border,
   },
   triggerLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.text.secondary,
     marginBottom: 4,
   },
   triggerValue: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     color: colors.text.primary,
     lineHeight: 18,
@@ -979,6 +1012,7 @@ const styles = StyleSheet.create({
     borderColor: colors.brand.accent,
   },
   protocolNoticeText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.primary,
     lineHeight: 17,

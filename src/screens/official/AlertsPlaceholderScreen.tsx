@@ -519,15 +519,15 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xxxl + 32,
   },
 
   // LIVE STREAM badge in AppHeader
   liveTelemetryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(30, 142, 90, 0.18)',
-    borderColor: 'rgba(30, 142, 90, 0.5)',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
     borderWidth: 1,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
@@ -537,11 +537,12 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 3.5,
-    backgroundColor: '#34D399',
+    backgroundColor: colors.status.normal,
     marginRight: 6,
   },
   liveTelemetryText: {
-    color: '#D1FAE5',
+    fontFamily: typography.fontFamily,
+    color: colors.status.normal,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.6,
@@ -561,6 +562,7 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   protocolText: {
+    fontFamily: typography.fontFamily,
     flex: 1,
     fontSize: typography.sizes.xs,
     color: colors.text.primary,
@@ -591,11 +593,13 @@ const styles = StyleSheet.create({
     borderColor: colors.brand.primary,
   },
   filterChipText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.medium,
     color: colors.text.secondary,
   },
   filterChipTextActive: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontWeight: typography.weights.bold,
   },
@@ -615,8 +619,8 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   cardHighPriority: {
-    backgroundColor: '#FFFDFD',
-    borderColor: 'rgba(196, 64, 44, 0.25)',
+    backgroundColor: colors.neutral.surface,
+    borderColor: colors.status.highPriorityBorder,
   },
 
   cardHeaderRow: {
@@ -636,6 +640,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   categoryText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     letterSpacing: 0.2,
@@ -652,11 +657,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   severityBadgeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.4,
   },
   timestamp: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
   },
@@ -669,6 +676,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   facilityName: {
+    fontFamily: typography.fontFamily,
     flex: 1,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
@@ -691,6 +699,7 @@ const styles = StyleSheet.create({
   },
 
   description: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     color: colors.text.secondary,
     lineHeight: 20,
@@ -700,36 +709,45 @@ const styles = StyleSheet.create({
   // Comparative Telemetry Table
   metricsBox: {
     flexDirection: 'row',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.neutral.surfaceSubtle,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
     marginTop: spacing.sm + 2,
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 4,
   },
   metricItem: {
     flex: 1,
+    minWidth: 85,
     alignItems: 'center',
+    paddingVertical: 2,
   },
   metricLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
     letterSpacing: 0.5,
     marginBottom: 2,
+    textAlign: 'center',
   },
   metricValue: {
-    fontSize: typography.sizes.base + 2,
+    fontFamily: typography.fontFamily,
+    fontSize: typography.sizes.base + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   metricSubLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
     marginTop: 2,
+    textAlign: 'center',
   },
   metricDivider: {
     width: 1,
@@ -765,10 +783,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   statusBadgeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.semibold,
   },
   reviewedMetaText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.muted,
   },
@@ -778,6 +798,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   actionText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 0.5,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
@@ -794,6 +815,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingBannerText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
   },
@@ -861,12 +883,14 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   emptyTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginTop: spacing.sm,
   },
   emptySubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 4,
@@ -888,6 +912,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   resetButtonText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,

@@ -168,19 +168,19 @@ export const AnomalyExplorerScreen: React.FC = () => {
 
           {/* Executive KPI Deck */}
           <View style={[styles.kpiDeck, isDesktop && styles.desktopKpiDeck]}>
-            <View style={styles.kpiCard}>
+            <View style={[styles.kpiCard, isDesktop && styles.kpiCardDesktop]}>
               <Text style={styles.kpiValue}>{kpis.total}</Text>
               <Text style={styles.kpiLabel}>Total Observed Anomalies</Text>
             </View>
-            <View style={styles.kpiCard}>
-              <Text style={[styles.kpiValue, { color: '#991B1B' }]}>{kpis.critical}</Text>
+            <View style={[styles.kpiCard, isDesktop && styles.kpiCardDesktop]}>
+              <Text style={[styles.kpiValue, { color: colors.status.highPriority }]}>{kpis.critical}</Text>
               <Text style={styles.kpiLabel}>Critical Review</Text>
             </View>
-            <View style={styles.kpiCard}>
+            <View style={[styles.kpiCard, isDesktop && styles.kpiCardDesktop]}>
               <Text style={[styles.kpiValue, { color: colors.status.highPriority }]}>{kpis.high}</Text>
               <Text style={styles.kpiLabel}>High Severity</Text>
             </View>
-            <View style={styles.kpiCard}>
+            <View style={[styles.kpiCard, isDesktop && styles.kpiCardDesktop]}>
               <Text style={[styles.kpiValue, { color: colors.status.warning }]}>{kpis.requiresReview}</Text>
               <Text style={styles.kpiLabel}>Requires Official Review</Text>
             </View>
@@ -198,8 +198,13 @@ export const AnomalyExplorerScreen: React.FC = () => {
               clearButtonMode="while-editing"
             />
             {searchQuery ? (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={16} color={colors.text.muted} />
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                style={styles.searchClearBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Clear search"
+              >
+                <Ionicons name="close-circle" size={18} color={colors.text.muted} />
               </TouchableOpacity>
             ) : null}
           </View>
@@ -260,6 +265,8 @@ export const AnomalyExplorerScreen: React.FC = () => {
                   key={opt}
                   onPress={() => setSortBy(opt)}
                   style={[styles.sortBtn, sortBy === opt && styles.sortBtnActive]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Sort by ${opt}`}
                 >
                   <Text style={[styles.sortBtnText, sortBy === opt && styles.sortBtnTextActive]}>
                     {opt.toUpperCase()}
@@ -323,6 +330,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: spacing.md,
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
   },
   scrollContent: {
@@ -340,7 +348,7 @@ const styles = StyleSheet.create({
   },
   kpiCard: {
     flex: 1,
-    minWidth: '45%',
+    minWidth: '47%',
     backgroundColor: colors.neutral.surface,
     borderRadius: borderRadius.md,
     padding: spacing.md,
@@ -349,14 +357,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...shadows.xs,
   },
+  kpiCardDesktop: {
+    minWidth: '22%',
+  },
   kpiValue: {
     fontSize: 22,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
     marginBottom: 2,
   },
   kpiLabel: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     fontWeight: typography.weights.medium,
     textAlign: 'center',
@@ -367,7 +380,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.surface,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    minHeight: 46,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     marginBottom: spacing.md,
@@ -376,14 +389,22 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     color: colors.text.primary,
     padding: 0,
+  },
+  searchClearBtn: {
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterSection: {
     marginBottom: spacing.sm,
   },
   filterSectionTitle: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
     marginBottom: 6,
@@ -394,12 +415,15 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   filterChip: {
+    minHeight: 44,
     backgroundColor: colors.neutral.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: borderRadius.full,
     borderWidth: 1,
     borderColor: colors.neutral.border,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterChipActive: {
     backgroundColor: colors.brand.primary,
@@ -407,6 +431,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.medium,
     color: colors.text.secondary,
   },
@@ -419,36 +444,47 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginVertical: spacing.sm,
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
   resultCount: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
   },
   boldCount: {
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
   sortRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   sortLabel: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginRight: 2,
   },
   sortBtn: {
-    paddingHorizontal: 6,
-    paddingVertical: 3,
+    minHeight: 40,
+    minWidth: 44,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     borderRadius: borderRadius.xs,
     backgroundColor: colors.neutral.surfaceSubtle,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sortBtnActive: {
     backgroundColor: colors.brand.primaryLight,
   },
   sortBtnText: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
     color: colors.text.secondary,
   },
@@ -467,12 +503,14 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 16,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginTop: spacing.sm,
   },
   emptySubtitle: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     textAlign: 'center',
     marginTop: 4,
@@ -484,9 +522,11 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginBottom: spacing.sm,
     alignSelf: 'flex-start',
+    minHeight: 44,
   },
   backBreadcrumbText: {
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     color: colors.brand.primary,
     fontWeight: typography.weights.semibold,
   },
@@ -494,10 +534,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand.primary,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
+    minHeight: 44,
     borderRadius: borderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   clearBtnText: {
     color: colors.text.inverse,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     fontSize: 12,
   },

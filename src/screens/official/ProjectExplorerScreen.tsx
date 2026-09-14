@@ -199,21 +199,21 @@ export const ProjectExplorerScreen: React.FC = () => {
 
         {/* Top KPI Statistics */}
         <View style={styles.kpiRow}>
-          <View style={styles.kpiCard}>
+          <View style={[styles.kpiCard, isDesktop ? styles.kpiCardDesktop : styles.kpiCardMobile]}>
             <Text style={styles.kpiValue}>{kpis.total}</Text>
             <Text style={styles.kpiLabel}>Sanctioned Projects</Text>
           </View>
-          <View style={styles.kpiCard}>
+          <View style={[styles.kpiCard, isDesktop ? styles.kpiCardDesktop : styles.kpiCardMobile]}>
             <Text style={[styles.kpiValue, kpis.highPriorityCount > 0 ? { color: colors.status.highPriority } : {}]}>
               {kpis.highPriorityCount}
             </Text>
             <Text style={styles.kpiLabel}>Monitoring Priority</Text>
           </View>
-          <View style={styles.kpiCard}>
+          <View style={[styles.kpiCard, isDesktop ? styles.kpiCardDesktop : styles.kpiCardMobile]}>
             <Text style={styles.kpiValue}>{formatCurrency(kpis.totalSanctioned)}</Text>
             <Text style={styles.kpiLabel}>Sanctioned Grants</Text>
           </View>
-          <View style={styles.kpiCard}>
+          <View style={[styles.kpiCard, isDesktop ? styles.kpiCardDesktop : styles.kpiCardMobile]}>
             <Text style={[styles.kpiValue, { color: colors.status.normal }]}>
               {kpis.totalBeneficiaries}
             </Text>
@@ -366,6 +366,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   breadcrumbText: {
+    fontFamily: typography.fontFamily,
     fontSize: 13,
     color: colors.brand.primary,
     fontWeight: typography.weights.semibold,
@@ -384,28 +385,31 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   provenanceBadge: {
-    backgroundColor: '#EEF2FF',
+    backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: borderRadius.xs,
     alignSelf: 'flex-start',
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: '#C7D2FE',
+    borderColor: colors.status.infoBorder,
   },
   provenanceText: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
     letterSpacing: 0.8,
   },
   heroTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: 18,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginBottom: 4,
   },
   heroSubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: 12,
     color: colors.text.secondary,
     lineHeight: 17,
@@ -417,8 +421,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   kpiCard: {
-    flex: 1,
-    minWidth: '22%',
     backgroundColor: colors.neutral.surface,
     borderRadius: borderRadius.md,
     padding: spacing.sm,
@@ -427,13 +429,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...shadows.xs,
   },
+  kpiCardMobile: {
+    flex: 1,
+    minWidth: '47%',
+  },
+  kpiCardDesktop: {
+    flex: 1,
+    minWidth: '22%',
+  },
   kpiValue: {
+    fontFamily: typography.fontFamily,
     fontSize: 16,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginBottom: 2,
   },
   kpiLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
     fontWeight: typography.weights.medium,
@@ -447,7 +459,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral.border,
     paddingHorizontal: spacing.sm,
-    height: 42,
+    minHeight: 46,
     marginBottom: spacing.md,
     ...shadows.xs,
   },
@@ -455,18 +467,24 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   searchInput: {
+    fontFamily: typography.fontFamily,
     flex: 1,
     fontSize: 13,
     color: colors.text.primary,
-    paddingVertical: 0,
+    paddingVertical: 8,
   },
   clearBtn: {
-    padding: 4,
+    padding: 6,
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   filterSection: {
     marginBottom: spacing.sm,
   },
   filterSectionLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
@@ -477,8 +495,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   filterChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: borderRadius.full,
     backgroundColor: colors.neutral.surface,
     borderWidth: 1,
@@ -490,11 +511,13 @@ const styles = StyleSheet.create({
     borderColor: colors.brand.primary,
   },
   filterChipText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.medium,
     color: colors.text.secondary,
   },
   filterChipTextActive: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontWeight: typography.weights.bold,
   },
@@ -509,38 +532,48 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   resultsCount: {
+    fontFamily: typography.fontFamily,
     fontSize: 12,
     color: colors.text.secondary,
   },
   bold: {
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   sortContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   sortLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.muted,
     marginRight: 2,
   },
   sortBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    minHeight: 40,
+    minWidth: 44,
     borderRadius: borderRadius.xs,
     backgroundColor: colors.neutral.surfaceSubtle,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sortBtnActive: {
     backgroundColor: colors.brand.primary,
   },
   sortBtnText: {
-    fontSize: 10,
+    fontFamily: typography.fontFamily,
+    fontSize: 11,
     color: colors.text.secondary,
     fontWeight: typography.weights.medium,
   },
   sortBtnTextActive: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontWeight: typography.weights.bold,
   },
@@ -553,6 +586,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loadingText: {
+    fontFamily: typography.fontFamily,
     fontSize: 13,
     color: colors.text.muted,
     marginTop: spacing.sm,
@@ -567,6 +601,7 @@ const styles = StyleSheet.create({
     marginVertical: spacing.lg,
   },
   emptyTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: 15,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -574,6 +609,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptySubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: 12,
     color: colors.text.muted,
     textAlign: 'center',
@@ -583,12 +619,16 @@ const styles = StyleSheet.create({
   resetBtn: {
     backgroundColor: colors.brand.primary,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: 10,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: borderRadius.sm,
   },
   resetBtnText: {
-    color: colors.text.inverse,
+    fontFamily: typography.fontFamily,
     fontSize: 12,
     fontWeight: typography.weights.bold,
+    color: colors.text.inverse,
   },
 });

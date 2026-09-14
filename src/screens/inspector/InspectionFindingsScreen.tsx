@@ -645,8 +645,8 @@ export const InspectionFindingsScreen: React.FC = () => {
               accessibilityRole="button"
               accessibilityLabel="Record walkthrough video"
             >
-              <View style={[styles.evidenceActionIconWrap, { backgroundColor: '#F5F3FF' }]}>
-                <Ionicons name="videocam" size={20} color="#6366F1" />
+              <View style={[styles.evidenceActionIconWrap, { backgroundColor: colors.palette.sageLight }]}>
+                <Ionicons name="videocam" size={20} color={colors.palette.olivewood} />
               </View>
               <Text style={styles.evidenceActionBtnText}>Record Video</Text>
             </TouchableOpacity>
@@ -658,7 +658,7 @@ export const InspectionFindingsScreen: React.FC = () => {
               accessibilityRole="button"
               accessibilityLabel="Attach register or document evidence"
             >
-              <View style={[styles.evidenceActionIconWrap, { backgroundColor: '#F0FDF4' }]}>
+              <View style={[styles.evidenceActionIconWrap, { backgroundColor: colors.status.normalLight }]}>
                 <Ionicons name="attach" size={20} color={colors.status.normal} />
               </View>
               <Text style={styles.evidenceActionBtnText}>Attach Evidence</Text>
@@ -708,14 +708,14 @@ export const InspectionFindingsScreen: React.FC = () => {
                       <View
                         style={[
                           styles.evidenceIconCircle,
-                          item.type === 'video' && { backgroundColor: '#F5F3FF' },
-                          item.type === 'document' && { backgroundColor: '#F0FDF4' },
+                          item.type === 'video' && { backgroundColor: colors.palette.sageLight },
+                          item.type === 'document' && { backgroundColor: colors.status.normalLight },
                         ]}
                       >
                         <Ionicons
                           name={item.type === 'photo' ? 'camera' : item.type === 'video' ? 'videocam' : 'document-text'}
                           size={18}
-                          color={item.type === 'photo' ? colors.brand.primary : item.type === 'video' ? '#6366F1' : colors.status.normal}
+                          color={item.type === 'photo' ? colors.brand.primary : item.type === 'video' ? colors.palette.olivewood : colors.status.normal}
                         />
                       </View>
                     )}
@@ -1650,7 +1650,7 @@ const styles = StyleSheet.create({
   viewerImageWrap: {
     width: '100%',
     height: 260,
-    backgroundColor: '#000000',
+    backgroundColor: colors.palette.bark,
     borderRadius: borderRadius.md,
     overflow: 'hidden',
     position: 'relative',

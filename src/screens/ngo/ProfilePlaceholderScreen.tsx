@@ -405,6 +405,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.xs,
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
   headerBranding: {
     flexDirection: 'row',
@@ -420,6 +422,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   headerMinistry: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
@@ -430,6 +433,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    flexWrap: 'wrap',
   },
   roleBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
@@ -440,6 +444,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   roleBadgeText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -450,13 +455,14 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    minHeight: 28,
+    minHeight: 32,
   },
   switchText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
@@ -472,12 +478,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
     letterSpacing: -0.2,
   },
   headerSubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
@@ -489,7 +497,7 @@ const styles = StyleSheet.create({
     maxWidth: 900,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxxl,
+    paddingBottom: 100,
   },
 
   // Institutional Identity Card
@@ -505,6 +513,8 @@ const styles = StyleSheet.create({
   profileMainRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
   },
   avatar: {
     width: 56,
@@ -513,25 +523,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.md,
+    marginRight: spacing.sm,
     ...shadows.xs,
   },
   profileInfo: {
     flex: 1,
+    minWidth: 200,
   },
   profileName: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.base + 2,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     letterSpacing: -0.2,
   },
   profileDesignation: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     color: colors.brand.primary,
     fontWeight: typography.weights.semibold,
     marginTop: 2,
   },
   profileOrg: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
@@ -544,11 +558,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral.border,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: borderRadius.xs,
     alignSelf: 'flex-start',
   },
   badgeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.secondary,
     fontWeight: typography.weights.semibold,
@@ -584,11 +599,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   detailLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginBottom: 2,
   },
   detailValue: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     color: colors.text.primary,
     fontWeight: typography.weights.medium,
@@ -610,19 +627,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.status.normalLight,
     borderWidth: 1,
-    borderColor: colors.status.normal + '40',
+    borderColor: colors.status.normalBorder,
     borderRadius: borderRadius.sm,
     padding: spacing.sm,
     marginBottom: spacing.md,
     gap: 8,
   },
   resetNoticeText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.status.normal,
     fontWeight: typography.weights.medium,
     flex: 1,
   },
   actionSectionLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
@@ -631,10 +650,12 @@ const styles = StyleSheet.create({
   },
   switchButtonsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   roleSwitchBtn: {
     flex: 1,
+    minWidth: 140,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -649,6 +670,7 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   roleSwitchBtnText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.semibold,
     color: colors.brand.navyDark,

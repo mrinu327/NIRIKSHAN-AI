@@ -286,12 +286,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   emptyTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     color: colors.text.secondary,
     textAlign: 'center',
   },
   emptySubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     textAlign: 'center',

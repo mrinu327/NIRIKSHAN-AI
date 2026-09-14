@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Role } from '@nirikshan/shared-types';
-import { colors, spacing, borderRadius, typography } from '../../constants/theme';
+import { colors } from '../../theme/colors';
+import { typography } from '../../theme/typography';
+import { spacing, borderRadius } from '../../theme/spacing';
 
 interface RoleBadgeProps {
   role: Role | string;
@@ -13,32 +15,37 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({ role, size = 'md' }) => {
     switch (role) {
       case Role.OFFICIAL:
         return {
-          bg: '#E0F2FE',
-          text: colors.primary,
+          bg: colors.palette.oliveLight,
+          border: colors.palette.sageBorder,
+          text: colors.palette.olivewood,
           label: 'DoSJE OFFICIAL',
         };
       case Role.INSPECTOR:
         return {
-          bg: '#E0F7FA',
-          text: colors.secondary,
+          bg: colors.palette.sandLight,
+          border: colors.palette.sandBorder,
+          text: colors.palette.barkSecondary,
           label: 'FIELD INSPECTOR',
         };
       case Role.NGO:
         return {
-          bg: '#F3E8FF',
-          text: '#6B21A8',
+          bg: colors.palette.parchmentDark,
+          border: colors.palette.sandBorder,
+          text: colors.palette.bark,
           label: 'NGO IN-CHARGE',
         };
       case Role.BENEFICIARY:
         return {
-          bg: '#DCFCE7',
-          text: colors.success,
+          bg: colors.status.normalLight,
+          border: colors.status.normalBorder,
+          text: colors.status.normal,
           label: 'BENEFICIARY',
         };
       default:
         return {
-          bg: colors.background,
-          text: colors.textMuted,
+          bg: colors.neutral.surfaceSubtle,
+          border: colors.neutral.border,
+          text: colors.text.muted,
           label: String(role),
         };
     }
@@ -51,7 +58,7 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({ role, size = 'md' }) => {
     <View
       style={[
         styles.badge,
-        { backgroundColor: badge.bg },
+        { backgroundColor: badge.bg, borderColor: badge.border },
         isSmall && styles.badgeSm,
       ]}
     >
@@ -73,6 +80,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
+    borderWidth: 1,
     alignSelf: 'flex-start',
   },
   badgeSm: {
@@ -80,8 +88,9 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   text: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.bold,
+    fontFamily: typography.fontFamily,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
     letterSpacing: 0.5,
   },
   textSm: {

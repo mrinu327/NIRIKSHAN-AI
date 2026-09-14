@@ -182,17 +182,20 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   activeLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.status.highPriority,
     letterSpacing: 0.5,
   },
   activeTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   activeSub: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
@@ -237,11 +240,13 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   checkTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
   },
   checkDesc: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
@@ -250,14 +255,15 @@ const styles = StyleSheet.create({
   noticeBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.brand.primaryLight,
+    backgroundColor: colors.palette.sageLight,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: colors.brand.primary,
+    borderColor: colors.palette.sageBorder,
     padding: spacing.md,
     marginTop: spacing.lg,
   },
   noticeText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.brand.primary,
     marginLeft: spacing.sm,

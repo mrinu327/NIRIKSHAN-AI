@@ -1002,9 +1002,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   errorBannerText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.semibold,
-    color: '#92400E',
+    color: colors.status.warning,
     flex: 1,
     lineHeight: 18,
   },

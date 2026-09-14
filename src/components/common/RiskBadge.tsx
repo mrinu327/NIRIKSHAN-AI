@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { RiskLevel } from '@nirikshan/shared-types';
-import { colors, spacing, borderRadius, typography } from '../../constants/theme';
+import { colors } from '../../theme/colors';
+import { typography } from '../../theme/typography';
+import { spacing, borderRadius } from '../../theme/spacing';
 
 interface RiskBadgeProps {
   level: RiskLevel | string;
@@ -14,32 +16,37 @@ export const RiskBadge: React.FC<RiskBadgeProps> = ({ level, score, showScore = 
     switch (level) {
       case RiskLevel.LOW:
         return {
-          bg: '#DCFCE7',
-          text: colors.success,
+          bg: colors.status.normalLight,
+          border: colors.status.normalBorder,
+          text: colors.status.normal,
           label: 'LOW RISK',
         };
       case RiskLevel.MEDIUM:
         return {
-          bg: '#FEF3C7',
-          text: colors.warning,
+          bg: colors.status.warningLight,
+          border: colors.status.warningBorder,
+          text: colors.status.warning,
           label: 'MEDIUM RISK',
         };
       case RiskLevel.HIGH:
         return {
-          bg: '#FEE2E2',
-          text: colors.danger,
+          bg: colors.status.highPriorityLight,
+          border: colors.status.highPriorityBorder,
+          text: colors.status.highPriority,
           label: 'HIGH RISK',
         };
       case RiskLevel.CRITICAL:
         return {
-          bg: '#7F1D1D',
-          text: colors.white,
+          bg: colors.status.highPriority,
+          border: colors.status.highPriority,
+          text: colors.text.inverse,
           label: 'CRITICAL',
         };
       default:
         return {
-          bg: colors.background,
-          text: colors.textMuted,
+          bg: colors.neutral.surfaceSubtle,
+          border: colors.neutral.border,
+          text: colors.text.muted,
           label: String(level),
         };
     }
@@ -48,7 +55,7 @@ export const RiskBadge: React.FC<RiskBadgeProps> = ({ level, score, showScore = 
   const style = getStyle();
 
   return (
-    <View style={[styles.badge, { backgroundColor: style.bg }]}>
+    <View style={[styles.badge, { backgroundColor: style.bg, borderColor: style.border }]}>
       <Text style={[styles.text, { color: style.text }]}>
         {style.label}
         {showScore && score !== undefined ? ` • ${score}/100` : ''}
@@ -62,11 +69,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.sm,
+    borderWidth: 1,
     alignSelf: 'flex-start',
   },
   text: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.bold,
+    fontFamily: typography.fontFamily,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
     letterSpacing: 0.5,
   },
 });

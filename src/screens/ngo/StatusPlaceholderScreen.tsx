@@ -172,7 +172,7 @@ export const StatusPlaceholderScreen: React.FC = () => {
                   styles.scoreBadge,
                   {
                     backgroundColor: isGoodStanding
-                      ? 'rgba(30, 142, 90, 0.1)'
+                      ? colors.status.normalLight
                       : colors.status.warningLight,
                   },
                 ]}
@@ -391,6 +391,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.xs,
+    flexWrap: 'wrap',
+    gap: spacing.xs,
   },
   headerBranding: {
     flexDirection: 'row',
@@ -406,6 +408,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   headerMinistry: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
@@ -416,6 +419,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
+    flexWrap: 'wrap',
   },
   roleBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
@@ -426,6 +430,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   roleBadgeText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -436,12 +441,14 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
+    minHeight: 32,
   },
   switchText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
@@ -457,12 +464,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
     letterSpacing: -0.2,
   },
   headerSubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 2,
@@ -474,7 +483,7 @@ const styles = StyleSheet.create({
     maxWidth: 1000,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 100,
   },
 
   // Primary Compliance Card
@@ -498,6 +507,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   scoreLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.text.secondary,
@@ -512,10 +522,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   scoreStatus: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
   },
   scoreValue: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.display,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
@@ -540,6 +552,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   scoreDesc: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     lineHeight: 18,
@@ -562,17 +575,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   breakdownColLbl: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.medium,
     color: colors.text.muted,
     marginBottom: 2,
   },
   breakdownColVal: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   breakdownColSub: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
     marginTop: 2,
@@ -615,11 +631,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
   },
   itemSub: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 2,
@@ -639,6 +657,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.status.warningLight,
   },
   itemStatus: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     textTransform: 'uppercase',

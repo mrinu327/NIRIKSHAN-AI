@@ -473,6 +473,7 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   toastText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
     color: colors.text.primary,
@@ -510,11 +511,13 @@ const styles = StyleSheet.create({
     borderColor: colors.status.highPriority,
   },
   filterChipText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
     color: colors.text.secondary,
   },
   filterChipTextActive: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontWeight: typography.weights.bold,
   },
@@ -524,8 +527,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.brand.primaryLight,
-    borderColor: colors.brand.primary,
+    backgroundColor: colors.palette.sageLight,
+    borderColor: colors.palette.sageBorder,
     borderWidth: 1,
     borderRadius: borderRadius.md,
     padding: spacing.md,
@@ -539,11 +542,13 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   historyBannerTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
   historyBannerSub: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.secondary,
     marginTop: 2,
@@ -562,12 +567,14 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   emptyTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginBottom: 4,
   },
   emptySubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     textAlign: 'center',
@@ -588,6 +595,7 @@ const styles = StyleSheet.create({
     borderColor: colors.brand.primary,
   },
   refreshButtonText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,

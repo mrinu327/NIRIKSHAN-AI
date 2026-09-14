@@ -27,7 +27,7 @@ export const ProjectMonitoringCard: React.FC<ProjectMonitoringCardProps> = ({ pr
     if (val >= 80) return colors.status.normal;
     if (val >= 60) return colors.status.warning;
     if (val >= 40) return colors.status.highPriority;
-    return '#991B1B';
+    return colors.status.highPriority;
   };
 
   const scoreColor = getScoreColor(profile.score);
@@ -70,6 +70,8 @@ export const ProjectMonitoringCard: React.FC<ProjectMonitoringCardProps> = ({ pr
         style={styles.expandToggle}
         onPress={() => setExpanded(!expanded)}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={expanded ? 'Hide 7-Factor Breakdown' : 'Show 7-Factor Weighted Breakdown'}
       >
         <Text style={styles.expandText}>
           {expanded ? 'Hide 7-Factor Breakdown' : 'Show 7-Factor Weighted Breakdown'}
@@ -149,12 +151,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   caption: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
     letterSpacing: 0.8,
   },
   title: {
+    fontFamily: typography.fontFamily,
     fontSize: 14,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -176,11 +180,13 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   scoreVal: {
+    fontFamily: typography.fontFamily,
     fontSize: 22,
     fontWeight: typography.weights.bold,
     lineHeight: 26,
   },
   scoreMax: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
   },
@@ -188,11 +194,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bandLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 14,
     fontWeight: typography.weights.bold,
     marginBottom: 3,
   },
   scoreDesc: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.secondary,
     lineHeight: 15,
@@ -202,12 +210,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: spacing.sm,
+    minHeight: 44,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: colors.neutral.border,
     marginVertical: spacing.sm,
   },
   expandText: {
+    fontFamily: typography.fontFamily,
     fontSize: 12,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
@@ -227,16 +237,19 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   factorLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.medium,
     color: colors.text.primary,
   },
   factorScore: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   factorWeighted: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
     fontWeight: typography.weights.regular,
@@ -256,6 +269,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   sectionTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: 13,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -267,6 +281,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
   },
   subSectionTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -278,6 +293,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   positiveText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.status.normal,
     flex: 1,
@@ -285,7 +301,7 @@ const styles = StyleSheet.create({
   },
   actionsSection: {
     marginTop: spacing.sm,
-    backgroundColor: '#F0F4FF',
+    backgroundColor: colors.status.infoLight,
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
   },
@@ -295,8 +311,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   actionText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
-    color: '#1E40AF',
+    color: colors.status.info,
     flex: 1,
     lineHeight: 15,
   },

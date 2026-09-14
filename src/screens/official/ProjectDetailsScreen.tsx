@@ -260,7 +260,8 @@ export const ProjectDetailsScreen: React.FC = () => {
               <TouchableOpacity
                 activeOpacity={0.75}
                 onPress={switchRole}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Switch Role"
                 style={styles.switchButton}
               >
                 <Ionicons name="swap-horizontal-outline" size={14} color={colors.text.inverse} />
@@ -342,7 +343,8 @@ export const ProjectDetailsScreen: React.FC = () => {
               <TouchableOpacity
                 activeOpacity={0.75}
                 onPress={switchRole}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Switch Role"
                 style={styles.switchButton}
               >
                 <Ionicons name="swap-horizontal-outline" size={14} color={colors.text.inverse} />
@@ -895,6 +897,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
     marginBottom: spacing.xs,
   },
   headerBranding: {
@@ -912,8 +916,9 @@ const styles = StyleSheet.create({
   },
   headerMinistry: {
     fontSize: typography.sizes.xs,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
-    color: '#D0D5DD',
+    color: colors.brand.primaryLight,
     letterSpacing: 0.5,
   },
   headerActionsRight: {
@@ -930,6 +935,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   roleBadgeText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -938,15 +944,18 @@ const styles = StyleSheet.create({
   switchButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: borderRadius.sm,
-    minHeight: 28,
+    minHeight: 44,
+    minWidth: 44,
   },
   switchText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -974,13 +983,15 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: typography.sizes.lg,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
     letterSpacing: -0.2,
   },
   headerSubtitle: {
     fontSize: typography.sizes.xs,
-    color: '#CBD5E1',
+    fontFamily: typography.fontFamily,
+    color: colors.palette.sandLight,
     marginTop: 2,
   },
 
@@ -1015,6 +1026,7 @@ const styles = StyleSheet.create({
   },
   registryWatermarkText: {
     fontSize: 9,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
     letterSpacing: 0.6,
@@ -1023,11 +1035,13 @@ const styles = StyleSheet.create({
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 8,
     marginBottom: spacing.xs,
   },
   projectName: {
     fontSize: typography.sizes.lg,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     lineHeight: 26,
@@ -1035,6 +1049,7 @@ const styles = StyleSheet.create({
   },
   projectCode: {
     fontSize: typography.sizes.xs,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.medium,
     color: colors.text.muted,
     marginTop: 2,
@@ -1042,11 +1057,12 @@ const styles = StyleSheet.create({
   },
   locationRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginTop: 4,
   },
   locationText: {
     fontSize: typography.sizes.xs + 1,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     marginLeft: 6,
     flex: 1,
@@ -1055,6 +1071,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 4,
     marginTop: spacing.md,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
@@ -1062,10 +1080,12 @@ const styles = StyleSheet.create({
   },
   complianceLabel: {
     fontSize: typography.sizes.xs,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
   },
   complianceScore: {
     fontSize: typography.sizes.sm,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
   },
 
@@ -1097,12 +1117,14 @@ const styles = StyleSheet.create({
   },
   cctvStatusLabel: {
     fontSize: typography.sizes.xs,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
     marginLeft: 6,
   },
   cctvLastUpdate: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
   },
   cctvMetricGrid: {
@@ -1111,26 +1133,32 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: colors.neutral.surfaceSubtle,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.xs,
     borderRadius: borderRadius.md,
     marginBottom: spacing.md,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   cctvMetricItem: {
     alignItems: 'center',
+    minWidth: 80,
     flex: 1,
   },
   cctvMetricLabel: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginBottom: 2,
   },
   cctvMetricValue: {
     fontSize: typography.sizes.md + 1,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   cctvMetricSub: {
     fontSize: 9,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginTop: 2,
   },
@@ -1142,7 +1170,7 @@ const styles = StyleSheet.create({
   diagnosticBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.brand.primaryLight,
     borderRadius: borderRadius.md,
     padding: spacing.md,
     borderLeftWidth: 4,
@@ -1150,12 +1178,14 @@ const styles = StyleSheet.create({
   },
   diagnosticText: {
     fontSize: typography.sizes.xs,
-    color: colors.brand.navyLight,
+    fontFamily: typography.fontFamily,
+    color: colors.brand.navyDark,
     lineHeight: 18,
     marginLeft: spacing.xs,
     flex: 1,
   },
   diagnosticBold: {
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
   },
 
@@ -1172,6 +1202,7 @@ const styles = StyleSheet.create({
   },
   emptyAlertsText: {
     fontSize: typography.sizes.xs + 1,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     marginLeft: spacing.sm,
   },
@@ -1197,10 +1228,12 @@ const styles = StyleSheet.create({
   },
   inspectionLabel: {
     fontSize: typography.sizes.xs,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
   },
   inspectionValue: {
     fontSize: typography.sizes.sm,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
   },
@@ -1213,14 +1246,18 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     borderLeftWidth: 3,
     borderLeftColor: colors.status.highPriority,
+    flexWrap: 'wrap',
+    gap: 4,
   },
   activeInspectionTitle: {
     fontSize: typography.sizes.xs + 1,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.status.highPriority,
   },
   activeInspectionSub: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     marginTop: 2,
   },
@@ -1231,6 +1268,7 @@ const styles = StyleSheet.create({
   },
   noActiveInspectionText: {
     fontSize: typography.sizes.xs,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginLeft: 6,
   },
@@ -1259,6 +1297,7 @@ const styles = StyleSheet.create({
   },
   riskBadgeText: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.3,
   },
@@ -1290,11 +1329,13 @@ const styles = StyleSheet.create({
   },
   geofenceBadgeText: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.status.normal,
   },
   geofenceLastUpdate: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
   },
   geofenceGrid: {
@@ -1303,26 +1344,32 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: colors.neutral.surfaceSubtle,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: spacing.xs,
     borderRadius: borderRadius.md,
     marginBottom: spacing.sm,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   geofenceItem: {
     alignItems: 'center',
+    minWidth: 80,
     flex: 1,
   },
   geofenceLabel: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginBottom: 2,
   },
   geofenceValue: {
     fontSize: typography.sizes.sm + 1,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   geofenceSub: {
     fontSize: 9,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginTop: 2,
   },
@@ -1339,6 +1386,7 @@ const styles = StyleSheet.create({
   },
   geofenceNoticeText: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.brand.navyDark,
     flex: 1,
     lineHeight: 16,
@@ -1381,23 +1429,27 @@ const styles = StyleSheet.create({
   },
   activityTitle: {
     fontSize: typography.sizes.xs + 1,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     flex: 1,
   },
   activityTime: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginLeft: 6,
   },
   activityNotes: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     lineHeight: 16,
     marginTop: 2,
   },
   activityStatusTag: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
     marginTop: 4,
@@ -1455,9 +1507,11 @@ const styles = StyleSheet.create({
   },
   hierarchyTagText: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
     maxWidth: 220,
+    flexShrink: 1,
   },
   activeAnomalyCard: {
     backgroundColor: colors.neutral.surface,
@@ -1483,17 +1537,20 @@ const styles = StyleSheet.create({
   },
   activeAnomalyId: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
   activeAnomalyTitle: {
     fontSize: 14,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginBottom: 3,
   },
   activeAnomalyDesc: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     lineHeight: 16,
     marginBottom: spacing.sm,
@@ -1513,6 +1570,7 @@ const styles = StyleSheet.create({
   },
   viewDossierText: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },

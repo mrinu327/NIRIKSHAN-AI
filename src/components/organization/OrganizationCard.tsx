@@ -51,7 +51,13 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
   };
 
   return (
-    <TouchableOpacity style={[styles.card, style]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[styles.card, style]}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`View organization profile for ${organization.name}`}
+    >
       {/* Header Row: Type and Badges */}
       <View style={styles.topRow}>
         <View style={styles.badgeGroup}>
@@ -133,11 +139,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     borderWidth: 1,
     borderColor: colors.neutral.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 2,
+    ...shadows.xs,
   },
   topRow: {
     flexDirection: 'row',
@@ -151,20 +153,22 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   typeBadge: {
-    backgroundColor: colors.brand.primaryLight || '#EEF2FF',
+    backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-    borderColor: colors.brand.primary || '#2A5CE0',
+    borderColor: colors.palette.sageBorder,
   },
   typeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
-    color: colors.brand.primary || '#2A5CE0',
+    color: colors.brand.primary,
     textTransform: 'uppercase',
   },
   name: {
+    fontFamily: typography.fontFamily,
     fontSize: 15,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -178,14 +182,17 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   metaText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.muted,
   },
   metaValue: {
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
     color: colors.text.secondary,
   },
   addressText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.muted,
     marginBottom: spacing.sm,
@@ -205,11 +212,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     color: colors.text.muted,
     marginBottom: 2,
   },
   statValue: {
+    fontFamily: typography.fontFamily,
     fontSize: 12,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -234,6 +243,7 @@ const styles = StyleSheet.create({
     color: colors.text.muted,
   },
   viewDetailsText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,

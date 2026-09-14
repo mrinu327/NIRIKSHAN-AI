@@ -745,9 +745,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   errorBannerText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.semibold,
-    color: '#92400E',
+    color: colors.status.warning,
     flex: 1,
     lineHeight: 18,
   },
@@ -780,17 +781,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   categoryIconCircleComplete: {
-    backgroundColor: '#F0FDF4',
+    backgroundColor: colors.status.normalLight,
   },
   categoryTextCol: {
     flex: 1,
   },
   categoryTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm + 1,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
   },
   categorySubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.secondary,
     marginTop: 1,
@@ -808,6 +811,7 @@ const styles = StyleSheet.create({
     borderColor: colors.status.normalBorder,
   },
   categoryBadgeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
@@ -869,6 +873,7 @@ const styles = StyleSheet.create({
     borderColor: colors.neutral.border,
   },
   itemNumText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.text.secondary,
@@ -880,12 +885,13 @@ const styles = StyleSheet.create({
     color: colors.status.warning,
   },
   itemNumTextNA: {
-    color: '#475569',
+    color: colors.text.muted,
   },
   itemTextCol: {
     flex: 1,
   },
   itemTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 2,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,

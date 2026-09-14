@@ -36,9 +36,9 @@ export const AnomalyConfidenceBadge: React.FC<AnomalyConfidenceBadgeProps> = ({
     switch (resolvedLevel) {
       case 'HIGH':
         return {
-          bg: '#EEF3FD',
+          bg: colors.brand.primaryLight,
           text: colors.brand.primary,
-          border: '#BDD1F7',
+          border: colors.palette.sageBorder,
           icon: 'shield-checkmark' as const,
           label: 'High Confidence',
         };
@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   text: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.2,

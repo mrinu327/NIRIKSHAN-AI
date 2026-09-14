@@ -479,10 +479,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
+    minHeight: 44,
     paddingVertical: spacing.xs,
   },
   breadcrumbText: {
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     color: colors.brand.primary,
     fontWeight: typography.weights.semibold,
     marginLeft: 4,
@@ -495,6 +497,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: spacing.md,
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     textAlign: 'center',
   },
@@ -504,12 +507,14 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 18,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginTop: spacing.md,
   },
   errorSubtitle: {
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     textAlign: 'center',
     marginTop: spacing.xs,
@@ -519,10 +524,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand.primary,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
+    minHeight: 44,
     borderRadius: borderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backBtnText: {
     color: colors.text.inverse,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
   },
   identityCard: {
@@ -539,10 +548,11 @@ const styles = StyleSheet.create({
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 6,
   },
   typeBadge: {
-    backgroundColor: colors.brand.primaryLight || '#EEF2FF',
+    backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: borderRadius.sm,
@@ -551,11 +561,13 @@ const styles = StyleSheet.create({
   },
   typeText: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
   orgName: {
     fontSize: 20,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     lineHeight: 26,
@@ -568,16 +580,19 @@ const styles = StyleSheet.create({
     marginVertical: spacing.xs,
   },
   metaItem: {
-    minWidth: 130,
+    minWidth: '45%',
+    flex: 1,
   },
   metaLabel: {
     fontSize: 9,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
     letterSpacing: 0.5,
   },
   metaValue: {
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
   },
@@ -589,6 +604,7 @@ const styles = StyleSheet.create({
   },
   addressLabel: {
     fontSize: 9,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
     letterSpacing: 0.5,
@@ -596,6 +612,7 @@ const styles = StyleSheet.create({
   },
   addressText: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
   },
   contactRow: {
@@ -609,9 +626,11 @@ const styles = StyleSheet.create({
   },
   contactItem: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
   },
   contactVal: {
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
   },
@@ -630,12 +649,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   strengthCard: {
-    borderColor: '#A7F3D0',
-    backgroundColor: '#F0FDF4',
+    borderColor: colors.status.normalBorder,
+    backgroundColor: colors.status.normalLight,
   },
   reviewCard: {
-    borderColor: '#FED7AA',
-    backgroundColor: '#FFFBEB',
+    borderColor: colors.status.warningBorder,
+    backgroundColor: colors.status.warningLight,
   },
   insightHeader: {
     flexDirection: 'row',
@@ -645,6 +664,7 @@ const styles = StyleSheet.create({
   },
   insightTitle: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.8,
   },
@@ -662,11 +682,13 @@ const styles = StyleSheet.create({
   bulletText: {
     flex: 1,
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     lineHeight: 18,
   },
   cleanRecordText: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.status.normal,
     fontStyle: 'italic',
   },
@@ -675,7 +697,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#C7D2FE',
+    borderColor: colors.status.infoBorder,
     marginBottom: spacing.md,
   },
   actionsHeader: {
@@ -686,6 +708,7 @@ const styles = StyleSheet.create({
   },
   actionsTitle: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
     letterSpacing: 0.8,
@@ -707,12 +730,14 @@ const styles = StyleSheet.create({
   },
   actionNumText: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
   },
   actionText: {
     flex: 1,
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.primary,
     lineHeight: 18,
   },
@@ -726,12 +751,14 @@ const styles = StyleSheet.create({
   },
   trendTitle: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
     letterSpacing: 0.8,
   },
   trendSubtitle: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginTop: 2,
     marginBottom: spacing.md,
@@ -747,6 +774,7 @@ const styles = StyleSheet.create({
   },
   trendUnavailableText: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     flex: 1,
     lineHeight: 18,
@@ -765,6 +793,7 @@ const styles = StyleSheet.create({
   },
   trendValue: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginBottom: 4,
@@ -783,6 +812,7 @@ const styles = StyleSheet.create({
   },
   trendLabel: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginTop: 6,
   },
@@ -791,6 +821,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
     letterSpacing: 0.8,
@@ -805,6 +836,7 @@ const styles = StyleSheet.create({
   },
   emptyBoxText: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     fontStyle: 'italic',
   },
@@ -823,37 +855,42 @@ const styles = StyleSheet.create({
   },
   projCode: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
   projStatus: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
     color: colors.status.normal,
   },
   projName: {
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginVertical: 4,
   },
   projMeta: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
   },
   projMetaItem: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
   },
   anomaliesList: {
     marginBottom: spacing.sm,
   },
   anomalyCard: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.status.highPriorityLight,
     borderRadius: borderRadius.sm,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: colors.status.highPriorityBorder,
     marginBottom: spacing.xs,
   },
   anomalyTop: {
@@ -870,6 +907,7 @@ const styles = StyleSheet.create({
   },
   anomalyBadgeText: {
     fontSize: 9,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
   },
@@ -880,12 +918,14 @@ const styles = StyleSheet.create({
   },
   anomalyTitleText: {
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
-    color: '#991B1B',
+    color: colors.status.highPriority,
     marginBottom: 2,
   },
   anomalyDescText: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     lineHeight: 16,
   },
@@ -907,15 +947,18 @@ const styles = StyleSheet.create({
   },
   inspId: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   inspType: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
   },
   inspDate: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
   },
   inspStatusBadge: {
@@ -926,6 +969,7 @@ const styles = StyleSheet.create({
   },
   inspStatusText: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.semibold,
     color: colors.text.secondary,
   },
@@ -940,6 +984,7 @@ const styles = StyleSheet.create({
   },
   fundingTitle: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
     letterSpacing: 0.8,
@@ -948,18 +993,23 @@ const styles = StyleSheet.create({
   fundingGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 8,
     marginBottom: spacing.sm,
   },
   fundingItem: {
     alignItems: 'center',
+    minWidth: 70,
   },
   fundingLabel: {
     fontSize: 9,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginBottom: 2,
   },
   fundingVal: {
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
@@ -976,9 +1026,11 @@ const styles = StyleSheet.create({
   },
   utilRateText: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
   },
   boldNum: {
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },

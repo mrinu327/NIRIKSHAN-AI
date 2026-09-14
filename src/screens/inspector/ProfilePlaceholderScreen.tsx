@@ -295,18 +295,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.base + 2,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     letterSpacing: -0.2,
   },
   profileDesignation: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     color: colors.brand.primary,
     fontWeight: typography.weights.semibold,
     marginTop: 2,
   },
   profileOrg: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
@@ -324,6 +327,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   badgeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.secondary,
     fontWeight: typography.weights.semibold,
@@ -354,6 +358,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm + 2,
   },
   statusText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
     color: colors.text.primary,
@@ -382,12 +387,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   resetNoticeText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.status.normal,
     fontWeight: typography.weights.medium,
     flex: 1,
   },
   actionSectionLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
@@ -405,7 +412,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.neutral.surface,
     borderWidth: 1,
-    borderColor: colors.brand.primary,
+    borderColor: colors.palette.sageBorder,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.sm,
@@ -414,6 +421,7 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   roleSwitchBtnText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.semibold,
     color: colors.brand.navyDark,

@@ -568,11 +568,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   metricValue: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   metricLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.secondary,
     fontWeight: typography.weights.medium,
@@ -599,6 +601,7 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   searchInput: {
+    fontFamily: typography.fontFamily,
     flex: 1,
     fontSize: typography.sizes.sm,
     color: colors.text.primary,
@@ -634,11 +637,13 @@ const styles = StyleSheet.create({
     borderColor: colors.status.highPriority,
   },
   filterChipText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
     color: colors.text.secondary,
   },
   filterChipTextActive: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontWeight: typography.weights.bold,
   },

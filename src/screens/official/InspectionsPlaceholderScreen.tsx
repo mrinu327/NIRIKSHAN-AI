@@ -1254,7 +1254,7 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
                                 ) : null}
                               </View>
                               <View style={styles.gpsBadge}>
-                                <Ionicons name="location-outline" size={11} color="#B45309" />
+                                <Ionicons name="location-outline" size={11} color={colors.status.warning} />
                                 <Text style={styles.gpsBadgeText}>{ev.locationStatus}</Text>
                               </View>
                             </View>
@@ -1304,7 +1304,7 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl + 24,
+    paddingBottom: spacing.xxxl + 32,
   },
 
   // LIVE STREAM badge in AppHeader
@@ -1326,6 +1326,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   liveTelemetryText: {
+    fontFamily: typography.fontFamily,
     color: colors.status.normal,
     fontSize: 10,
     fontWeight: typography.weights.bold,
@@ -1948,25 +1949,27 @@ const styles = StyleSheet.create({
   /* Modal Styles */
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    backgroundColor: 'rgba(28, 25, 23, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.base,
+    padding: spacing.sm,
   },
   modalCard: {
     backgroundColor: colors.neutral.surface,
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.lg,
     width: '100%',
-    maxWidth: 620,
-    maxHeight: '90%',
+    maxWidth: 640,
+    maxHeight: '92%',
     overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
     ...shadows.lg,
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.neutral.border,
@@ -1989,19 +1992,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
   },
   modalSubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
   },
   modalCloseBtn: {
     padding: 6,
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalScroll: {
-    padding: spacing.lg,
+    flexGrow: 1,
+    flexShrink: 1,
+    padding: spacing.md,
   },
   targetSection: {
     backgroundColor: colors.neutral.surfaceSubtle,
@@ -2018,16 +2029,19 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   targetIdText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
   targetNameText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   targetAddressText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
@@ -2042,6 +2056,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   triggerAlertText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.brand.primary,
     flex: 1,

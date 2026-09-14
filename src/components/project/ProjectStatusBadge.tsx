@@ -30,9 +30,9 @@ export const ProjectStatusBadge: React.FC<ProjectStatusBadgeProps> = ({ status, 
         };
       case 'COMPLETED':
         return {
-          bg: '#EBF3FF',
-          text: '#2A5CE0',
-          border: '#BFDBFE',
+          bg: colors.status.infoLight,
+          text: colors.status.info,
+          border: colors.status.infoBorder,
           label: 'Completed',
         };
       case 'DELAYED':
@@ -52,9 +52,9 @@ export const ProjectStatusBadge: React.FC<ProjectStatusBadgeProps> = ({ status, 
       case 'UNDER_REVIEW':
       default:
         return {
-          bg: '#F3E8FF',
-          text: '#7E22CE',
-          border: '#E9D5FF',
+          bg: colors.palette.sandLight,
+          text: colors.palette.barkSecondary,
+          border: colors.palette.sandBorder,
           label: 'Under Review',
         };
     }
@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.semibold,
     letterSpacing: 0.3,

@@ -122,6 +122,8 @@ export const AttendanceAnalyticsScreen: React.FC = () => {
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Back to Project Overview"
         >
           <Ionicons name="arrow-back" size={18} color={colors.brand.primary} />
           <Text style={styles.backButtonText}>Back to Project Overview</Text>
@@ -140,7 +142,7 @@ export const AttendanceAnalyticsScreen: React.FC = () => {
 
           {isFollowUpMarked && (
             <View style={styles.followUpActiveBanner}>
-              <Ionicons name="bookmark" size={15} color="#B45309" />
+              <Ionicons name="bookmark" size={15} color={colors.status.warning} />
               <Text style={styles.followUpActiveText}>
                 Flagged for Administrative Follow-Up by Authorized Official
               </Text>
@@ -457,7 +459,7 @@ export const AttendanceAnalyticsScreen: React.FC = () => {
               </View>
               {sig.humanVerificationRecommended && (
                 <View style={styles.reviewNeededBadge}>
-                  <Ionicons name="person-outline" size={11} color="#B45309" />
+                  <Ionicons name="person-outline" size={11} color={colors.status.warning} />
                   <Text style={styles.reviewNeededText}>Human Review Recommended</Text>
                 </View>
               )}
@@ -547,6 +549,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: spacing.md,
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     color: colors.text.secondary,
   },
@@ -562,12 +565,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
     alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    minHeight: 44,
+    minWidth: 44,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderRadius: borderRadius.sm,
   },
   backButtonText: {
     marginLeft: 6,
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     color: colors.brand.primary,
@@ -588,17 +594,20 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   demoTagText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
     letterSpacing: 0.6,
   },
   projectName: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
   },
   projectSubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 2,
@@ -607,33 +616,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.status.warningLight,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: colors.status.warningBorder,
     borderRadius: borderRadius.xs,
     padding: spacing.xs + 2,
     marginTop: spacing.sm,
   },
   followUpActiveText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
-    color: '#92400E',
+    color: colors.status.warning,
   },
   feedbackToast: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: colors.status.normalLight,
     borderWidth: 1,
-    borderColor: '#BBF7D0',
+    borderColor: colors.status.normalBorder,
     borderRadius: borderRadius.xs,
     padding: spacing.xs + 2,
     marginTop: spacing.sm,
   },
   feedbackToastText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.semibold,
-    color: '#15803D',
+    color: colors.status.normal,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -650,18 +661,21 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   statLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
     color: colors.text.muted,
     textTransform: 'uppercase',
   },
   statValue: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xl,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginVertical: 4,
   },
   statSub: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.muted,
   },
@@ -690,18 +704,20 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.status.infoLight,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: colors.status.infoBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cctvSectionTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
   },
   cctvSectionSub: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
   },
@@ -725,6 +741,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.border,
   },
   cctvMetricLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.medium,
     color: colors.text.muted,
@@ -733,12 +750,14 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   cctvMetricVal: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
     marginVertical: 2,
   },
   cctvMetricDesc: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
     textAlign: 'center',
@@ -747,15 +766,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.xs + 2,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.status.infoLight,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: colors.status.infoBorder,
     borderRadius: borderRadius.sm,
     padding: spacing.sm,
   },
   sensorDisclaimerText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
-    color: colors.brand.navyLight,
+    color: colors.status.info,
     lineHeight: 16,
     flex: 1,
   },
@@ -778,12 +798,14 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   formulaTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
     flex: 1,
   },
   formulaResultPill: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.status.normal,
@@ -795,12 +817,14 @@ const styles = StyleSheet.create({
     borderColor: colors.neutral.border,
   },
   formulaEquation: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.muted,
     fontStyle: 'italic',
     marginBottom: 2,
   },
   formulaActual: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.primary,
     backgroundColor: colors.neutral.surfaceSubtle,
@@ -834,12 +858,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   historyStatLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     textTransform: 'uppercase',
     color: colors.text.muted,
     fontWeight: typography.weights.medium,
   },
   historyStatValue: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
@@ -858,35 +884,41 @@ const styles = StyleSheet.create({
     borderColor: colors.neutral.border,
     backgroundColor: colors.neutral.surface,
     gap: spacing.sm,
+    flexWrap: 'wrap',
   },
   historyRowToday: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.palette.sageBorder,
   },
   historyRowDateCol: {
     width: 110,
   },
   historyDateToday: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
   historyBadgeToday: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
   historyDateText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
   },
   historySyntheticTag: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     color: colors.text.muted,
   },
   historyRowProgressCol: {
     flex: 1,
+    minWidth: 80,
   },
   progressBarTrack: {
     height: 8,
@@ -899,10 +931,11 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   historyCountText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
-    width: 100,
+    minWidth: 90,
     textAlign: 'right',
   },
   signalCard: {
@@ -927,11 +960,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   signalTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
   },
   signalExplanation: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     lineHeight: 18,
@@ -949,6 +984,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xs,
   },
   signalMetaText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
   },
@@ -956,15 +992,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.status.warningLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: borderRadius.xs,
   },
   reviewNeededText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
-    color: '#92400E',
+    color: colors.status.warning,
   },
   validationCard: {
     backgroundColor: colors.neutral.surface,
@@ -981,6 +1018,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   validationTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.navy,
@@ -994,6 +1032,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   valItemText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.secondary,
   },

@@ -31,9 +31,9 @@ export const MonitoringPriorityBadge: React.FC<MonitoringPriorityBadgeProps> = (
     switch (priority) {
       case 'CRITICAL':
         return {
-          bg: '#FEE2E2',
-          text: '#991B1B',
-          border: '#F87171',
+          bg: colors.status.highPriority,
+          text: colors.text.inverse,
+          border: colors.status.highPriority,
           label: compact ? 'CRITICAL' : 'CRITICAL REVIEW PRIORITY',
         };
       case 'HIGH':
@@ -81,6 +81,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.5,

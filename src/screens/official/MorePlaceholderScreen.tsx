@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   profileCard: {
     backgroundColor: colors.neutral.surface,
     padding: spacing.base,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     marginBottom: spacing.md,
@@ -342,6 +342,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   credentialsBadgeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.brand.navy,
+    backgroundColor: colors.brand.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
@@ -365,17 +366,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   profileName: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   profileDesignation: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     color: colors.brand.primary,
     fontWeight: typography.weights.medium,
     marginTop: 2,
   },
   profileOrg: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 1,
@@ -384,6 +388,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   badgeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.secondary,
     fontWeight: typography.weights.semibold,
@@ -400,6 +405,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   disclaimerText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.status.normal,
     flex: 1,
@@ -410,7 +416,7 @@ const styles = StyleSheet.create({
   metricsStripCard: {
     flexDirection: 'row',
     backgroundColor: colors.neutral.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     paddingVertical: spacing.md,
@@ -425,11 +431,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metricStatVal: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xl + 2,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   metricStatLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 2,
@@ -443,7 +451,7 @@ const styles = StyleSheet.create({
   /* Shortcuts Card */
   shortcutsCard: {
     backgroundColor: colors.neutral.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     paddingHorizontal: spacing.base,
@@ -467,11 +475,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   shortcutTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   shortcutSub: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 2,
@@ -484,7 +494,7 @@ const styles = StyleSheet.create({
 
   infoCard: {
     backgroundColor: colors.neutral.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     padding: spacing.base,
     borderWidth: 1,
     borderColor: colors.neutral.border,
@@ -507,11 +517,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   stepDesc: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 3,
@@ -538,12 +550,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   resetNoticeText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.status.normal,
     fontWeight: typography.weights.medium,
     flex: 1,
   },
   actionSectionLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
@@ -561,7 +575,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.neutral.surface,
     borderWidth: 1,
-    borderColor: colors.brand.primary,
+    borderColor: colors.neutral.border,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.sm,
@@ -570,9 +584,10 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   roleSwitchBtnText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.semibold,
-    color: colors.brand.navyDark,
+    color: colors.text.primary,
   },
   resetButton: {
     width: '100%',

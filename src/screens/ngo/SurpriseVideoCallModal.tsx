@@ -214,14 +214,14 @@ export const SurpriseVideoCallModal: React.FC<SurpriseVideoCallModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: colors.ui.backdrop,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.sm,
   },
   modalCard: {
     width: '100%',
-    maxWidth: 540,
+    maxWidth: 520,
     maxHeight: '94%',
     backgroundColor: colors.neutral.surface,
     borderRadius: borderRadius.lg,
@@ -242,6 +242,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    flex: 1,
   },
   iconCircle: {
     width: 36,
@@ -252,22 +253,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTextCol: {
-    flexShrink: 1,
+    flex: 1,
   },
   title: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   subtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
   },
   closeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.neutral.surfaceSubtle,
@@ -278,13 +281,16 @@ const styles = StyleSheet.create({
   noticeBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: colors.brand.primaryLight,
+    backgroundColor: colors.palette.sandLight,
+    borderWidth: 1,
+    borderColor: colors.palette.sandBorder,
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginBottom: spacing.base,
     gap: 8,
   },
   noticeText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.brand.navy,
     lineHeight: 18,
@@ -312,22 +318,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   callerName: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   callerTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.brand.primary,
     fontWeight: typography.weights.semibold,
     marginTop: 1,
   },
   callerTime: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.muted,
     marginTop: 2,
   },
   sectionHeading: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.text.secondary,
@@ -345,6 +355,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.surface,
     marginBottom: 8,
     gap: 10,
+    minHeight: 48,
   },
   checkItemActive: {
     borderColor: colors.brand.primary,
@@ -354,17 +365,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   checkTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
   },
   checkDesc: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.secondary,
     marginTop: 2,
     lineHeight: 16,
   },
   inputLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.text.secondary,
@@ -372,6 +386,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   textInput: {
+    fontFamily: typography.fontFamily,
     backgroundColor: colors.neutral.surfaceSubtle,
     borderWidth: 1,
     borderColor: colors.neutral.border,
@@ -380,9 +395,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: typography.sizes.sm,
     color: colors.text.primary,
+    minHeight: 44,
   },
   textArea: {
-    minHeight: 64,
+    minHeight: 68,
     textAlignVertical: 'top',
   },
   footer: {

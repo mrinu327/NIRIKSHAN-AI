@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   cardCritical: {
     borderLeftWidth: 3.5,
-    borderLeftColor: '#991B1B',
+    borderLeftColor: colors.status.highPriority,
   },
   topRow: {
     flexDirection: 'row',
@@ -146,11 +146,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   codeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 12,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
   },
   projectName: {
+    fontFamily: typography.fontFamily,
     fontSize: 14,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -164,6 +166,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   locationText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.text.muted,
   },
@@ -176,10 +179,12 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   progressLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.secondary,
   },
   progressPct: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -205,11 +210,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   statLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 9,
     color: colors.text.muted,
     fontWeight: typography.weights.medium,
   },
   statVal: {
+    fontFamily: typography.fontFamily,
     fontSize: 12,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -228,6 +235,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   anomalyBannerText: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     color: colors.status.highPriority,
     fontWeight: typography.weights.semibold,

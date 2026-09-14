@@ -29,9 +29,9 @@ export const AnomalySeverityBadge: React.FC<AnomalySeverityBadgeProps> = ({
     switch (severity.toUpperCase()) {
       case 'CRITICAL':
         return {
-          bg: '#FEE2E2',
-          text: '#991B1B',
-          border: '#FCA5A5',
+          bg: colors.status.highPriority,
+          text: colors.text.inverse,
+          border: colors.status.highPriority,
           icon: 'alert-circle' as const,
           label: 'Critical Review',
         };
@@ -101,6 +101,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   label: {
+    fontFamily: typography.fontFamily,
     fontSize: 11,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.3,

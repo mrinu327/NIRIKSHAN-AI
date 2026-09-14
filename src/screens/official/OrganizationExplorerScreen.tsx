@@ -231,29 +231,29 @@ export const OrganizationExplorerScreen: React.FC = () => {
 
         {/* Executive KPI Stats */}
         <View style={styles.kpiRow}>
-          <View style={styles.kpiCard}>
+          <View style={[styles.kpiCard, isDesktop && styles.kpiCardDesktop]}>
             <Text style={styles.kpiValue}>{kpis.total}</Text>
             <Text style={styles.kpiLabel}>Registered</Text>
           </View>
-          <View style={styles.kpiCard}>
+          <View style={[styles.kpiCard, isDesktop && styles.kpiCardDesktop]}>
             <Text style={[styles.kpiValue, { color: colors.brand.primary }]}>
               {kpis.avgScore}/100
             </Text>
             <Text style={styles.kpiLabel}>Avg. Score</Text>
           </View>
-          <View style={styles.kpiCard}>
+          <View style={[styles.kpiCard, isDesktop && styles.kpiCardDesktop]}>
             <Text style={[styles.kpiValue, { color: colors.status.highPriority }]}>
               {kpis.highPriorityCount}
             </Text>
             <Text style={styles.kpiLabel}>Higher Priority</Text>
           </View>
-          <View style={styles.kpiCard}>
+          <View style={[styles.kpiCard, isDesktop && styles.kpiCardDesktop]}>
             <Text style={[styles.kpiValue, { color: colors.status.warning }]}>
               {kpis.totalOpenFindings}
             </Text>
             <Text style={styles.kpiLabel}>Open Findings</Text>
           </View>
-          <View style={styles.kpiCard}>
+          <View style={[styles.kpiCard, isDesktop && styles.kpiCardDesktop]}>
             <Text style={[styles.kpiValue, { color: colors.status.highPriority }]}>
               {kpis.totalAnomalies}
             </Text>
@@ -356,6 +356,8 @@ export const OrganizationExplorerScreen: React.FC = () => {
                   key={s}
                   style={[styles.sortButton, active && styles.sortButtonActive]}
                   onPress={() => setSortBy(s)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Sort by ${s}`}
                 >
                   <Text style={[styles.sortButtonText, active && styles.sortButtonTextActive]}>
                     {s === 'score' ? 'Score' : s === 'priority' ? 'Priority' : s === 'anomalies' ? 'Anomalies' : s === 'funding' ? 'Grant' : 'Name'}
@@ -426,21 +428,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.md,
+    minHeight: 44,
     paddingVertical: spacing.xs,
   },
   breadcrumbText: {
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     color: colors.brand.primary,
     fontWeight: typography.weights.semibold,
     marginLeft: 4,
   },
   heroCard: {
-    backgroundColor: colors.brand.primaryLight || '#EEF2FF',
+    backgroundColor: colors.brand.primaryLight,
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#C7D2FE',
+    borderColor: colors.status.infoBorder,
   },
   heroTextCol: {
     flex: 1,
@@ -455,18 +459,21 @@ const styles = StyleSheet.create({
   },
   provenanceText: {
     fontSize: 9,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
     letterSpacing: 0.8,
   },
   heroTitle: {
     fontSize: 18,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginBottom: 4,
   },
   heroSubtitle: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     lineHeight: 18,
   },
@@ -478,7 +485,7 @@ const styles = StyleSheet.create({
   },
   kpiCard: {
     flex: 1,
-    minWidth: 90,
+    minWidth: '47%',
     backgroundColor: colors.neutral.surface,
     borderRadius: borderRadius.sm,
     padding: spacing.sm,
@@ -486,14 +493,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral.border,
   },
+  kpiCardDesktop: {
+    minWidth: 150,
+  },
   kpiValue: {
     fontSize: 16,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginBottom: 2,
   },
   kpiLabel: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     textAlign: 'center',
   },
@@ -506,7 +518,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral.border,
     marginBottom: spacing.md,
-    height: 44,
+    minHeight: 46,
   },
   searchIcon: {
     marginRight: spacing.sm,
@@ -514,16 +526,21 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     color: colors.text.primary,
   },
   clearBtn: {
-    padding: 4,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterSection: {
     marginBottom: spacing.sm,
   },
   filterSectionLabel: {
     fontSize: 10,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
     letterSpacing: 0.8,
@@ -533,13 +550,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   filterChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    minHeight: 44,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     borderRadius: borderRadius.full,
     backgroundColor: colors.neutral.surface,
     borderWidth: 1,
     borderColor: colors.neutral.border,
     marginRight: spacing.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   filterChipActive: {
     backgroundColor: colors.brand.primary,
@@ -547,6 +567,7 @@ const styles = StyleSheet.create({
   },
   filterChipText: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     fontWeight: typography.weights.medium,
   },
@@ -564,6 +585,7 @@ const styles = StyleSheet.create({
   },
   resultsCount: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
   },
   boldNum: {
@@ -573,19 +595,26 @@ const styles = StyleSheet.create({
   sortContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
   },
   sortLabel: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
     marginRight: 4,
   },
   sortButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    minHeight: 40,
+    minWidth: 44,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     borderRadius: borderRadius.sm,
     marginHorizontal: 2,
     borderWidth: 1,
     borderColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sortButtonActive: {
     backgroundColor: colors.neutral.surfaceSubtle,
@@ -593,6 +622,7 @@ const styles = StyleSheet.create({
   },
   sortButtonText: {
     fontSize: 11,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
   },
   sortButtonTextActive: {
@@ -610,6 +640,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: spacing.sm,
     fontSize: 13,
+    fontFamily: typography.fontFamily,
     color: colors.text.muted,
   },
   emptyState: {
@@ -623,6 +654,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 15,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginTop: spacing.sm,
@@ -630,6 +662,7 @@ const styles = StyleSheet.create({
   },
   emptySubtitle: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     color: colors.text.secondary,
     textAlign: 'center',
     lineHeight: 18,
@@ -638,11 +671,15 @@ const styles = StyleSheet.create({
   resetButton: {
     backgroundColor: colors.brand.primary,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
+    minHeight: 44,
     borderRadius: borderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   resetButtonText: {
     fontSize: 12,
+    fontFamily: typography.fontFamily,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
   },

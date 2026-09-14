@@ -567,7 +567,7 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xxxl + 32,
   },
 
   // LIVE STREAM badge in AppHeader
@@ -589,6 +589,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   liveTelemetryText: {
+    fontFamily: typography.fontFamily,
     color: colors.status.normal,
     fontSize: 10,
     fontWeight: typography.weights.bold,
@@ -609,6 +610,7 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   searchInput: {
+    fontFamily: typography.fontFamily,
     flex: 1,
     marginLeft: spacing.sm,
     fontSize: typography.sizes.sm,
@@ -645,11 +647,13 @@ const styles = StyleSheet.create({
     borderColor: colors.brand.primary,
   },
   filterChipText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.medium,
     color: colors.text.secondary,
   },
   filterChipTextActive: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontWeight: typography.weights.bold,
   },
@@ -685,6 +689,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.xs,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   cctvPill: {
     flexDirection: 'row',
@@ -695,6 +701,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   cctvPillText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
   },
@@ -705,6 +712,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statusBadgeText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.3,
@@ -712,6 +720,7 @@ const styles = StyleSheet.create({
 
   // Facility Identity
   facilityName: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
@@ -725,6 +734,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   metaText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     flex: 1,
@@ -740,12 +750,15 @@ const styles = StyleSheet.create({
   telemetryDeck: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: spacing.md,
+    gap: spacing.sm,
+    flexWrap: 'wrap',
   },
   telemetryCol: {
     flex: 1,
+    minWidth: 120,
   },
   telemetryLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.text.muted,
@@ -757,11 +770,13 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
   },
   telemetryValue: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.base + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   telemetrySub: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     fontWeight: typography.weights.regular,
@@ -774,10 +789,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   attStatusText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.semibold,
   },
   telemetryScheduleText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs - 1,
     color: colors.text.muted,
     marginTop: 5,
@@ -787,7 +804,7 @@ const styles = StyleSheet.create({
   notesStrip: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.neutral.surfaceSubtle,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: colors.neutral.border,
@@ -796,6 +813,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   notesText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs - 0.5,
     color: colors.text.secondary,
     flex: 1,
@@ -811,6 +829,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xs + 2,
     borderTopWidth: 1,
     borderTopColor: colors.neutral.surfaceSubtle,
+    flexWrap: 'wrap',
+    gap: 6,
   },
   timestampContainer: {
     flexDirection: 'row',
@@ -818,6 +838,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   timestampText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs - 1,
     color: colors.text.muted,
   },
@@ -827,6 +848,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   actionText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
@@ -843,6 +865,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingBannerText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
   },
@@ -912,12 +935,14 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   emptyTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginTop: spacing.sm,
   },
   emptySubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     marginTop: 4,
@@ -939,6 +964,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   resetButtonText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,

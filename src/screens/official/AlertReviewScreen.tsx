@@ -253,6 +253,8 @@ export const AlertReviewScreen: React.FC = () => {
                 onPress={switchRole}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 style={styles.switchButton}
+                accessibilityRole="button"
+                accessibilityLabel="Switch Role"
               >
                 <Ionicons name="swap-horizontal-outline" size={14} color={colors.text.inverse} />
                 <Text style={styles.switchText}>Switch Role</Text>
@@ -334,6 +336,8 @@ export const AlertReviewScreen: React.FC = () => {
                 onPress={switchRole}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 style={styles.switchButton}
+                accessibilityRole="button"
+                accessibilityLabel="Switch Role"
               >
                 <Ionicons name="swap-horizontal-outline" size={14} color={colors.text.inverse} />
                 <Text style={styles.switchText}>Switch Role</Text>
@@ -578,6 +582,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.xs,
+    flexWrap: 'wrap',
+    gap: 8,
   },
   headerBranding: {
     flexDirection: 'row',
@@ -593,9 +599,10 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   headerMinistry: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
-    color: '#D0D5DD',
+    color: colors.brand.primaryLight,
     letterSpacing: 0.5,
   },
   headerActionsRight: {
@@ -612,6 +619,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   roleBadgeText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -620,15 +628,18 @@ const styles = StyleSheet.create({
   switchButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
-    paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 4,
+    paddingHorizontal: spacing.sm + 4,
+    paddingVertical: 8,
     borderRadius: borderRadius.sm,
-    minHeight: 28,
+    minHeight: 44,
+    minWidth: 44,
   },
   switchText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -655,14 +666,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
     letterSpacing: -0.2,
   },
   headerSubtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
-    color: '#CBD5E1',
+    color: colors.palette.sandLight,
     marginTop: 2,
   },
   headerStatusBadge: {
@@ -682,18 +695,19 @@ const styles = StyleSheet.create({
   feedbackBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: colors.status.normalLight,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: colors.status.normalBorder,
     padding: spacing.md,
     borderRadius: borderRadius.md,
     marginBottom: spacing.md,
     ...shadows.xs,
   },
   feedbackText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.medium,
-    color: '#065F46',
+    color: colors.status.normal,
     marginLeft: spacing.sm,
     flex: 1,
   },
@@ -733,6 +747,7 @@ const styles = StyleSheet.create({
     borderColor: colors.status.warningBorder,
   },
   severityText: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     color: colors.status.highPriority,
@@ -740,10 +755,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   timestamp: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
   },
   alertCategory: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.status.highPriority,
@@ -752,12 +769,14 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   targetProject: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
     marginTop: 2,
   },
   alertDesc: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     color: colors.text.secondary,
     lineHeight: 20,
@@ -770,6 +789,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   statusLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
   },
@@ -782,6 +802,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   reviewedByText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.brand.navyLight,
     marginLeft: 6,
@@ -809,17 +830,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
   },
   metricColumnLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.muted,
     textAlign: 'center',
     marginBottom: 4,
   },
   metricColumnValue: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xl + 2,
     fontWeight: typography.weights.bold,
     color: colors.text.primary,
   },
   metricColumnSub: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     color: colors.text.muted,
     marginTop: 2,
@@ -844,7 +868,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(158, 59, 43, 0.15)',
+    backgroundColor: colors.status.highPriorityBorder,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
@@ -853,11 +877,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   varianceHeading: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.bold,
     color: colors.status.highPriority,
   },
   varianceDetail: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     marginTop: 2,
@@ -879,6 +905,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   policyTitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
@@ -886,6 +913,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   policyBody: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
     color: colors.text.primary,
@@ -902,6 +930,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   safetyNoteText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: colors.text.secondary,
     lineHeight: 16,
