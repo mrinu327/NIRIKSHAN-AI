@@ -42,7 +42,8 @@
         {
           "cameraPermission": "Allow NIRIKSHAN AI to capture photo and video evidence for field inspections."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
