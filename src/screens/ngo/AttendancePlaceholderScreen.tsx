@@ -755,12 +755,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(42, 92, 224, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   switchText: {
     color: colors.text.inverse,
@@ -922,11 +922,13 @@ const styles = StyleSheet.create({
   actionSubmitBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.brand.primary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.sm,
     gap: 6,
+    minHeight: 44,
   },
   actionSubmitBtnText: {
     fontSize: typography.sizes.xs,
@@ -976,10 +978,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   tagVerified: {
-    backgroundColor: 'rgba(30, 142, 90, 0.1)',
+    backgroundColor: colors.status.normalLight,
   },
   tagSubmitted: {
-    backgroundColor: 'rgba(42, 92, 224, 0.1)',
+    backgroundColor: colors.brand.primaryLight,
   },
   verifiedText: {
     fontSize: typography.sizes.xs,
@@ -1156,11 +1158,14 @@ const styles = StyleSheet.create({
   attendanceToggleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: spacing.sm + 2,
     paddingVertical: spacing.xs + 2,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     gap: 4,
+    minHeight: 44,
+    minWidth: 84,
   },
   toggleBtnPresent: {
     backgroundColor: colors.status.normalLight,
@@ -1186,6 +1191,7 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 480,
+    maxHeight: '90%',
     backgroundColor: colors.neutral.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
@@ -1262,6 +1268,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.neutral.border,
     justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 44,
   },
   modalCancelText: {
     fontSize: typography.sizes.xs,
@@ -1271,11 +1279,13 @@ const styles = StyleSheet.create({
   modalConfirmBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.brand.primary,
     paddingHorizontal: spacing.md,
     paddingVertical: 8,
     borderRadius: borderRadius.sm,
     gap: 6,
+    minHeight: 44,
   },
   modalConfirmText: {
     fontSize: typography.sizes.xs,

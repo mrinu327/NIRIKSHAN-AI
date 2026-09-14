@@ -486,12 +486,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(42, 92, 224, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   switchText: {
     color: colors.text.inverse,
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl,
+    paddingBottom: 90,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -580,8 +580,8 @@ const styles = StyleSheet.create({
   vcAlertBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    borderColor: '#FCA5A5',
+    backgroundColor: colors.status.highPriorityLight,
+    borderColor: colors.status.highPriorityBorder,
     borderWidth: 1,
     borderRadius: borderRadius.md,
     padding: spacing.md,
@@ -619,12 +619,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.brand.primaryLight,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.sm + 2,
     borderRadius: borderRadius.full,
     borderWidth: 1,
-    borderColor: colors.brand.primary + '30',
-    gap: 4,
+    borderColor: colors.brand.accent,
+    gap: 6,
+    minHeight: 44,
   },
   actionPillText: {
     fontSize: typography.sizes.xs,
@@ -632,8 +633,8 @@ const styles = StyleSheet.create({
     color: colors.brand.primary,
   },
   actionPillVc: {
-    backgroundColor: '#FEE2E2',
-    borderColor: '#FCA5A5',
+    backgroundColor: colors.status.highPriorityLight,
+    borderColor: colors.status.highPriorityBorder,
   },
 
   // Skeleton Styles

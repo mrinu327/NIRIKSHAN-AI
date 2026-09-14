@@ -287,7 +287,7 @@ export const InspectionConfirmationScreen: React.FC = () => {
                   {inspection.isLocationVerified
                     ? '🟢 Verified On-Site'
                     : inspection.geofenceStatus === 'OVERRIDDEN'
-                    ? '🟣 Supervisor Exemption Recorded'
+                    ? '⚠️ Supervisor Exemption Recorded'
                     : 'Verified'}
                 </Text>
               </View>
@@ -405,12 +405,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(42, 92, 224, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   switchText: {
     color: colors.text.inverse,

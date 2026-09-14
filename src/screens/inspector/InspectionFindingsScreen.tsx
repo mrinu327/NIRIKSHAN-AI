@@ -1149,12 +1149,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(42, 92, 224, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   switchText: {
     color: colors.text.inverse,
@@ -1256,7 +1256,7 @@ const styles = StyleSheet.create({
   errorBannerText: {
     fontSize: typography.sizes.xs + 1,
     fontWeight: typography.weights.semibold,
-    color: '#92400E',
+    color: colors.status.warning,
     flex: 1,
     lineHeight: 18,
   },
@@ -1779,6 +1779,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     width: '100%',
     maxWidth: 500,
+    maxHeight: '90%',
     overflow: 'hidden',
     ...shadows.lg,
   },
@@ -1829,6 +1830,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.surfaceSubtle,
     borderWidth: 1,
     borderColor: colors.neutral.border,
+    minHeight: 36,
+    justifyContent: 'center',
   },
   catChipActive: {
     backgroundColor: colors.brand.primary,
@@ -1854,7 +1857,7 @@ const styles = StyleSheet.create({
   },
   modalNoticeText: {
     fontSize: 11,
-    color: colors.brand.navyLight,
+    color: colors.brand.primary,
     flex: 1,
   },
   modalActions: {

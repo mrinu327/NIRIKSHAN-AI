@@ -160,7 +160,7 @@ export const MorePlaceholderScreen: React.FC = () => {
               onPress={() => navigation.navigate('Inspections')}
               activeOpacity={0.75}
             >
-              <View style={[styles.shortcutIconBox, { backgroundColor: '#EFF6FF' }]}>
+              <View style={[styles.shortcutIconBox, { backgroundColor: colors.brand.primaryLight }]}>
                 <Ionicons name="clipboard-outline" size={18} color={colors.brand.primary} />
               </View>
               <View style={styles.shortcutContent}>
@@ -177,7 +177,7 @@ export const MorePlaceholderScreen: React.FC = () => {
               onPress={() => navigation.navigate('Alerts')}
               activeOpacity={0.75}
             >
-              <View style={[styles.shortcutIconBox, { backgroundColor: '#FEF2F2' }]}>
+              <View style={[styles.shortcutIconBox, { backgroundColor: colors.status.highPriorityLight }]}>
                 <Ionicons name="alert-circle-outline" size={18} color={colors.status.highPriority} />
               </View>
               <View style={styles.shortcutContent}>
@@ -194,7 +194,7 @@ export const MorePlaceholderScreen: React.FC = () => {
               onPress={() => navigation.navigate('Monitoring')}
               activeOpacity={0.75}
             >
-              <View style={[styles.shortcutIconBox, { backgroundColor: '#F0FDF4' }]}>
+              <View style={[styles.shortcutIconBox, { backgroundColor: colors.status.normalLight }]}>
                 <Ionicons name="business-outline" size={18} color={colors.status.normal} />
               </View>
               <View style={styles.shortcutContent}>
@@ -391,8 +391,8 @@ const styles = StyleSheet.create({
   disclaimerBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
     borderWidth: 1,
     borderRadius: borderRadius.sm,
     padding: spacing.xs + 2,
@@ -529,9 +529,9 @@ const styles = StyleSheet.create({
   resetNoticeBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: colors.status.normalLight,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: colors.status.normalBorder,
     borderRadius: borderRadius.sm,
     padding: spacing.sm,
     marginBottom: spacing.md,
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
   },
   resetNoticeText: {
     fontSize: typography.sizes.xs,
-    color: '#065F46',
+    color: colors.status.normal,
     fontWeight: typography.weights.medium,
     flex: 1,
   },
@@ -566,6 +566,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.sm,
     gap: 6,
+    minHeight: 44,
     ...shadows.xs,
   },
   roleSwitchBtnText: {

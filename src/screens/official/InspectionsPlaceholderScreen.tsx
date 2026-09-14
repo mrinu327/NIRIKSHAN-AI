@@ -1022,7 +1022,7 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
             {/* Modal Header */}
             <View style={styles.modalHeader}>
               <View style={styles.modalHeaderLeft}>
-                <View style={[styles.modalIconCircle, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
+                <View style={[styles.modalIconCircle, { backgroundColor: colors.brand.primaryLight, borderColor: colors.brand.primary }]}>
                   <Ionicons name="document-text" size={20} color={colors.brand.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -1138,15 +1138,15 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
                           <View style={styles.dossierSection}>
                             <Text style={styles.dossierSectionTitle}>Checklist Verification Summary</Text>
                             <View style={styles.checklistSummaryRow}>
-                              <View style={[styles.summaryStatCard, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
+                              <View style={[styles.summaryStatCard, { backgroundColor: colors.status.normalLight, borderColor: colors.status.normalBorder }]}>
                                 <Text style={[styles.summaryStatVal, { color: colors.status.normal }]}>{verifiedCount}</Text>
                                 <Text style={styles.summaryStatLabel}>Verified</Text>
                               </View>
-                              <View style={[styles.summaryStatCard, { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}>
+                              <View style={[styles.summaryStatCard, { backgroundColor: colors.status.warningLight, borderColor: colors.status.warningBorder }]}>
                                 <Text style={[styles.summaryStatVal, { color: colors.status.warning }]}>{attentionCount}</Text>
                                 <Text style={styles.summaryStatLabel}>Needs Attention</Text>
                               </View>
-                              <View style={[styles.summaryStatCard, { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }]}>
+                              <View style={[styles.summaryStatCard, { backgroundColor: colors.neutral.surfaceSubtle, borderColor: colors.neutral.border }]}>
                                 <Text style={[styles.summaryStatVal, { color: colors.text.muted }]}>{naCount}</Text>
                                 <Text style={styles.summaryStatLabel}>N/A</Text>
                               </View>
@@ -1166,17 +1166,17 @@ export const InspectionsPlaceholderScreen: React.FC = () => {
                                   <View
                                     style={[
                                       styles.dossierStatusBadge,
-                                      item.status === 'Verified' && { backgroundColor: '#DCFCE7' },
-                                      item.status === 'Needs Attention' && { backgroundColor: '#FEF3C7' },
-                                      item.status === 'Not Applicable' && { backgroundColor: '#F1F5F9' },
+                                      item.status === 'Verified' && { backgroundColor: colors.status.normalLight },
+                                      item.status === 'Needs Attention' && { backgroundColor: colors.status.warningLight },
+                                      item.status === 'Not Applicable' && { backgroundColor: colors.neutral.surfaceSubtle },
                                     ]}
                                   >
                                     <Text
                                       style={[
                                         styles.dossierStatusText,
-                                        item.status === 'Verified' && { color: '#166534' },
-                                        item.status === 'Needs Attention' && { color: '#92400E' },
-                                        item.status === 'Not Applicable' && { color: '#475569' },
+                                        item.status === 'Verified' && { color: colors.status.normal },
+                                        item.status === 'Needs Attention' && { color: colors.status.warning },
+                                        item.status === 'Not Applicable' && { color: colors.text.secondary },
                                       ]}
                                     >
                                       {item.status}
@@ -1311,8 +1311,8 @@ const styles = StyleSheet.create({
   liveTelemetryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(30, 142, 90, 0.18)',
-    borderColor: 'rgba(30, 142, 90, 0.5)',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
     borderWidth: 1,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
@@ -1322,11 +1322,11 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 3.5,
-    backgroundColor: '#34D399',
+    backgroundColor: colors.status.normal,
     marginRight: 6,
   },
   liveTelemetryText: {
-    color: '#D1FAE5',
+    color: colors.status.normal,
     fontSize: 10,
     fontWeight: typography.weights.bold,
     letterSpacing: 0.6,
@@ -1335,7 +1335,9 @@ const styles = StyleSheet.create({
   // Segmented view switcher (Active vs Archive)
   segmentToggleContainer: {
     flexDirection: 'row',
-    backgroundColor: '#E2E8F0',
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: colors.neutral.border,
     borderRadius: borderRadius.md,
     padding: 4,
     marginBottom: spacing.base,
@@ -1415,7 +1417,7 @@ const styles = StyleSheet.create({
 
   // Dossier geofence card
   dossierGeofenceCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.neutral.surfaceSubtle,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: colors.neutral.border,
@@ -1501,7 +1503,7 @@ const styles = StyleSheet.create({
     ...shadows.xs,
   },
   cardSurprise: {
-    backgroundColor: '#FFFDFD',
+    backgroundColor: colors.neutral.surface,
   },
 
   cardHeaderRow: {
@@ -1622,7 +1624,7 @@ const styles = StyleSheet.create({
 
   // Officer Box
   officerBox: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.neutral.surfaceSubtle,
     borderColor: colors.neutral.border,
     borderWidth: 1,
     borderRadius: borderRadius.sm,
@@ -1764,7 +1766,7 @@ const styles = StyleSheet.create({
   triggerContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.neutral.surfaceSubtle,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
     borderColor: colors.neutral.border,
@@ -1980,9 +1982,9 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.brand.primaryLight,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: colors.brand.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2033,7 +2035,7 @@ const styles = StyleSheet.create({
   triggerAlertBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.brand.primaryLight,
     borderRadius: borderRadius.xs,
     padding: spacing.xs + 2,
     marginTop: spacing.xs,
@@ -2041,7 +2043,7 @@ const styles = StyleSheet.create({
   },
   triggerAlertText: {
     fontSize: 11,
-    color: colors.brand.navyLight,
+    color: colors.brand.primary,
     flex: 1,
   },
   poolSection: {
@@ -2088,7 +2090,7 @@ const styles = StyleSheet.create({
   },
   inspectorItemSelected: {
     borderColor: colors.status.normal,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: colors.status.normalLight,
   },
   inspectorInfoLeft: {
     flexDirection: 'row',
@@ -2128,8 +2130,8 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   activeTag: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -2154,8 +2156,8 @@ const styles = StyleSheet.create({
     color: colors.text.muted,
   },
   resultBox: {
-    backgroundColor: '#F8FAFC',
-    borderColor: '#E2E8F0',
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderColor: colors.neutral.border,
     borderWidth: 1,
     borderRadius: borderRadius.md,
     padding: spacing.md,
@@ -2204,8 +2206,8 @@ const styles = StyleSheet.create({
   explainabilityBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.brand.primary,
     borderWidth: 1,
     borderRadius: borderRadius.xs,
     padding: spacing.sm,
@@ -2214,7 +2216,7 @@ const styles = StyleSheet.create({
   },
   explainabilityText: {
     fontSize: 11,
-    color: colors.brand.navyLight,
+    color: colors.brand.primary,
     lineHeight: 16,
     flex: 1,
   },
@@ -2267,9 +2269,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: colors.status.normalLight,
     borderWidth: 1,
-    borderColor: '#BBF7D0',
+    borderColor: colors.status.normalBorder,
     padding: spacing.xs + 2,
     borderRadius: borderRadius.xs,
     marginTop: spacing.xs,
@@ -2277,7 +2279,7 @@ const styles = StyleSheet.create({
   submissionNoticeText: {
     fontSize: 11,
     fontWeight: typography.weights.semibold,
-    color: '#15803D',
+    color: colors.status.normal,
   },
   pendingReportBox: {
     alignItems: 'center',
@@ -2407,7 +2409,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: typography.weights.bold,
     color: colors.brand.primary,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: borderRadius.full,
@@ -2427,7 +2429,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.brand.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2451,17 +2453,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.status.warningLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: borderRadius.xs,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: colors.status.warningBorder,
   },
   gpsBadgeText: {
     fontSize: 9,
     fontWeight: typography.weights.bold,
-    color: '#92400E',
+    color: colors.status.warning,
   },
   noEvidenceText: {
     fontSize: typography.sizes.xs,

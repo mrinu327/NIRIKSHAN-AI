@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StyleProp, ViewStyle, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
@@ -134,6 +134,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   ministryText: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     color: '#D0D5DD',
@@ -144,13 +145,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.18)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     paddingHorizontal: spacing.sm + 2,
-    paddingVertical: 4,
+    paddingVertical: 7,
     borderRadius: borderRadius.sm,
-    minHeight: 28,
+    minHeight: 38,
+    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as any) : {}),
   },
   switchText: {
+    fontFamily: typography.fontFamily,
     color: colors.text.inverse,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.medium,
@@ -159,28 +162,31 @@ const styles = StyleSheet.create({
   mainRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     marginTop: spacing.xs,
     flexWrap: 'wrap',
-    gap: 6,
+    gap: 8,
   },
   titleContainer: {
     flex: 1,
+    minWidth: 160,
   },
   title: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.lg + 1,
     fontWeight: typography.weights.bold,
     color: colors.text.inverse,
     letterSpacing: -0.2,
   },
   subtitle: {
+    fontFamily: typography.fontFamily,
     fontSize: typography.sizes.xs,
     color: '#CBD5E1',
     marginTop: 2,
   },
   roleBadge: {
-    backgroundColor: 'rgba(42, 92, 224, 0.25)',
-    borderColor: 'rgba(42, 92, 224, 0.6)',
+    backgroundColor: 'rgba(126, 143, 122, 0.25)',
+    borderColor: 'rgba(126, 143, 122, 0.6)',
     borderWidth: 1,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
@@ -188,7 +194,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   roleBadgeText: {
-    color: '#BDD1F7',
+    fontFamily: typography.fontFamily,
+    color: '#E8EFE6',
     fontSize: 10,
     fontWeight: typography.weights.semibold,
     letterSpacing: 0.3,

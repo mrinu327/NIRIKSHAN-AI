@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.surface,
     borderColor: colors.neutral.border,
     borderWidth: 1,
-    minHeight: 38,
+    minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
     ...shadows.xs,

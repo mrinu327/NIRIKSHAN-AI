@@ -4,23 +4,23 @@
  */
 
 export const colors = {
-  primary: '#123B5D',      // Deep Government Navy
-  secondary: '#1E6F8C',    // Slate Teal
-  success: '#2E7D32',      // Forest Verified Green
-  warning: '#ED8B00',      // Amber Attention
-  danger: '#C62828',       // Crimson High Risk
-  background: '#F5F7FA',   // Off-white Slate
-  surface: '#FFFFFF',      // Card White
-  surfaceMuted: '#F8FAFC',
-  border: '#E2E8F0',       // Subtle border
-  borderStrong: '#CBD5E1',
-  text: '#0F172A',         // Slate 900
-  textMuted: '#64748B',    // Slate 500
-  textLight: '#94A3B8',
-  white: '#FFFFFF',
-  black: '#000000',
-  demoBadgeBg: '#FEF3C7',
-  demoBadgeText: '#92400E',
+  primary: '#4D6331',      // Olive
+  secondary: '#7E8F7A',    // Sage
+  success: '#2D6A4F',      // Forest Fern
+  warning: '#B87320',      // Warm Ochre
+  danger: '#9E3B2B',       // Terracotta Rust
+  background: '#F7F5F0',   // Parchment
+  surface: '#F3EFE8',      // Sand Light
+  surfaceMuted: '#ECE7DE', // Sand
+  border: '#DCD6C8',       // Sand Border
+  borderStrong: '#C2BAA8',
+  text: '#1F1B16',         // Deep Bark
+  textMuted: '#7D7567',    // Slate Bark
+  textLight: '#A8A092',
+  white: '#FAF9F5',        // Parchment White
+  black: '#1F1B16',        // Deep Bark
+  demoBadgeBg: '#FCF6EC',  // Soft Ochre
+  demoBadgeText: '#87510E',
 };
 
 export const typography = {

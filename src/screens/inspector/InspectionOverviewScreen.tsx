@@ -977,12 +977,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(42, 92, 224, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   switchText: {
     color: colors.text.inverse,
@@ -1357,6 +1357,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand.primary,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
+    minHeight: 44,
     borderRadius: borderRadius.md,
   },
   gatekeepActionBtnText: {
@@ -1373,6 +1374,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.status.highPriorityLight,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm + 2,
+    minHeight: 44,
     borderRadius: borderRadius.md,
   },
   overrideTriggerBtnText: {
@@ -1395,6 +1397,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand.primaryLight,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm + 2,
+    minHeight: 44,
     borderRadius: borderRadius.md,
   },
   facialTriggerBtnText: {
@@ -1444,6 +1447,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.neutral.surface,
     width: '100%',
     maxWidth: 460,
+    maxHeight: '90%',
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     ...shadows.md,
@@ -1531,6 +1535,7 @@ const styles = StyleSheet.create({
     borderColor: colors.neutral.border,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 44,
   },
   modalCancelBtnText: {
     fontSize: typography.sizes.xs + 1,
@@ -1540,10 +1545,12 @@ const styles = StyleSheet.create({
   modalSubmitBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.status.highPriority,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.base,
     borderRadius: borderRadius.md,
+    minHeight: 44,
   },
   modalSubmitBtnText: {
     fontSize: typography.sizes.xs + 1,

@@ -202,7 +202,7 @@ export const SurpriseVideoCallModal: React.FC<SurpriseVideoCallModalProps> = ({
               title="Cancel"
               onPress={onClose}
               disabled={submitting}
-              style={{ marginTop: 8, minHeight: 42 }}
+              style={{ marginTop: 8, minHeight: 44 }}
             />
           </View>
         </View>
@@ -217,12 +217,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.base,
+    padding: spacing.sm,
   },
   modalCard: {
     width: '100%',
     maxWidth: 540,
-    maxHeight: '90%',
+    maxHeight: '94%',
     backgroundColor: colors.neutral.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 1,

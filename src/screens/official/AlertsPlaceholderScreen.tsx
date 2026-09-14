@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: colors.brand.primaryLight,
-    borderColor: 'rgba(42, 92, 224, 0.22)',
+    borderColor: colors.brand.accent,
     borderWidth: 1,
     borderRadius: borderRadius.md,
     padding: spacing.md,

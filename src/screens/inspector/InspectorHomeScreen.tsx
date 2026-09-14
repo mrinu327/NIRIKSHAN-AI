@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxxl + 24,
+    paddingBottom: 90,
   },
 
   /* Active Officer Identity Banner */
@@ -760,8 +760,8 @@ const styles = StyleSheet.create({
   liveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.brand.accent,
     borderWidth: 1,
     paddingHorizontal: 7,
     paddingVertical: 3,

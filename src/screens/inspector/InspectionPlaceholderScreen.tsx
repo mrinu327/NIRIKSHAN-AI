@@ -136,7 +136,7 @@ export const InspectionPlaceholderScreen: React.FC = () => {
         </View>
 
         <View style={styles.noticeBox}>
-          <Ionicons name="shield-checkmark-outline" size={18} color={colors.brand.navyLight} />
+          <Ionicons name="shield-checkmark-outline" size={18} color={colors.brand.primary} />
           <Text style={styles.noticeText}>
             Interactive checklist and camera capture are verified per MoSJE field operating rules.
           </Text>
@@ -250,18 +250,19 @@ const styles = StyleSheet.create({
   noticeBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.brand.primaryLight,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#D0DDF7',
+    borderColor: colors.brand.primary,
     padding: spacing.md,
     marginTop: spacing.lg,
   },
   noticeText: {
     fontSize: typography.sizes.xs,
-    color: colors.brand.navyLight,
+    color: colors.brand.primary,
     marginLeft: spacing.sm,
     flex: 1,
     lineHeight: 17,
+    fontWeight: typography.weights.medium,
   },
 });

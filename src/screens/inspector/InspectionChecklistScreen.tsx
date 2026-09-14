@@ -78,22 +78,22 @@ const STATUS_OPTIONS: {
   {
     label: 'Verified',
     color: colors.status.normal,
-    bgColor: '#F0FDF4',
+    bgColor: colors.status.normalLight,
     borderColor: colors.status.normal,
     icon: 'checkmark-circle',
   },
   {
     label: 'Needs Attention',
     color: colors.status.warning,
-    bgColor: '#FFFBEB',
+    bgColor: colors.status.warningLight,
     borderColor: colors.status.warning,
     icon: 'alert-circle',
   },
   {
     label: 'Not Applicable',
-    color: '#475569',
-    bgColor: '#F1F5F9',
-    borderColor: '#94A3B8',
+    color: colors.text.secondary,
+    bgColor: colors.neutral.surfaceSubtle,
+    borderColor: colors.neutral.border,
     icon: 'remove-circle-outline',
   },
 ];
@@ -640,12 +640,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(42, 92, 224, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.4)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   switchText: {
     color: colors.text.inverse,
@@ -804,8 +804,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   categoryBadgeComplete: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
   },
   categoryBadgeText: {
     fontSize: 11,
@@ -828,16 +828,16 @@ const styles = StyleSheet.create({
     padding: spacing.sm + 4,
   },
   itemBoxVerified: {
-    borderColor: '#86EFAC',
-    backgroundColor: '#FAFDFB',
+    borderColor: colors.status.normalBorder,
+    backgroundColor: colors.status.normalLight,
   },
   itemBoxAttention: {
     borderColor: colors.status.warningBorder,
-    backgroundColor: '#FFFDF9',
+    backgroundColor: colors.status.warningLight,
   },
   itemBoxNA: {
-    borderColor: '#CBD5E1',
-    backgroundColor: '#F8FAFC',
+    borderColor: colors.neutral.border,
+    backgroundColor: colors.neutral.surfaceSubtle,
   },
   itemHeaderRow: {
     flexDirection: 'row',
@@ -857,16 +857,16 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   itemNumBadgeVerified: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#86EFAC',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
   },
   itemNumBadgeAttention: {
-    backgroundColor: '#FFFBEB',
+    backgroundColor: colors.status.warningLight,
     borderColor: colors.status.warningBorder,
   },
   itemNumBadgeNA: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#CBD5E1',
+    backgroundColor: colors.neutral.surfaceSubtle,
+    borderColor: colors.neutral.border,
   },
   itemNumText: {
     fontSize: 10,

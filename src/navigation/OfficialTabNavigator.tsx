@@ -110,23 +110,27 @@ export const OfficialTabNavigator: React.FC = () => {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: colors.neutral.surface,
+    backgroundColor: Platform.OS === 'web' ? 'rgba(255, 255, 255, 0.94)' : colors.neutral.surface,
     borderTopColor: colors.neutral.border,
     borderTopWidth: 1,
-    height: Platform.OS === 'ios' ? 84 : 60,
+    height: Platform.OS === 'ios' ? 84 : 62,
     paddingTop: 4,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 6,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 8,
+    ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)' } as any) : {}),
   },
   tabBarItem: {
     paddingVertical: 2,
     paddingHorizontal: 0,
+    minHeight: 44,
   },
   tabBarLabel: {
+    fontFamily: typography.fontFamily,
     fontSize: 10,
     fontWeight: typography.weights.semibold,
     marginTop: 1,
   },
   badge: {
+    fontFamily: typography.fontFamily,
     backgroundColor: colors.status.highPriority,
     fontSize: 9,
     fontWeight: typography.weights.bold,

@@ -482,8 +482,8 @@ export const SchemeDetailsScreen: React.FC = () => {
           <View style={styles.sectionCard}>
             <View style={styles.insightsHeader}>
               <View style={styles.aiBadge}>
-                <Ionicons name="sparkles" size={14} color="#7C3AED" />
-                <Text style={styles.aiBadgeText}>NIRIKSHAN AI OBSERVATIONS</Text>
+                <Ionicons name="analytics-outline" size={14} color={colors.brand.primary} />
+                <Text style={styles.aiBadgeText}>NIRIKSHAN OBSERVATIONS & SIGNALS</Text>
               </View>
             </View>
 
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: colors.brand.primary,
-    backgroundColor: 'rgba(42, 92, 224, 0.08)',
+    backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: borderRadius.xs,
@@ -694,11 +694,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm,
-    backgroundColor: 'rgba(42, 92, 224, 0.04)',
+    backgroundColor: colors.brand.primaryLight,
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.15)',
+    borderColor: colors.brand.accent,
   },
   metaIconWrap: {
     width: 28,
@@ -833,7 +833,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: colors.brand.primary,
-    backgroundColor: 'rgba(42, 92, 224, 0.08)',
+    backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: borderRadius.xs,
@@ -984,7 +984,7 @@ const styles = StyleSheet.create({
   aiBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#7C3AED',
+    color: colors.brand.primary,
   },
   insightsList: {
     gap: spacing.sm,

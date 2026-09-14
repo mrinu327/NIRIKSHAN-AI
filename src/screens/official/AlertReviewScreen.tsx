@@ -604,17 +604,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   roleBadge: {
-    backgroundColor: 'rgba(42, 92, 224, 0.25)',
-    borderColor: 'rgba(42, 92, 224, 0.6)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderWidth: 1,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: borderRadius.sm,
+    borderRadius: borderRadius.full,
   },
   roleBadgeText: {
-    color: '#BDD1F7',
-    fontSize: 10,
-    fontWeight: typography.weights.semibold,
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
     letterSpacing: 0.3,
   },
   switchButton: {
@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
     maxWidth: 960,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl + 24,
+    paddingBottom: 90,
   },
 
   /* Feedback Banner */
@@ -833,9 +833,9 @@ const styles = StyleSheet.create({
   varianceSummaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.status.highPriorityLight,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: colors.status.highPriorityBorder,
     borderRadius: borderRadius.md,
     padding: spacing.md,
     marginTop: spacing.md,
@@ -844,7 +844,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: 'rgba(158, 59, 43, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.sm,
@@ -866,11 +866,11 @@ const styles = StyleSheet.create({
 
   /* Section 3: Protocol Safety Card */
   policySafetyCard: {
-    backgroundColor: '#EFF6FF',
+    backgroundColor: colors.brand.primaryLight,
     borderRadius: borderRadius.lg,
     padding: spacing.base,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: colors.brand.accent,
     marginBottom: spacing.md,
   },
   policyHeader: {
@@ -888,13 +888,13 @@ const styles = StyleSheet.create({
   policyBody: {
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
-    color: colors.brand.navy,
+    color: colors.text.primary,
     lineHeight: 20,
     marginTop: 4,
   },
   safetyDivider: {
     height: 1,
-    backgroundColor: '#DBEAFE',
+    backgroundColor: colors.neutral.border,
     marginVertical: spacing.sm,
   },
   safetyNote: {

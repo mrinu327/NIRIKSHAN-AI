@@ -38,27 +38,27 @@ export const DataSourceBadge: React.FC<DataSourceBadgeProps> = ({
   let label = 'UNVERIFIED';
 
   if (isOfficial) {
-    badgeColor = colors.status.normal; // #1E8E5A
-    bgColor = 'rgba(30, 142, 90, 0.1)';
-    borderColor = 'rgba(30, 142, 90, 0.3)';
+    badgeColor = colors.status.normal; // Forest Fern #2D6A4F
+    bgColor = colors.status.normalLight;
+    borderColor = colors.status.normalBorder;
     iconName = 'shield-checkmark';
     label = 'OFFICIAL • VERIFIED';
   } else if (isPublic) {
-    badgeColor = colors.brand.primary; // #2A5CE0
-    bgColor = 'rgba(42, 92, 224, 0.1)';
-    borderColor = 'rgba(42, 92, 224, 0.3)';
+    badgeColor = colors.brand.primary; // Olive #4D6331
+    bgColor = colors.brand.primaryLight;
+    borderColor = colors.status.infoBorder;
     iconName = 'globe-outline';
     label = 'PUBLIC • VERIFIED';
   } else if (isDemo) {
-    badgeColor = colors.status.warning; // #D98C1E
-    bgColor = 'rgba(217, 140, 30, 0.1)';
-    borderColor = 'rgba(217, 140, 30, 0.3)';
+    badgeColor = colors.status.warning; // Warm Ochre #B87320
+    bgColor = colors.status.warningLight;
+    borderColor = colors.status.warningBorder;
     iconName = 'flask-outline';
     label = 'DEMO DATA';
   } else if (isSimulated) {
-    badgeColor = '#7C3AED';
-    bgColor = 'rgba(124, 58, 237, 0.1)';
-    borderColor = 'rgba(124, 58, 237, 0.3)';
+    badgeColor = colors.brand.accent; // Sage #7E8F7A
+    bgColor = colors.palette.sageLight;
+    borderColor = colors.palette.sageBorder;
     iconName = 'hardware-chip-outline';
     label = 'SIMULATED';
   }

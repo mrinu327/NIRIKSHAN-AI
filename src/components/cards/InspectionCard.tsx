@@ -131,7 +131,7 @@ export const InspectionCard: React.FC<InspectionCardProps> = ({
 
             {inspection.assignmentMethod && (
               <View style={styles.methodTag}>
-                <Ionicons name="sparkles-outline" size={11} color={colors.brand.primary} style={{ marginRight: 3 }} />
+                <Ionicons name="shield-checkmark-outline" size={11} color={colors.brand.primary} style={{ marginRight: 3 }} />
                 <Text style={styles.methodTagText}>{inspection.assignmentMethod}</Text>
               </View>
             )}

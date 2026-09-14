@@ -373,9 +373,9 @@ const styles = StyleSheet.create({
   resetNoticeBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: colors.status.normalLight,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: colors.status.normalBorder,
     borderRadius: borderRadius.sm,
     padding: spacing.sm,
     marginBottom: spacing.md,
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   },
   resetNoticeText: {
     fontSize: typography.sizes.xs,
-    color: '#065F46',
+    color: colors.status.normal,
     fontWeight: typography.weights.medium,
     flex: 1,
   },
@@ -410,6 +410,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm + 2,
     paddingHorizontal: spacing.sm,
     gap: 6,
+    minHeight: 44,
     ...shadows.xs,
   },
   roleSwitchBtnText: {

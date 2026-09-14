@@ -51,7 +51,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({
 
   const animatedBgColor = animValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [colors.neutral.surface, '#EEF3FD'],
+    outputRange: [colors.neutral.surface, colors.brand.primaryLight],
   });
 
   const radioScale = animValue.interpolate({

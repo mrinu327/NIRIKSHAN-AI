@@ -2,82 +2,108 @@
  * Design System - Color Palette
  * SIH26095 | Ministry of Social Justice & Empowerment (MoSJE)
  *
- * Polished MoSJE government e-governance platform palette:
- * Authoritative, trustworthy, calm, precise.
+ * NIRIKSHAN NATURAL PALETTE:
+ * PARCHMENT   - Primary light background, large neutral surfaces
+ * SAND        - Secondary surfaces, cards, sections, inputs
+ * SAGE        - Soft accent, selected/secondary indicator states
+ * OLIVE       - Primary brand/action color, primary buttons, active navigation
+ * OLIVEWOOD   - Deeper supporting accent, stronger headings/navigation emphasis
+ * BARK        - Dark text, strong contrast, grounding dark elements
  *
- * Master Palette:
- * Navy #0B1220 | Blue #2A5CE0 | Slate #5B6472 | BG #F7F8FA
- * White #FFFFFF | Amber #D98C1E | Red #C4402C | Green #1E8E5A
+ * Restrained semantic colors: Terracotta Rust, Warm Ochre, Forest Fern.
  */
 
 export const colors = {
-  // Brand / MoSJE Navy & Signal Blue
-  brand: {
-    navyDark: '#0B1220',     // Master Navy
-    navy: '#0B1220',         // Primary dark surface / headers
-    navyLight: '#152238',    // Deep slate-navy surface
-    primary: '#2A5CE0',      // Signal Blue (primary interactive)
-    primaryHover: '#1E47B8', // Darker interactive state
-    primaryLight: '#EEF3FD', // Soft tint for highlights / active items
-    accent: '#2A5CE0',       // Accent blue
+  // Core Natural Palette Tokens
+  palette: {
+    parchment: '#F7F5F0',
+    parchmentSubtle: '#FAF9F5',
+    parchmentDark: '#EFECE4',
+    sand: '#ECE7DE',
+    sandLight: '#F3EFE8',
+    sandBorder: '#DCD6C8',
+    sage: '#7E8F7A',
+    sageLight: '#EFF3EE',
+    sageBorder: '#C2D1C0',
+    olive: '#4D6331',
+    oliveDark: '#3E4F26',
+    oliveLight: '#EDF2E8',
+    olivewood: '#283618',
+    olivewoodDark: '#202D13',
+    bark: '#1F1B16',
+    barkSecondary: '#524C42',
+    barkMuted: '#7D7567',
   },
 
-  // Semantic Status Colors
+  // Brand / Authority Hierarchy
+  brand: {
+    navyDark: '#202D13',      // Olivewood Deep (dark grounding surface)
+    navy: '#283618',          // Olivewood (authoritative header & top bar)
+    navyLight: '#354522',     // Olivewood Slate
+    primary: '#4D6331',       // Olive (primary interactive action color)
+    primaryHover: '#3E4F26',  // Deep Olive (hover / active press)
+    primaryLight: '#EDF2E8',  // Soft Olive/Sage tint for active tags
+    accent: '#7E8F7A',        // Sage (soft accent & secondary indicators)
+  },
+
+  // Restrained Semantic Status Colors
   status: {
-    normal: '#1E8E5A',       // Master Green (Compliant, Passed, Active)
-    normalLight: '#EBF6F1',  // Soft tint
-    normalBorder: '#B5E3CE',
+    normal: '#2D6A4F',        // Forest Fern (Compliant, Passed, Verified)
+    normalLight: '#EFF7F1',   // Soft fern tint
+    normalBorder: '#B7DDC2',
 
-    warning: '#D98C1E',      // Master Amber (Action required, Review pending)
-    warningLight: '#FDF6EC', // Soft tint
-    warningBorder: '#F6D7A7',
+    warning: '#B87320',       // Warm Ochre (Action required, Review pending)
+    warningLight: '#FCF6EC',  // Soft ochre tint
+    warningBorder: '#F1D6A7',
 
-    highPriority: '#C4402C', // Master Red (Critical, Surprise, Discrepancy)
-    highPriorityLight: '#FBECE9', // Soft tint
-    highPriorityBorder: '#F3BCB4',
+    highPriority: '#9E3B2B',  // Terracotta Rust (Critical, Surprise, Discrepancy)
+    highPriorityLight: '#FBF0EE', // Soft rust tint
+    highPriorityBorder: '#E8BBB3',
 
-    info: '#2A5CE0',         // Signal Blue (Assigned, Scheduled, Processing)
-    infoLight: '#EEF3FD',    // Soft tint
-    infoBorder: '#BDD1F7',
+    info: '#4A6052',          // Slate Olive (Assigned, Scheduled, Processing)
+    infoLight: '#EEF4F0',     // Soft slate tint
+    infoBorder: '#C6DAD0',
 
-    offline: '#5B6472',      // Master Slate (Inactive, System Neutral)
-    offlineLight: '#F1F3F5', // Soft tint
-    offlineBorder: '#D3D7DC',
+    offline: '#7D7567',       // Slate Bark (Inactive, Neutral telemetry)
+    offlineLight: '#F4F2EC',  // Soft bark tint
+    offlineBorder: '#DDD8CC',
   },
 
   // Priority Colors
   priority: {
-    high: '#C4402C',         // Master Red
-    medium: '#D98C1E',       // Master Amber
-    low: '#2A5CE0',          // Signal Blue
-    normal: '#1E8E5A',       // Master Green
+    high: '#9E3B2B',          // Terracotta Rust
+    medium: '#B87320',        // Warm Ochre
+    low: '#4A6052',           // Slate Olive
+    normal: '#2D6A4F',        // Forest Fern
   },
 
-  // Neutral Grayscale & Surfaces
+  // Neutral Grayscale & Surfaces (Parchment & Sand)
   neutral: {
-    background: '#F7F8FA',   // Master BG
-    surface: '#FFFFFF',      // Master White card surface
-    surfaceElevated: '#FFFFFF',
-    surfaceSubtle: '#F0F2F5', // Neutral tinted background for items/badges
-    border: '#E3E6EB',       // Quiet card & element borders
-    borderStrong: '#D0D5DD', // Input / focused borders
-    divider: '#E8EAEF',      // Subtle dividers
+    background: '#F7F5F0',    // Parchment (primary light background)
+    surface: '#F3EFE8',       // Sand Light (elevated card surface)
+    surfaceElevated: '#FAF9F5', // Soft Parchment (floating modal cards)
+    surfaceSubtle: '#ECE7DE', // Sand (containers, inputs, chips)
+    border: '#DCD6C8',        // Sand Border (card & element boundaries)
+    borderStrong: '#C2BAA8',  // Deep Sand Border (input active borders)
+    divider: '#E4DEC8',       // Sand Divider (horizontal separators)
   },
 
-  // Text Typography Colors
+  // Text Typography Colors (Bark)
   text: {
-    primary: '#0B1220',      // Master Navy (high-contrast, authoritative)
-    secondary: '#333E4F',    // Deep slate for high-readability body
-    muted: '#5B6472',        // Master Slate for metadata & secondary info
-    disabled: '#9AA2AF',     // Disabled text
-    inverse: '#FFFFFF',      // Pure white for dark surfaces / buttons
-    brand: '#2A5CE0',        // Signal Blue for brand links
+    primary: '#1F1B16',       // Deep Bark (high-contrast, grounding primary)
+    secondary: '#524C42',     // Medium Bark (readable body & metadata)
+    muted: '#7D7567',         // Slate Bark (subordinate captions & notes)
+    disabled: '#A8A092',      // Disabled text
+    inverse: '#FAF9F5',       // Soft Parchment White (text on dark surfaces)
+    brand: '#4D6331',         // Olive (brand links & active indicators)
   },
 
-  // Common UI states
+  // Common UI states & Selective Glassmorphism
   ui: {
-    backdrop: 'rgba(11, 18, 32, 0.65)',
-    shadow: '#0B1220',
+    backdrop: 'rgba(31, 27, 22, 0.65)',
+    glassBg: 'rgba(243, 239, 232, 0.86)',
+    glassBorder: 'rgba(220, 214, 200, 0.75)',
+    shadow: '#1F1B16',
   },
 } as const;
 

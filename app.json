@@ -1,6 +1,7 @@
 {
   "expo": {
-    "name": "SIH26095 - Smart Monitoring",
+    "name": "NIRIKSHAN AI — Centralized Monitoring & Inspection",
+    "description": "DoSJE / MoSJE Centralized Monitoring & Surprise Inspection Platform",
     "slug": "sih26095-monitoring",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#283618",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

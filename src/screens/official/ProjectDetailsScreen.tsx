@@ -922,17 +922,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   roleBadge: {
-    backgroundColor: 'rgba(42, 92, 224, 0.25)',
-    borderColor: 'rgba(42, 92, 224, 0.6)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderWidth: 1,
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
-    borderRadius: borderRadius.sm,
+    borderRadius: borderRadius.full,
   },
   roleBadgeText: {
-    color: '#BDD1F7',
-    fontSize: 10,
-    fontWeight: typography.weights.semibold,
+    color: colors.text.inverse,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
     letterSpacing: 0.3,
   },
   switchButton: {
@@ -990,7 +990,7 @@ const styles = StyleSheet.create({
     maxWidth: 1200,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxl + 20,
+    paddingBottom: 90,
   },
 
   /* Section A: Project Identity Card */
@@ -1329,7 +1329,9 @@ const styles = StyleSheet.create({
   geofenceNotice: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(42, 92, 224, 0.06)',
+    backgroundColor: colors.brand.primaryLight,
+    borderWidth: 1,
+    borderColor: colors.brand.accent,
     padding: spacing.sm,
     borderRadius: borderRadius.sm,
     gap: 6,
@@ -1337,7 +1339,7 @@ const styles = StyleSheet.create({
   },
   geofenceNoticeText: {
     fontSize: 11,
-    color: colors.brand.navyLight,
+    color: colors.brand.navyDark,
     flex: 1,
     lineHeight: 16,
   },

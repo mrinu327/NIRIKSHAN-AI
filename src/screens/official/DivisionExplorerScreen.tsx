@@ -168,7 +168,7 @@ export const DivisionExplorerScreen: React.FC = () => {
             </View>
 
             <View style={styles.statCard}>
-              <View style={[styles.statIconWrap, { backgroundColor: 'rgba(42, 92, 224, 0.1)' }]}>
+              <View style={[styles.statIconWrap, { backgroundColor: colors.brand.primaryLight }]}>
                 <Ionicons name="layers" size={20} color={colors.brand.primary} />
               </View>
               <View>
@@ -178,7 +178,7 @@ export const DivisionExplorerScreen: React.FC = () => {
             </View>
 
             <View style={styles.statCard}>
-              <View style={[styles.statIconWrap, { backgroundColor: 'rgba(30, 142, 90, 0.1)' }]}>
+              <View style={[styles.statIconWrap, { backgroundColor: colors.status.normalLight }]}>
                 <Ionicons name="folder-open" size={20} color={colors.status.normal} />
               </View>
               <View>
@@ -483,11 +483,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   scopeClarificationCard: {
-    backgroundColor: 'rgba(42, 92, 224, 0.05)',
+    backgroundColor: colors.brand.primaryLight,
     borderRadius: borderRadius.md,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.2)',
+    borderColor: colors.brand.accent,
     marginBottom: spacing.base,
   },
   scopeClarificationHeader: {
@@ -522,16 +522,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   scopePillOfficial: {
-    backgroundColor: 'rgba(30, 142, 90, 0.08)',
-    borderColor: 'rgba(30, 142, 90, 0.25)',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
   },
   scopePillAllied: {
-    backgroundColor: 'rgba(42, 92, 224, 0.08)',
-    borderColor: 'rgba(42, 92, 224, 0.25)',
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.brand.accent,
   },
   scopePillDemo: {
-    backgroundColor: 'rgba(217, 140, 30, 0.08)',
-    borderColor: 'rgba(217, 140, 30, 0.25)',
+    backgroundColor: colors.status.warningLight,
+    borderColor: colors.status.warningBorder,
   },
   pillDot: {
     width: 6,
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: borderRadius.sm,
-    backgroundColor: 'rgba(42, 92, 224, 0.1)',
+    backgroundColor: colors.brand.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: colors.brand.primary,
-    backgroundColor: 'rgba(42, 92, 224, 0.08)',
+    backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: borderRadius.xs,
@@ -739,8 +739,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(30, 142, 90, 0.1)',
-    borderColor: 'rgba(30, 142, 90, 0.3)',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
     borderWidth: 1,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -756,8 +756,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(42, 92, 224, 0.1)',
-    borderColor: 'rgba(42, 92, 224, 0.3)',
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.brand.accent,
     borderWidth: 1,
     paddingHorizontal: 6,
     paddingVertical: 2,

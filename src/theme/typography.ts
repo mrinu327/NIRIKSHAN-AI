@@ -3,9 +3,15 @@
  * SIH26095 | MoSJE
  */
 
-import { TextStyle } from 'react-native';
+import { TextStyle, Platform } from 'react-native';
+
+export const fontFamily = Platform.select({
+  web: "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  default: undefined,
+});
 
 export const typography = {
+  fontFamily,
   sizes: {
     xs: 11,
     sm: 12,
@@ -36,51 +42,69 @@ export const typography = {
 
 export const fontPresets: Record<string, TextStyle> = {
   headerTitle: {
+    fontFamily,
     fontSize: typography.sizes.xl,
     fontWeight: typography.weights.bold,
     lineHeight: typography.lineHeights.xl,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
   },
   sectionTitle: {
+    fontFamily,
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.bold,
     lineHeight: typography.lineHeights.lg,
     letterSpacing: -0.2,
   },
   cardTitle: {
+    fontFamily,
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.semibold,
     lineHeight: typography.lineHeights.md,
+    letterSpacing: -0.1,
+  },
+  kpiNumber: {
+    fontFamily,
+    fontSize: 34,
+    fontWeight: typography.weights.bold,
+    lineHeight: 38,
+    letterSpacing: -1,
   },
   body: {
+    fontFamily,
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.regular,
     lineHeight: typography.lineHeights.base,
   },
   bodyMedium: {
+    fontFamily,
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.medium,
     lineHeight: typography.lineHeights.base,
   },
   caption: {
+    fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.regular,
     lineHeight: typography.lineHeights.sm,
   },
   captionMedium: {
+    fontFamily,
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
     lineHeight: typography.lineHeights.sm,
   },
   badge: {
+    fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.semibold,
     lineHeight: typography.lineHeights.xs,
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
   },
   overline: {
+    fontFamily,
     fontSize: typography.sizes.xs,
     fontWeight: typography.weights.bold,
-    letterSpacing: 0.6,
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
   },
 };

@@ -726,16 +726,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardIconBoxOfficial: {
-    backgroundColor: '#EFF6FF',
-    borderColor: '#BFDBFE',
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.brand.accent,
   },
   cardIconBoxInspector: {
-    backgroundColor: '#FFFBEB',
-    borderColor: '#FDE68A',
+    backgroundColor: colors.status.warningLight,
+    borderColor: colors.status.warningBorder,
   },
   cardIconBoxNgo: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#BBF7D0',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
   },
   cardHeaderInfo: {
     flex: 1,
@@ -771,10 +771,10 @@ const styles = StyleSheet.create({
   prototypeDisclaimerBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(42, 92, 224, 0.08)',
+    backgroundColor: colors.brand.primaryLight,
     borderRadius: borderRadius.xs,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.22)',
+    borderColor: colors.brand.accent,
     paddingHorizontal: 8,
     paddingVertical: 7,
     marginTop: spacing.xs,
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand.navyDark,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.25)',
+    borderColor: 'rgba(126, 143, 122, 0.3)',
     height: 220,
     position: 'relative',
     overflow: 'hidden',
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
   calibMark: {
     position: 'absolute',
     fontSize: 13,
-    color: 'rgba(143, 168, 223, 0.35)',
+    color: 'rgba(194, 209, 192, 0.45)',
     fontWeight: 'bold',
   },
   calibTopLeft: {
@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
     left: 24,
     right: 24,
     height: 1,
-    backgroundColor: 'rgba(42, 92, 224, 0.12)',
+    backgroundColor: 'rgba(126, 143, 122, 0.2)',
   },
   schematicAxisVertical: {
     position: 'absolute',
@@ -850,7 +850,7 @@ const styles = StyleSheet.create({
     top: 20,
     bottom: 28,
     width: 1,
-    backgroundColor: 'rgba(42, 92, 224, 0.12)',
+    backgroundColor: 'rgba(126, 143, 122, 0.2)',
   },
   outerConcentricRing: {
     position: 'absolute',
@@ -858,7 +858,7 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 70,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.12)',
+    borderColor: 'rgba(126, 143, 122, 0.2)',
     borderStyle: 'dashed',
     top: 26,
     alignSelf: 'center',
@@ -869,7 +869,7 @@ const styles = StyleSheet.create({
     height: 84,
     borderRadius: 42,
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.22)',
+    borderColor: 'rgba(126, 143, 122, 0.35)',
     top: 54,
     alignSelf: 'center',
   },
@@ -880,7 +880,7 @@ const styles = StyleSheet.create({
     left: '50%',
     marginLeft: -0.75,
     width: 1.5,
-    backgroundColor: 'rgba(42, 92, 224, 0.45)',
+    backgroundColor: 'rgba(126, 143, 122, 0.55)',
   },
   connCenterToLeft: {
     position: 'absolute',
@@ -888,7 +888,7 @@ const styles = StyleSheet.create({
     left: '26%',
     width: 85,
     height: 1.5,
-    backgroundColor: 'rgba(42, 92, 224, 0.35)',
+    backgroundColor: 'rgba(126, 143, 122, 0.4)',
     transform: [{ rotate: '32deg' }],
   },
   connCenterToRight: {
@@ -897,7 +897,7 @@ const styles = StyleSheet.create({
     right: '26%',
     width: 85,
     height: 1.5,
-    backgroundColor: 'rgba(42, 92, 224, 0.35)',
+    backgroundColor: 'rgba(126, 143, 122, 0.4)',
     transform: [{ rotate: '-32deg' }],
   },
   schematicNodeTop: {
@@ -936,9 +936,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(42, 92, 224, 0.2)',
+    backgroundColor: 'rgba(77, 99, 49, 0.25)',
     borderWidth: 1,
-    borderColor: 'rgba(42, 92, 224, 0.45)',
+    borderColor: 'rgba(126, 143, 122, 0.5)',
   },
   schematicShieldBadge: {
     width: 44,
@@ -954,7 +954,7 @@ const styles = StyleSheet.create({
   schematicCenterLabel: {
     fontSize: 10,
     fontWeight: typography.weights.bold,
-    color: '#E2E8F0',
+    color: '#F7F5F0',
     marginTop: 4,
     letterSpacing: 1.2,
   },
@@ -978,7 +978,7 @@ const styles = StyleSheet.create({
   schematicFlowText: {
     fontSize: 9.5,
     fontWeight: typography.weights.bold,
-    color: '#8FA8DF',
+    color: '#C2D1C0',
     letterSpacing: 1.4,
   },
 });

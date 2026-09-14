@@ -205,6 +205,9 @@ export const AlertsPlaceholderScreen: React.FC = () => {
                 <Ionicons name="notifications-off-outline" size={30} color={colors.text.muted} />
               </View>
               <Text style={styles.emptyTitle}>No Pending Alerts</Text>
+              <Text style={styles.emptySubtitle}>
+                All automated discrepancy triggers have been reviewed or dispatched for on-site verification.
+              </Text>
             </View>
           ) : (
             <View style={styles.alertList}>
@@ -250,7 +253,7 @@ const styles = StyleSheet.create({
     maxWidth: 900,
     alignSelf: 'center',
     padding: spacing.base,
-    paddingBottom: spacing.xxxl,
+    paddingBottom: spacing.xxxl + 24,
   },
   alertList: {
     gap: spacing.xs,
@@ -287,6 +290,14 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.semibold,
     color: colors.text.secondary,
     textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: typography.sizes.xs,
+    color: colors.text.muted,
+    textAlign: 'center',
+    maxWidth: 320,
+    lineHeight: 18,
+    marginTop: 6,
   },
 
   // Skeleton Styles

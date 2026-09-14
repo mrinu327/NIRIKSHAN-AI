@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: colors.brand.primary,
-    backgroundColor: 'rgba(42, 92, 224, 0.08)',
+    backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: borderRadius.xs,
@@ -524,16 +524,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   priorityNormal: {
-    backgroundColor: 'rgba(30, 142, 90, 0.1)',
-    borderColor: 'rgba(30, 142, 90, 0.3)',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
   },
   priorityHigh: {
-    backgroundColor: 'rgba(217, 140, 30, 0.1)',
-    borderColor: 'rgba(217, 140, 30, 0.3)',
+    backgroundColor: colors.status.warningLight,
+    borderColor: colors.status.warningBorder,
   },
   priorityCritical: {
-    backgroundColor: 'rgba(196, 64, 44, 0.1)',
-    borderColor: 'rgba(196, 64, 44, 0.3)',
+    backgroundColor: colors.status.highPriorityLight,
+    borderColor: colors.status.highPriorityBorder,
   },
   priorityText: {
     fontSize: 11,
@@ -552,16 +552,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   jurisdictionOfficial: {
-    backgroundColor: 'rgba(30, 142, 90, 0.08)',
-    borderColor: 'rgba(30, 142, 90, 0.3)',
+    backgroundColor: colors.status.normalLight,
+    borderColor: colors.status.normalBorder,
   },
   jurisdictionAllied: {
-    backgroundColor: 'rgba(42, 92, 224, 0.08)',
-    borderColor: 'rgba(42, 92, 224, 0.3)',
+    backgroundColor: colors.brand.primaryLight,
+    borderColor: colors.brand.accent,
   },
   jurisdictionDemo: {
-    backgroundColor: 'rgba(217, 140, 30, 0.08)',
-    borderColor: 'rgba(217, 140, 30, 0.3)',
+    backgroundColor: colors.status.warningLight,
+    borderColor: colors.status.warningBorder,
   },
   jurisdictionHeader: {
     flexDirection: 'row',
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: colors.brand.primary,
-    backgroundColor: 'rgba(42, 92, 224, 0.08)',
+    backgroundColor: colors.brand.primaryLight,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: borderRadius.xs,
